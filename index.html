@@ -3,28 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — TCF Prep</title>
+<title>French Study Buddy — TCF & Phonetic Studio</title>
 
-<!-- Tailwind via CDN: no build step needed, works straight on GitHub Pages -->
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  /* Small custom bits Tailwind's CDN build doesn't cover out of the box */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
   .msg-enter { animation: fadeIn .2s ease-out; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
   .rec-dot { animation: pulse 1s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.25;} }
+  
+  /* 3D Flashcard Flip Styles */
+  .card-stage { perspective: 1000px; }
+  .flashcard { transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-front, .flashcard-back { backface-visibility: hidden; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  .flashcard-back { transform: rotateY(180deg); }
+
+  /* Syllable Badges */
+  .syllable-badge { display: inline-block; padding: 4px 10px; margin: 3px; background: #EEF2FF; color: #4F46E5; border: 1.5px solid #C7D2FE; border-radius: 8px; font-weight: 800; font-size: 15px; cursor: pointer; transition: transform 0.15s ease, background 0.15s; }
+  .syllable-badge:hover { transform: scale(1.1); background: #4F46E5; color: #fff; }
+
+  @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
+  .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-  <!-- ============ HEADER ============ -->
   <header class="bg-indigo-700 text-white px-4 py-3 flex items-center gap-3 shadow-md z-20">
     <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center text-lg">🇫🇷</div>
     <div class="flex-1">
       <h1 class="font-bold text-lg leading-tight">French Study Buddy</h1>
-      <p class="text-indigo-200 text-xs">Ton coach pour le TCF · propulsé par un LLM open-source</p>
+      <p class="text-indigo-200 text-xs">Ton coach TCF & Laboratoire Phonétique (Débutant & Intermédiaire)</p>
     </div>
     <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
       <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -35,58 +47,117 @@
     </button>
   </header>
 
-  <!-- ============ MAIN LAYOUT ============ -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- ---------- SIDEBAR: Study Topics Panel ---------- -->
-    <aside id="sidebar" class="hidden md:flex md:flex-col w-72 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
-      <div class="p-4 border-b border-slate-100">
-        <h2 class="font-bold text-sm text-slate-500 uppercase tracking-wide">Modules d'étude</h2>
-        <p class="text-xs text-slate-400 mt-1">Clique un thème pour démarrer une pratique ciblée.</p>
+    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/50">
+        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme A1 & A2 (Fondations)</h2>
+        <p class="text-xs text-slate-500 mt-1">Idéal pour débutants complets. Clique un thème pour guider l'IA en anglais/français.</p>
       </div>
       <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
 
-    <!-- mobile topics toggle -->
     <button id="mobileTopicsBtn" class="md:hidden fixed bottom-24 right-4 z-30 bg-indigo-600 text-white rounded-full w-12 h-12 shadow-lg flex items-center justify-center text-xl">📚</button>
 
-    <!-- ---------- MAIN AREA: tabbed (Conversation / Personnages) ---------- -->
-    <main class="flex-1 flex flex-col min-w-0 min-h-0">
-      <div class="flex border-b border-slate-200 bg-white px-3 sm:px-6 shrink-0">
-        <button id="tabBtnConversation" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-700">💬 Conversation</button>
-        <button id="tabBtnPersonnages" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700">🎭 Personnages &amp; Prononciation</button>
+    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50">
+      <div class="flex border-b border-slate-200 bg-white px-3 sm:px-6 shrink-0 overflow-x-auto">
+        <button id="tabBtnConversation" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-700 whitespace-nowrap">💬 Conversation AI</button>
+        <button id="tabBtnPhonetics" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">✨ Labo Phonétique</button>
+        <button id="tabBtnPersonnages" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">🎭 Rôles &amp; Professions</button>
+        <button id="tabBtnVocab" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">🔤 Flashcards 3D</button>
       </div>
 
-      <!-- ---------- Conversation tab ---------- -->
       <div id="tabConversation" class="flex-1 flex flex-col min-h-0">
         <div id="chatWindow" class="flex-1 overflow-y-auto px-3 sm:px-6 py-5 space-y-4"></div>
-
         <div id="statusRow" class="px-4"></div>
-
-        <!-- composer -->
         <div class="border-t border-slate-200 bg-white p-3 sm:p-4">
           <div class="flex items-end gap-2 max-w-3xl mx-auto">
             <button id="micBtn" title="Parler en français" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-300 hover:border-indigo-400 flex items-center justify-center text-xl transition">🎙️</button>
-            <textarea id="chatInput" rows="1" placeholder="Écris ou dis quelque chose en français..."
+            <textarea id="chatInput" rows="1" placeholder="Écris ou dis quelque chose en français (ou en anglais si débutant)..."
               class="flex-1 resize-none border border-slate-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 max-h-32"></textarea>
             <button id="sendBtn" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition disabled:opacity-40">➤</button>
           </div>
-          <p class="text-[11px] text-slate-400 text-center mt-2">Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne</p>
+          <p class="text-[11px] text-slate-400 text-center mt-2">Chaque réponse inclut le français, la traduction anglaise et les corrections.</p>
         </div>
       </div>
 
-      <!-- ---------- Personnages & Prononciation tab ---------- -->
+      <div id="tabPhonetics" class="hidden flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-md">
+            <h2 class="font-bold text-xl mb-1">Laboratoire de Phonétique &amp; Articulation</h2>
+            <p class="text-xs text-indigo-200">Maîtrise les bases (voyelles nasales, liaison, sons ch/j, ou/u) syllabe par syllabe avec un assistant vocal.</p>
+          </div>
+
+          <div id="phoneticCardsGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm grid md:grid-cols-2 gap-6 items-center">
+            <div>
+              <span id="activePhoneticTag" class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Sélectionné</span>
+              <h3 id="activePhoneticTitle" class="font-bold text-3xl text-slate-800 mt-2">Bonjour</h3>
+              
+              <div class="mt-4">
+                <span class="text-xs font-bold text-slate-500 block mb-1">Décomposition syllabique (Clique pour écouter) :</span>
+                <div id="activeSyllablesContainer"></div>
+              </div>
+
+              <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+                <div><strong>📖 Règle :</strong> <span id="activePhoneticRule">...</span></div>
+                <div><strong>💡 Position de la bouche :</strong> <span id="activePhoneticTip">...</span></div>
+              </div>
+
+              <div class="mt-5 flex gap-2">
+                <button id="listenFullPhonetic" class="btn text-xs">🔊 Écouter le mot</button>
+                <button id="testVoicePhonetic" class="btn coral text-xs">🎙️ Tester ma prononciation</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center space-y-3">
+              <div class="text-4xl">👄</div>
+              <h4 class="font-bold text-slate-700">Guide de l'Articulateur</h4>
+              <p id="activePhoneticDesc" class="text-xs text-slate-500">Regarde la règle et entraîne-toi à répéter chaque syllabe distinctement.</p>
+              <div id="phoneticVoiceResult" class="text-xs font-bold text-emerald-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="tabPersonnages" class="hidden flex-1 overflow-y-auto px-3 sm:px-6 py-5">
         <div class="max-w-5xl mx-auto">
-          <h2 class="font-bold text-slate-700 mb-1">🎭 Personnages & coach de prononciation</h2>
-          <p class="text-xs text-slate-500 mb-5">Choisis un personnage pour démarrer un jeu de rôle, puis entraîne-toi sur ses phrases-clés : écoute, enregistre-toi, et reçois une évaluation phonétique détaillée (syllabes, règle, comparaison, conseil d'articulation).</p>
+          <h2 class="font-bold text-slate-700 mb-1 text-lg">🎭 Rôles &amp; Professions (Masculin / Féminin)</h2>
+          <p class="text-xs text-slate-500 mb-5">Entraîne-toi à prononcer les métiers et leurs déclinaisons de genre (ex: Boulanger / Boulagère, Médecin).</p>
           <div id="charactersGrid" class="grid gap-5 sm:grid-cols-2"></div>
         </div>
       </div>
+
+      <div id="tabVocab" class="hidden flex-1 overflow-y-auto px-4 sm:px-8 py-8 flex flex-col items-center justify-center">
+        <div class="max-w-md w-full space-y-6 text-center">
+          <h2 class="font-bold text-xl text-slate-800">🔤 Flashcards de Vocabulaire A1 / A2</h2>
+          <p class="text-xs text-slate-500">Clique sur la carte pour voir la traduction en anglais et un exemple en contexte.</p>
+
+          <div class="card-stage h-64 w-full">
+            <div id="flashcard3D" class="flashcard relative w-full h-full bg-white border border-slate-200 rounded-2xl shadow-sm cursor-pointer p-6 flex flex-col items-center justify-center">
+              <div class="flashcard-front flex flex-col items-center justify-center">
+                <span id="fcGenre" class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-full mb-3">Masculin</span>
+                <h3 id="fcWord" class="font-bold text-3xl text-slate-800">L'environnement</h3>
+                <p class="text-xs text-slate-400 mt-3">👆 Clique pour retourner</p>
+              </div>
+              <div class="flashcard-back bg-indigo-50 border border-indigo-200 rounded-2xl p-6 flex flex-col items-center justify-center">
+                <h3 id="fcTranslation" class="font-bold text-2xl text-indigo-900">The environment</h3>
+                <p id="fcExample" class="text-xs text-indigo-700 mt-3 italic">"Il faut protéger l'environnement."</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-4">
+            <button id="prevCardBtn" class="btn secondary text-xs">⬅️ Précédent</button>
+            <button id="nextCardBtn" class="btn text-xs">Suivant ➡️</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
-  <!-- ============ SETTINGS MODAL ============ -->
   <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
@@ -111,11 +182,6 @@
       <input id="cfgModel" type="text" placeholder="llama-3.3-70b-versatile"
         class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
-      <p class="text-[11px] text-slate-400 mt-3 leading-relaxed">
-        Ta clé reste uniquement dans ce navigateur (<code>localStorage</code>) et n'est envoyée qu'à l'URL ci-dessus.
-        Ne partage jamais ce site déployé avec ta clé déjà enregistrée dedans — chaque utilisateur doit entrer la sienne.
-      </p>
-
       <div id="settingsError" class="hidden mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></div>
 
       <div class="flex gap-2 mt-5">
@@ -127,23 +193,13 @@
 
 <script>
 /* ============================================================
-   French Study Buddy — app logic
-   Sections:
-   1. Config (localStorage read/write, settings modal, presets)
-   2. LLM call (OpenAI-compatible /chat/completions payload)
-   3. Response parsing (FRANÇAIS / ENGLISH / CORRECTIONS sections)
-   4. Chat rendering + message flow
-   5. Text-to-Speech (Listen buttons)
-   6. Speech-to-Text (mic button)
-   7. Study Topics panel
+   French Study Buddy — App Logic
    ============================================================ */
 
-/* ---------------- 1. CONFIG ---------------- */
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
-
 const PRESETS = {
   groq:   { baseUrl:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', key:'' },
-  ollama: { baseUrl:'http://localhost:11434/v1/chat/completions',      model:'llama3',                  key:'ollama' }
+  ollama: { baseUrl:'http://localhost:11434/v1/chat/completions',     model:'llama3',                     key:'ollama' }
 };
 
 function getConfig(){
@@ -184,7 +240,6 @@ function openSettings(){
 function closeSettingsFn(){ settingsModal.classList.add('hidden'); }
 document.getElementById('settingsBtn').onclick = openSettings;
 document.getElementById('closeSettings').onclick = closeSettingsFn;
-settingsModal.addEventListener('click', (e)=>{ if(e.target===settingsModal) closeSettingsFn(); });
 
 document.querySelectorAll('.preset-btn').forEach(btn=>{
   btn.onclick = ()=>{
@@ -238,21 +293,21 @@ document.getElementById('testConnBtn').onclick = async ()=>{
   }
 };
 
-/* ---------------- 2. LLM CALL ---------------- */
-const SYSTEM_PROMPT = `Tu es "Plume", un partenaire de conversation français patient et bienveillant, et aussi un coach strict pour le TCF (Test de connaissance du français). Tu aides un étudiant à s'entraîner pour l'oral et l'écrit.
+/* ---------------- LLM System Prompt (Absolute Beginner + Dual Language) ---------------- */
+const SYSTEM_PROMPT = `Tu es "Plume", un tuteur de français extrêmement patient et bienveillant, spécialisé pour les débutants absolus (niveau A1) ainsi que pour la préparation aux examens TCF/TEF. L'étudiant peut ne pas encore connaître le français, donc tu dois TOUJOURS être clair, encourageant, et fournir des explications en anglais si besoin.
 
 Règles pour CHAQUE réponse :
-1. Réponds naturellement en français, à un niveau légèrement au-dessus de celui de l'étudiant, et relance toujours la conversation avec une question.
-2. Structure TOUJOURS ta réponse en utilisant EXACTEMENT ces trois en-têtes, dans cet ordre, chacun sur sa propre ligne :
+1. Réponds en français simple et adapté, et pose toujours une question simple pour engager l'étudiant.
+2. Structure TOUJOURS ta réponse en utilisant EXACTEMENT ces trois en-têtes, chacun sur sa propre ligne :
 
 FRANÇAIS:
-<ta réponse conversationnelle en français>
+<ta réponse conversationnelle simple en français>
 
 ENGLISH:
-<une traduction / explication naturelle en anglais de ta réponse ci-dessus>
+<une traduction et explication claire en anglais pour aider le débutant absolu>
 
 CORRECTIONS:
-<si le dernier message de l'étudiant contenait des erreurs, liste chacune sous la forme "- incorrect → correct (courte explication en anglais)". S'il n'y a aucune erreur, écris exactement "No errors detected.">
+<si l'étudiant a fait des erreurs, liste-les sous la forme "- incorrect → correct (explication en anglais)". S'il n'y a pas d'erreur, écris "No errors detected.">
 
 N'ajoute aucun texte en dehors de ces trois sections.`;
 
@@ -273,22 +328,19 @@ async function callLLM(cfg, messages, maxTokens){
       })
     });
   }catch(networkErr){
-    throw new Error("Connexion impossible. Vérifie l'URL, que le serveur (Ollama) est lancé, et les paramètres CORS.");
+    throw new Error("Connexion impossible. Vérifie l'URL et les paramètres CORS.");
   }
   if(!res.ok){
     let detail = '';
     try{ const body = await res.json(); detail = (body.error && (body.error.message || body.error)) || ''; }catch(e){}
-    if(res.status===401) detail = detail || 'Clé API invalide ou manquante.';
-    if(res.status===404) detail = detail || 'URL ou nom de modèle introuvable — vérifie la Base URL et le Model Name.';
     throw new Error(`Erreur ${res.status}. ${detail}`);
   }
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
-  if(!text) throw new Error('Réponse vide ou format inattendu reçu du serveur.');
+  if(!text) throw new Error('Réponse vide reçue du serveur.');
   return text.trim();
 }
 
-/* ---------------- 3. RESPONSE PARSING ---------------- */
 function parseAssistantResponse(raw){
   const frMatch = raw.match(/FRAN[ÇC]AIS\s*:\s*([\s\S]*?)(?=ENGLISH\s*:|CORRECTIONS\s*:|$)/i);
   const enMatch = raw.match(/ENGLISH\s*:\s*([\s\S]*?)(?=CORRECTIONS\s*:|FRAN[ÇC]AIS\s*:|$)/i);
@@ -302,15 +354,14 @@ function parseAssistantResponse(raw){
       parsed: true
     };
   }
-  // Fallback: model didn't follow the format — show raw text rather than nothing
   return { fr: raw.trim(), en:'', corrections:'', parsed:false };
 }
 
-/* ---------------- 4. CHAT RENDERING ---------------- */
+/* ---------------- Chat Engine ---------------- */
 const chatWindow = document.getElementById('chatWindow');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
-let conversation = []; // {role:'user'|'assistant', content, parsedFr?}
+let conversation = [];
 let busy = false;
 
 function scrollToBottom(){ chatWindow.scrollTop = chatWindow.scrollHeight; }
@@ -363,18 +414,6 @@ function renderAssistantMessage(id, parsed){
     corBlock.innerHTML = `<div class="font-bold mb-1">✏️ Corrections</div>` +
       parsed.corrections.split('\n').filter(l=>l.trim()).map(l=>`<div class="mb-0.5">${escapeHtml(l.replace(/^-\s*/,''))}</div>`).join('');
     box.appendChild(corBlock);
-  }else if(parsed.corrections){
-    const okBlock = document.createElement('div');
-    okBlock.className = 'text-emerald-600 text-xs font-semibold';
-    okBlock.textContent = '✅ Aucune erreur détectée';
-    box.appendChild(okBlock);
-  }
-
-  if(!parsed.parsed){
-    const note = document.createElement('div');
-    note.className = 'text-[10px] text-slate-400 italic';
-    note.textContent = "(Le modèle n'a pas suivi le format attendu — réponse brute affichée.)";
-    box.appendChild(note);
   }
 
   wrap.innerHTML = '';
@@ -383,13 +422,6 @@ function renderAssistantMessage(id, parsed){
 }
 
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function setBusy(b){
-  busy = b;
-  sendBtn.disabled = b;
-  chatInput.disabled = b;
-}
-
 function showStatus(html){ document.getElementById('statusRow').innerHTML = html; }
 function clearStatus(){ document.getElementById('statusRow').innerHTML = ''; }
 
@@ -399,18 +431,21 @@ async function sendMessage(textOverride){
 
   const cfg = getConfig();
   if(!cfg.baseUrl || !cfg.model){
-    showStatus(`<div class="max-w-3xl mx-auto text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-2">⚠️ Configure d'abord ton modèle (bouton ⚙️ Paramètres) avant de discuter.</div>`);
+    showStatus(`<div class="max-w-3xl mx-auto text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-2">⚠️ Configure d'abord ton modèle (⚙️ Paramètres).</div>`);
     return;
   }
 
   chatInput.value = '';
-  autoGrow();
+  chatInput.style.height = 'auto';
   clearStatus();
   renderUserMessage(text);
   conversation.push({ role:'user', content:text });
 
-  setBusy(true);
+  busy = true;
+  sendBtn.disabled = true;
+  chatInput.disabled = true;
   const placeholderId = renderAssistantPlaceholder();
+
   try{
     const raw = await callLLM(cfg, conversation.slice(-12), 700);
     const parsed = parseAssistantResponse(raw);
@@ -420,38 +455,26 @@ async function sendMessage(textOverride){
     document.getElementById(placeholderId).innerHTML =
       `<div class="bg-red-50 border border-red-200 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%] text-sm text-red-700 shadow-sm">⚠️ ${escapeHtml(err.message)}</div>`;
   }finally{
-    setBusy(false);
+    busy = false;
+    sendBtn.disabled = false;
+    chatInput.disabled = false;
     chatInput.focus();
   }
 }
 
 sendBtn.onclick = ()=> sendMessage();
-chatInput.addEventListener('keydown', (e)=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
-});
-function autoGrow(){
-  chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + 'px';
-}
-chatInput.addEventListener('input', autoGrow);
+chatInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
 
-/* ---------------- 5. TEXT-TO-SPEECH ---------------- */
+/* ---------------- Text-to-Speech ---------------- */
 let frenchVoice = null;
 function pickFrenchVoice(){
   if(!window.speechSynthesis) return;
   const voices = window.speechSynthesis.getVoices();
   frenchVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('fr')) || null;
 }
-if(window.speechSynthesis){
-  pickFrenchVoice();
-  window.speechSynthesis.onvoiceschanged = pickFrenchVoice;
-}
+if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoiceschanged = pickFrenchVoice; }
 function speakFrench(text){
-  if(!text) return;
-  if(!window.speechSynthesis){
-    showStatus(`<div class="max-w-3xl mx-auto text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">🔊 La synthèse vocale n'est pas disponible dans ce navigateur.</div>`);
-    return;
-  }
+  if(!text || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
@@ -460,129 +483,57 @@ function speakFrench(text){
   window.speechSynthesis.speak(u);
 }
 
-/* ---------------- 6. SPEECH-TO-TEXT ---------------- */
+/* ---------------- Speech-to-Text ---------------- */
 const micBtn = document.getElementById('micBtn');
 let recognizer = null;
-let recognizing = false;
-
 function getRecognitionCtor(){ return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
 
-if(!getRecognitionCtor()){
-  micBtn.disabled = true;
-  micBtn.title = "Reconnaissance vocale non disponible dans ce navigateur";
-  micBtn.classList.add('opacity-40');
-}
+if(!getRecognitionCtor()){ micBtn.disabled = true; micBtn.classList.add('opacity-40'); }
 
 micBtn.onclick = ()=>{
   const Ctor = getRecognitionCtor();
   if(!Ctor) return;
-
-  if(recognizing){
-    try{ recognizer.stop(); }catch(e){}
-    return;
-  }
-
   try{
     recognizer = new Ctor();
     recognizer.lang = 'fr-FR';
-    recognizer.continuous = true;
-    recognizer.interimResults = true;
-
-    let finalText = chatInput.value ? chatInput.value + ' ' : '';
-    recognizer.onresult = (event)=>{
-      let interim = '';
-      for(let i=event.resultIndex; i<event.results.length; i++){
-        const t = event.results[i][0].transcript;
-        if(event.results[i].isFinal){ finalText += t + ' '; } else { interim += t; }
-      }
-      chatInput.value = (finalText + interim).trim();
-      autoGrow();
-    };
-    recognizer.onerror = (event)=>{
-      recognizing = false;
-      micBtn.classList.remove('border-red-500','text-red-600');
-      showStatus(`<div class="max-w-3xl mx-auto text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">🎤 Micro indisponible (${escapeHtml(event.error)}) — tape ta réponse à la place.</div>`);
-    };
-    recognizer.onend = ()=>{
-      recognizing = false;
-      micBtn.classList.remove('border-red-500','text-red-600');
-      clearStatus();
+    recognizer.onresult = (e)=>{
+      chatInput.value = e.results[0][0].transcript;
     };
     recognizer.start();
-    recognizing = true;
-    micBtn.classList.add('border-red-500','text-red-600');
-    showStatus(`<div class="max-w-3xl mx-auto flex items-center gap-2 text-xs font-semibold text-red-600 mb-2"><span class="w-2 h-2 rounded-full bg-red-500 rec-dot"></span> Enregistrement en cours...</div>`);
-  }catch(e){
-    showStatus(`<div class="max-w-3xl mx-auto text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">🎤 Impossible d'accéder au micro.</div>`);
-  }
+  }catch(e){}
 };
 
-/* ---------------- 7. STUDY TOPICS PANEL ---------------- */
+/* ---------------- DELF A1 / A2 Sidebar Modules ---------------- */
 const STUDY_MODULES = [
   {
-    title: '🎧 Compréhension orale',
+    title: '🟢 DELF A1 (Fondations & Survie)',
     topics: [
-      { label: 'Annonces publiques', prompt: "Décris-moi une annonce publique typique (gare, aéroport, message répondeur), puis pose-moi une question de compréhension dessus, en français." },
-      { label: 'Échanges du quotidien', prompt: "Simule un court échange informel entre deux amis ou une scène de service (acheter un billet, commander), puis demande-moi de résumer ce qui s'est dit." },
-      { label: 'Actualités & interviews radio', prompt: "Résume-moi un sujet d'actualité comme dans un bulletin radio ou une interview, puis pose-moi une question de compréhension sur les détails et le ton." }
+      { label: "1. L'alphabet & Les nombres", prompt: "Aide-moi à apprendre l'alphabet français et les nombres de 1 à 20 en anglais/français avec des exemples simples." },
+      { label: "2. Noms, prénoms & Adresse", prompt: "Montre-moi comment donner mon nom, mon prénom et mon adresse en français pour débutants." },
+      { label: "3. Salutations & Politesse (Tu vs Vous)", prompt: "Explique-moi les salutations de base (Bonjour, Au revoir) et la différence entre 'Tu' et 'Vous' avec des exemples." },
+      { label: "4. Les professions & Nationalités", prompt: "Comment dire sa nationalité et sa profession en français ? Donne-moi des exemples masculins et féminins." },
+      { label: "5. La famille & Les loisirs", prompt: "Apprends-moi le vocabulaire de la famille proche et des loisirs en français avec traduction en anglais." },
+      { label: "6. L'heure, les jours & la date", prompt: "Comment demander l'heure, dire les jours de la semaine et la date en français ?" },
+      { label: "7. Verbes essentiels (Être, Avoir, -er)", prompt: "Explique-moi comment conjuguer 'être', 'avoir' et les verbes en '-er' au présent avec des exemples simples." },
+      { label: "8. La phrase négative (ne... pas)", prompt: "Comment former une phrase négative en français avec 'ne... pas' ? Donne-moi des exemples." }
     ]
   },
   {
-    title: '📖 Compréhension écrite',
+    title: '🟡 DELF A2 (Quotidien & Autonomie)',
     topics: [
-      { label: 'Panneaux & annonces', prompt: "Donne-moi un exemple de panneau, d'affiche ou d'annonce écrite avec du vocabulaire de niveau TCF, puis pose-moi une question sur son sens." },
-      { label: 'Correspondance', prompt: "Écris un court email ou une lettre informelle (invitation, plainte, excuse), puis demande-moi ce que la personne veut ou ressent." },
-      { label: 'Articles de presse', prompt: "Résume un éditorial ou un article d'opinion sur un sujet de société, puis pose-moi une question sur l'argument principal et le point de vue de l'auteur." }
+      { label: "1. Le Passé Composé & Imparfait", prompt: "Explique-moi la différence entre le passé composé et l'imparfait en français pour un niveau A2 avec des exemples." },
+      { label: "2. Le Futur Proche & Simple", prompt: "Comment exprimer le futur proche et le futur simple en français ? Donne-moi des exemples pratiques." },
+      { label: "3. Les pronoms COD, COI, En, Y", prompt: "Explique-moi simplement comment utiliser les pronoms COD, COI, 'en' et 'y' en français." },
+      { label: "4. Voyages, hôtels & restaurants", prompt: "Simulons une situation de voyage : je réserve un hôtel ou commande au restaurant en français." },
+      { label: "5. L'argent, les achats & paiements", prompt: "Apprends-moi le vocabulaire utile pour faire des achats, parler des prix et payer dans un magasin." }
     ]
   },
   {
-    title: '📐 Structures de la langue',
+    title: '🔵 TCF / TEF (Intermédiaire & Avancé)',
     topics: [
-      { label: "Temps de l'indicatif", prompt: "Pratiquons les temps de l'indicatif (présent, passé composé, imparfait, plus-que-parfait, futur). Pose-moi une question qui m'oblige à utiliser plusieurs temps dans ma réponse." },
-      { label: 'Subjonctif présent & passé', prompt: "Je veux pratiquer le subjonctif. Pose-moi une question qui m'oblige à l'utiliser (par exemple avec \"il faut que\", \"je doute que\", ou \"je suis content que\")." },
-      { label: 'Conditionnel (hypothèses, politesse)', prompt: "Je veux pratiquer le conditionnel présent pour les hypothèses et la politesse. Pose-moi une question sur ce que je ferais si j'avais telle ou telle situation." },
-      { label: 'Pronoms COD / COI', prompt: "Aide-moi à pratiquer les pronoms compléments d'objet direct et indirect (le, la, les, lui, leur). Pose-moi des questions où je dois répondre en les utilisant correctement." },
-      { label: 'Pronoms en / y', prompt: "Aide-moi à pratiquer les pronoms \"en\" et \"y\". Pose-moi des questions où je dois répondre en les utilisant correctement." },
-      { label: 'Pronoms relatifs (qui, que, dont, où)', prompt: "Je veux pratiquer les pronoms relatifs simples et complexes (qui, que, dont, où, duquel, auquel). Donne-moi des débuts de phrase à compléter." },
-      { label: 'Connecteurs logiques', prompt: "Aide-moi à pratiquer les connecteurs logiques de cause, conséquence, opposition et but (car, donc, bien que, afin que...). Donne-moi une situation à décrire en les utilisant." },
-      { label: 'Voix passive & discours rapporté', prompt: "Je veux pratiquer la transformation de phrases actives en passives, et le discours rapporté au présent et au passé. Donne-moi des phrases à transformer." }
-    ]
-  },
-  {
-    title: '✍️ Expression écrite',
-    topics: [
-      { label: 'Message court (Tâche 1)', prompt: "Donne-moi un sujet de message court typique du TCF (inviter un ami, s'excuser d'un retard, faire une réclamation simple), et je vais l'écrire. Corrige-moi ensuite." },
-      { label: 'Article / fait divers (Tâche 2)', prompt: "Donne-moi un sujet pour raconter un événement ou une expérience personnelle façon article de presse, avec des repères temporels et spatiaux. Je vais l'écrire, corrige-moi ensuite." },
-      { label: 'Essai argumenté (Tâche 3)', prompt: "Propose-moi un sujet de société à débattre pour un essai argumenté comparant deux points de vue. Je vais écrire ma réponse, corrige-moi ensuite." }
-    ]
-  },
-  {
-    title: '🗣️ Expression orale',
-    topics: [
-      { label: 'Entretien dirigé (Tâche 1)', prompt: "Simule la Tâche 1 de l'oral du TCF : un entretien dirigé où tu me poses des questions personnelles sur moi, mon parcours, mes loisirs, sans préparation." },
-      { label: 'Jeu de rôle / interaction (Tâche 2)', prompt: "Simule la Tâche 2 de l'oral du TCF : un jeu de rôle où je dois réserver un service ou poser des questions à un commerçant. Donne-moi le contexte puis commence." },
-      { label: 'Défendre un point de vue (Tâche 3)', prompt: "Simule la Tâche 3 de l'oral du TCF : propose-moi un sujet abstrait ou un document, je vais donner mon opinion, et toi tu vas me challenger avec des contre-arguments." }
-    ]
-  },
-  {
-    title: '🌍 Thèmes de société',
-    topics: [
-      { label: 'Travail & vie professionnelle', prompt: "Discutons du monde du travail : entretiens d'embauche, télétravail, hiérarchie, grèves. Pose-moi une question ouverte sur ce thème." },
-      { label: 'Environnement & développement durable', prompt: "Discutons de l'environnement : changement climatique, énergies renouvelables, recyclage. Pose-moi une question ouverte sur ce thème." },
-      { label: 'Technologie & innovation', prompt: "Discutons de la technologie : intelligence artificielle, cybersécurité, réseaux sociaux. Pose-moi une question ouverte sur ce thème." },
-      { label: 'Santé & bien-être', prompt: "Discutons de la santé : système médical, alimentation, gestion du stress. Pose-moi une question ouverte sur ce thème." },
-      { label: 'Éducation & formation', prompt: "Discutons de l'éducation : système scolaire, études supérieures, formation continue. Pose-moi une question ouverte sur ce thème." },
-      { label: 'Économie, logement & consommation', prompt: "Discutons d'économie et de logement : crise du logement, inflation, habitudes de consommation. Pose-moi une question ouverte sur ce thème." }
-    ]
-  },
-  {
-    title: '🔊 Phonétique',
-    topics: [
-      { label: 'Le son "ch" vs "j"', prompt: "Aide-moi à m'entraîner à distinguer les sons \"ch\" et \"j\" en français. Donne-moi une paire de mots à comparer et pose-moi une question pour vérifier ma compréhension." },
-      { label: '"ou" vs "u"', prompt: "Je veux m'entraîner à distinguer les sons \"ou\" et \"u\". Donne-moi quelques mots exemples et une petite phrase à lire à voix haute." },
-      { label: 'Voyelles nasales (an/en, in, on)', prompt: "Explique-moi brièvement les voyelles nasales an/en, in, et on avec des exemples, puis pose-moi une question pour pratiquer." },
-      { label: 'Liaison et enchaînement', prompt: "Explique-moi la liaison en français avec deux ou trois exemples courants, puis donne-moi une phrase où je dois repérer les liaisons." },
-      { label: 'Lettres muettes & accents', prompt: "Explique-moi les principales lettres muettes en français et le rôle des accents (é, è, ê), avec des exemples, puis pose-moi une question pour pratiquer." }
+      { label: "Le Subjonctif Présent", prompt: "Introduis-moi le subjonctif présent en français (quand et comment l'utiliser avec 'il faut que')." },
+      { label: "Le Conditionnel (Hypothèses)", prompt: "Pratiquons le conditionnel pour exprimer des souhaits et des hypothèses." },
+      { label: "Expression écrite (Essai argumenté)", prompt: "Propose-moi un sujet d'essai argumenté (Tâche 3 du TCF) pour donner mon avis sur un sujet de société." }
     ]
   }
 ];
@@ -591,354 +542,136 @@ function renderTopics(){
   const container = document.getElementById('topicsList');
   container.innerHTML = STUDY_MODULES.map((mod,mi)=>`
     <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-2" data-idx="${mi}">
-        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wide">${mod.title}</h3>
-        <span class="cat-chevron text-slate-400 text-xs transition-transform ${mi===0?'rotate-90':''}">▶</span>
-      </button>
-      <div class="cat-body space-y-1.5 ${mi===0?'':'hidden'}" data-idx="${mi}">
-        ${mod.topics.map(t=>`<button class="topic-btn w-full text-left text-sm px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition" data-prompt="${escapeHtml(t.prompt)}">${escapeHtml(t.label)}</button>`).join('')}
+      <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">${mod.title}</h3>
+      <div class="space-y-1">
+        ${mod.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700" data-prompt="${escapeHtml(t.prompt)}">${escapeHtml(t.label)}</button>`).join('')}
       </div>
     </div>
   `).join('');
   container.querySelectorAll('.topic-btn').forEach(btn=>{
     btn.onclick = ()=>{ switchTab('conversation'); sendMessage(btn.dataset.prompt); };
   });
-  container.querySelectorAll('.cat-toggle').forEach(btn=>{
-    btn.onclick = ()=>{
-      const idx = btn.dataset.idx;
-      const body = container.querySelector(`.cat-body[data-idx="${idx}"]`);
-      const chevron = btn.querySelector('.cat-chevron');
-      body.classList.toggle('hidden');
-      chevron.classList.toggle('rotate-90');
-    };
-  });
 }
 renderTopics();
 
-const sidebar = document.getElementById('sidebar');
-document.getElementById('mobileTopicsBtn').onclick = ()=>{
-  sidebar.classList.toggle('hidden');
-  sidebar.classList.toggle('flex');
-  sidebar.classList.toggle('absolute');
-  sidebar.classList.toggle('inset-0');
-  sidebar.classList.toggle('z-20');
-};
-
-/* ---------------- 8. TABS ---------------- */
+/* ---------------- Tabs Switcher ---------------- */
 function switchTab(tab){
-  const conv = document.getElementById('tabConversation');
-  const pers = document.getElementById('tabPersonnages');
-  const bConv = document.getElementById('tabBtnConversation');
-  const bPers = document.getElementById('tabBtnPersonnages');
-  const activeCls = ['border-indigo-600','text-indigo-700'];
-  const inactiveCls = ['border-transparent','text-slate-500'];
-  if(tab==='conversation'){
-    conv.classList.remove('hidden'); conv.classList.add('flex');
-    pers.classList.add('hidden');
-    bConv.classList.add(...activeCls); bConv.classList.remove(...inactiveCls);
-    bPers.classList.remove(...activeCls); bPers.classList.add(...inactiveCls);
-  }else{
-    pers.classList.remove('hidden');
-    conv.classList.add('hidden'); conv.classList.remove('flex');
-    bPers.classList.add(...activeCls); bPers.classList.remove(...inactiveCls);
-    bConv.classList.remove(...activeCls); bConv.classList.add(...inactiveCls);
-  }
+  ['Conversation', 'Phonetics', 'Personnages', 'Vocab'].forEach(t => {
+    document.getElementById('tab'+t).classList.add('hidden');
+    document.getElementById('tabBtn'+t).classList.remove('border-indigo-600', 'text-indigo-700');
+    document.getElementById('tabBtn'+t).classList.add('border-transparent', 'text-slate-500');
+  });
+  document.getElementById('tab'+tab).classList.remove('hidden');
+  if(tab==='Conversation') document.getElementById('tab'+tab).classList.add('flex');
+  document.getElementById('tabBtn'+tab).classList.add('border-indigo-600', 'text-indigo-700');
+  document.getElementById('tabBtn'+tab).classList.remove('border-transparent', 'text-slate-500');
 }
-document.getElementById('tabBtnConversation').onclick = ()=> switchTab('conversation');
-document.getElementById('tabBtnPersonnages').onclick = ()=> switchTab('personnages');
+document.getElementById('tabBtnConversation').onclick = ()=> switchTab('Conversation');
+document.getElementById('tabBtnPhonetics').onclick = ()=> switchTab('Phonetics');
+document.getElementById('tabBtnPersonnages').onclick = ()=> switchTab('Personnages');
+document.getElementById('tabBtnVocab').onclick = ()=> switchTab('Vocab');
 
-/* ---------------- 9. CHARACTERS & PHONETIC PRONUNCIATION COACH ---------------- */
-const CHARACTERS = [
-  { id:'medecin', name:'Le Médecin', emoji:'🩺', color:'bg-sky-100 text-sky-700 border-sky-300',
-    bio:"Décris tes symptômes lors d'une consultation médicale.",
-    roleplay:"Jouons un jeu de rôle : tu es médecin et je suis un patient qui vient consulter. Commence par me demander ce qui ne va pas.",
-    phrases:["J'ai mal à la gorge", "Je me sens fatigué depuis deux jours", "Pouvez-vous me faire une ordonnance ?"] },
-  { id:'boulanger', name:'Le Boulanger', emoji:'🥖', color:'bg-amber-100 text-amber-700 border-amber-300',
-    bio:"Commande du pain et des viennoiseries à la boulangerie.",
-    roleplay:"Jouons un jeu de rôle : tu es boulanger et je viens acheter du pain. Accueille-moi dans ta boulangerie.",
-    phrases:["Une baguette tradition, s'il vous plaît", "Je voudrais deux croissants", "Combien ça coûte en tout ?"] },
-  { id:'agent-voyage', name:"L'Agent de Voyage", emoji:'✈️', color:'bg-cyan-100 text-cyan-700 border-cyan-300',
-    bio:"Réserve un billet et pose des questions sur ton voyage.",
-    roleplay:"Jouons un jeu de rôle : tu es agent de voyage, et je veux réserver un billet. Demande-moi ma destination et mes dates.",
-    phrases:["Je voudrais réserver un aller-retour", "Y a-t-il un vol direct ?", "Quel est le décalage horaire ?"] },
-  { id:'serveur', name:'Le Serveur', emoji:'🍽️', color:'bg-rose-100 text-rose-700 border-rose-300',
-    bio:"Commande au restaurant et discute du menu.",
-    roleplay:"Tu es serveur dans un restaurant, je viens de m'asseoir. Accueille-moi et présente-moi le menu du jour.",
-    phrases:["Qu'est-ce que vous recommandez ?", "Une carafe d'eau, s'il vous plaît", "L'addition, s'il vous plaît"] },
-  { id:'agent-immo', name:"L'Agent Immobilier", emoji:'🏠', color:'bg-emerald-100 text-emerald-700 border-emerald-300',
-    bio:"Discute de la location ou de l'achat d'un logement.",
-    roleplay:"Tu es agent immobilier, je cherche un appartement à louer. Demande-moi mon budget et mes critères.",
-    phrases:["Je cherche un appartement meublé", "Quel est le montant du loyer mensuel ?", "Les charges sont-elles comprises ?"] },
-  { id:'recruteur', name:'Le Recruteur', emoji:'💼', color:'bg-indigo-100 text-indigo-700 border-indigo-300',
-    bio:"Simule un entretien d'embauche professionnel.",
-    roleplay:"Tu es recruteur pour un entretien d'embauche, je suis le candidat. Salue-moi formellement et demande-moi de me présenter.",
-    phrases:["Mes points forts sont l'organisation et la rigueur", "Pourquoi voulez-vous ce poste ?", "J'ai joint mon CV et ma lettre de motivation"] }
+/* ---------------- Phonetic Studio Lab ---------------- */
+const PHONETIC_ITEMS = [
+  { term: "Bonjour", syll: ["Bon", "jour"], rule: "Nasal vowel 'on' (/ɔ̃/).", tip: "Vibrate airflow gently through your nose." },
+  { term: "Médecin", syll: ["Mé", "de", "cin"], rule: "Nasal vowel 'in' (/ɛ̃/).", tip: "Stretch lips slightly, nasal resonance." },
+  { term: "Baguette", syll: ["Ba", "guette"], rule: "Hard 'gu' sound before 'e'.", tip: "Crisp ending without heavy breath." },
+  { term: "Français", syll: ["Fran", "çais"], rule: "Nasal vowel 'an' (/ɑ̃/) and soft 'ç' (/s/).", tip: "Open jaw for 'an', whistle tongue for 'ç'." }
 ];
+let activePhonetic = PHONETIC_ITEMS[0];
 
-const charState = {}; // id -> { selectedIdx, transcript }
-CHARACTERS.forEach(c=>{ charState[c.id] = { selectedIdx:0, transcript:'' }; });
+function renderPhoneticsLab(){
+  const grid = document.getElementById('phoneticCardsGrid');
+  grid.innerHTML = PHONETIC_ITEMS.map(p => `
+    <div onclick="selectPhoneticCard('${p.term}')" class="bg-white border-2 ${activePhonetic.term===p.term?'border-indigo-600 bg-indigo-50/40':'border-slate-200'} rounded-2xl p-4 cursor-pointer shadow-sm transition hover:border-indigo-400">
+      <div class="font-bold text-lg text-slate-800">${p.term}</div>
+      <div class="text-xs text-indigo-600 font-semibold mt-1">${p.syll.join(' - ')}</div>
+    </div>
+  `).join('');
 
-let activeCharRecognizer = null;
-let activeCharRecognizingId = null;
+  document.getElementById('activePhoneticTitle').textContent = activePhonetic.term;
+  document.getElementById('activePhoneticRule').textContent = activePhonetic.rule;
+  document.getElementById('activePhoneticTip').textContent = activePhonetic.tip;
+  document.getElementById('activeSyllablesContainer').innerHTML = activePhonetic.syll.map(s => `<span class="syllable-badge" onclick="speakFrench('${s}')">${s}</span>`).join('');
+}
+function selectPhoneticCard(term){
+  activePhonetic = PHONETIC_ITEMS.find(p => p.term === term);
+  renderPhoneticsLab();
+}
+document.getElementById('listenFullPhonetic').onclick = ()=> speakFrench(activePhonetic.term);
+document.getElementById('testVoicePhonetic').onclick = ()=>{
+  const Ctor = getRecognitionCtor();
+  if(!Ctor){ alert("Reconnaissance vocale non disponible."); return; }
+  const res = document.getElementById('phoneticVoiceResult');
+  res.textContent = "Parle... écoute en cours...";
+  const rec = new Ctor();
+  rec.lang = 'fr-FR';
+  rec.onresult = (e)=>{
+    const said = e.results[0][0].transcript;
+    if(said.toLowerCase().includes(activePhonetic.term.toLowerCase())){
+      res.innerHTML = `🎉 Excellent ! "${said}" détecté.`;
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+    } else {
+      res.innerHTML = `⚠️ Entendu : "${said}". Réessaie !`;
+    }
+  };
+  rec.start();
+};
+renderPhoneticsLab();
+
+/* ---------------- Personnages & Professions ---------------- */
+const CHARACTERS = [
+  { id:'medecin', name:'Le Médecin', emoji:'🩺', color:'bg-sky-100 text-sky-700 border-sky-300', m:'Médecin', f:'Médecin', roleplay:"Jouons un rôle : tu es médecin et je suis patient. Demande-moi ce qui ne va pas." },
+  { id:'boulanger', name:'Le Boulanger', emoji:'🥖', color:'bg-amber-100 text-amber-700 border-amber-300', m:'Boulanger', f: 'Boulangère', roleplay:"Jouons un rôle : tu es boulanger. Accueille-moi dans ta boulangerie." },
+  { id:'ingenieur', name:"L'Ingénieur", emoji:'⚙️', color:'bg-cyan-100 text-cyan-700 border-cyan-300', m:'Ingénieur', f: 'Ingénieure', roleplay:"Jouons un rôle professionnel : discutions de projets techniques." },
+  { id:'avocat', name:"L'Avocat", emoji:'⚖️', color:'bg-rose-100 text-rose-700 border-rose-300', m:'Avocat', f: 'Avocate', roleplay:"Jouons un rôle : tu es avocat, je viens te consulter pour un contrat." }
+];
 
 function renderCharacters(){
   const grid = document.getElementById('charactersGrid');
   grid.innerHTML = CHARACTERS.map(c=>`
-    <div class="border border-slate-200 rounded-2xl bg-white shadow-sm overflow-hidden">
-      <div class="p-4 flex items-start gap-3">
-        <div class="w-12 h-12 shrink-0 rounded-full flex items-center justify-center text-2xl border ${c.color}">${c.emoji}</div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-sm text-slate-800">${escapeHtml(c.name)}</h3>
-          <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(c.bio)}</p>
+    <div class="border border-slate-200 rounded-2xl bg-white shadow-sm p-5 space-y-3">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl border ${c.color}">${c.emoji}</div>
+        <div>
+          <h3 class="font-bold text-slate-800">${escapeHtml(c.name)}</h3>
+          <p class="text-xs text-indigo-600 font-semibold">Masculin : ${c.m} | Féminin : ${c.f}</p>
         </div>
       </div>
-      <button class="roleplay-btn w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 border-t border-b border-slate-100" data-id="${c.id}">🎭 Commencer un jeu de rôle</button>
-
-      <div class="bg-slate-50 p-4 space-y-3">
-        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Coach de prononciation</div>
-
-        <div class="flex flex-wrap gap-1.5" id="chips-${c.id}"></div>
-
-        <div class="flex items-center gap-2 flex-wrap">
-          <button class="listen-phrase-btn text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:border-indigo-300 transition" data-id="${c.id}">🔊 Écouter</button>
-          <button class="record-check-btn text-xs px-3 py-1.5 rounded-lg border border-red-300 bg-white text-red-600 hover:bg-red-50 transition" data-id="${c.id}">🎙️ Enregistrer &amp; Vérifier</button>
-        </div>
-
-        <div class="rec-status text-[11px] font-semibold text-red-600" id="recstatus-${c.id}"></div>
-        <div class="transcript-box hidden text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-600" id="transcript-${c.id}"></div>
-        <button class="eval-btn hidden w-full text-xs font-semibold bg-indigo-600 text-white rounded-lg py-2 hover:bg-indigo-700 transition disabled:opacity-40" id="evalbtn-${c.id}" data-id="${c.id}">✅ Évaluer ma prononciation</button>
-        <div id="evalresult-${c.id}"></div>
+      <div class="flex gap-2 pt-2">
+        <button class="btn secondary text-xs py-2 flex-1" onclick="speakFrench('${c.m}')">🔊 Masculin</button>
+        <button class="btn secondary text-xs py-2 flex-1" onclick="speakFrench('${c.f}')">🔊 Féminin</button>
       </div>
+      <button class="w-full text-xs font-semibold bg-indigo-600 text-white rounded-xl py-2.5 hover:bg-indigo-700 transition" onclick="switchTab('Conversation'); sendMessage('${escapeHtml(c.roleplay)}')">🎭 Démarrer le jeu de rôle</button>
     </div>
   `).join('');
-
-  CHARACTERS.forEach(c=> renderPhraseChips(c.id));
-
-  grid.querySelectorAll('.roleplay-btn').forEach(btn=>{
-    btn.onclick = ()=>{
-      const c = CHARACTERS.find(x=>x.id===btn.dataset.id);
-      switchTab('conversation');
-      sendMessage(c.roleplay);
-    };
-  });
-  grid.querySelectorAll('.listen-phrase-btn').forEach(btn=>{
-    btn.onclick = ()=>{
-      const c = CHARACTERS.find(x=>x.id===btn.dataset.id);
-      speakFrench(c.phrases[charState[c.id].selectedIdx]);
-    };
-  });
-  grid.querySelectorAll('.record-check-btn').forEach(btn=>{
-    btn.onclick = ()=> toggleCharRecording(btn.dataset.id);
-  });
 }
-
-function renderPhraseChips(id){
-  const c = CHARACTERS.find(x=>x.id===id);
-  const st = charState[id];
-  const wrap = document.getElementById('chips-'+id);
-  wrap.innerHTML = c.phrases.map((p,i)=>`
-    <button class="phrase-chip text-[11px] px-2.5 py-1 rounded-full border transition ${i===st.selectedIdx ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-300 text-slate-600 hover:border-indigo-300'}" data-id="${id}" data-idx="${i}">${escapeHtml(p)}</button>
-  `).join('');
-  wrap.querySelectorAll('.phrase-chip').forEach(chip=>{
-    chip.onclick = ()=>{
-      charState[id].selectedIdx = parseInt(chip.dataset.idx, 10);
-      charState[id].transcript = '';
-      renderPhraseChips(id);
-      const tBox = document.getElementById('transcript-'+id);
-      tBox.classList.add('hidden'); tBox.textContent = '';
-      const evalBtn = document.getElementById('evalbtn-'+id);
-      evalBtn.classList.add('hidden');
-      document.getElementById('evalresult-'+id).innerHTML = '';
-    };
-  });
-}
-
-function toggleCharRecording(id){
-  const Ctor = getRecognitionCtor();
-  if(!Ctor){
-    document.getElementById('recstatus-'+id).textContent = "🎤 Reconnaissance vocale non disponible dans ce navigateur.";
-    return;
-  }
-  // stop any other panel currently recording first
-  if(activeCharRecognizer && activeCharRecognizingId !== id){
-    try{ activeCharRecognizer.stop(); }catch(e){}
-  }
-  if(activeCharRecognizingId === id){
-    try{ activeCharRecognizer.stop(); }catch(e){}
-    return;
-  }
-
-  try{
-    const recognizer = new Ctor();
-    recognizer.lang = 'fr-FR';
-    recognizer.continuous = true;
-    recognizer.interimResults = true;
-    let finalText = '';
-
-    recognizer.onresult = (event)=>{
-      let interim = '';
-      for(let i=event.resultIndex; i<event.results.length; i++){
-        const t = event.results[i][0].transcript;
-        if(event.results[i].isFinal){ finalText += t + ' '; } else { interim += t; }
-      }
-      charState[id].transcript = (finalText + interim).trim();
-      const tBox = document.getElementById('transcript-'+id);
-      tBox.classList.remove('hidden');
-      tBox.textContent = '🗣️ ' + charState[id].transcript;
-    };
-    recognizer.onerror = (event)=>{
-      activeCharRecognizingId = null; activeCharRecognizer = null;
-      document.getElementById('recstatus-'+id).innerHTML = '';
-      document.getElementById('recstatus-'+id).parentElement.querySelector('.record-check-btn')?.classList.remove('bg-red-600','text-white');
-      const status = document.getElementById('recstatus-'+id);
-      status.textContent = `🎤 Micro indisponible (${event.error}) — réessaie ou vérifie les permissions.`;
-    };
-    recognizer.onend = ()=>{
-      activeCharRecognizingId = null; activeCharRecognizer = null;
-      document.getElementById('recstatus-'+id).textContent = '';
-      if(charState[id].transcript){
-        document.getElementById('evalbtn-'+id).classList.remove('hidden');
-      }
-    };
-    recognizer.start();
-    activeCharRecognizer = recognizer;
-    activeCharRecognizingId = id;
-    document.getElementById('recstatus-'+id).innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500 rec-dot"></span> Enregistrement en cours... (reclique pour arrêter)</span>`;
-  }catch(e){
-    document.getElementById('recstatus-'+id).textContent = "🎤 Impossible d'accéder au micro.";
-  }
-}
-
-const PHONETIC_SYSTEM_PROMPT = `Tu es un coach de prononciation française expert en phonétique. On te donne une phrase cible en français et une transcription automatique de ce qu'un étudiant a réellement prononcé (la transcription peut contenir de petites erreurs de reconnaissance vocale).
-
-Réponds TOUJOURS en utilisant EXACTEMENT ces cinq en-têtes, dans cet ordre, chacun sur sa propre ligne :
-
-SYLLABES:
-<découpe la phrase cible syllabe par syllabe, séparées par des tirets, ex: bou-lan-ge-rie>
-
-REGLE:
-<en anglais, 1-2 phrases expliquant la règle phonétique la plus importante dans cette phrase : voyelle nasale, lettre muette, liaison, accent, son ch/j, ou/u, etc.>
-
-COMPARAISON:
-<en anglais, compare la transcription de l'étudiant à la phrase cible. Signale les mots ou sons probablement mal prononcés. Si ça correspond bien, dis-le clairement.>
-
-CONSEIL:
-<en anglais, un conseil concret et actionnable sur la position de la bouche/langue/lèvres pour corriger le ou les sons problématiques>
-
-NOTE:
-<un seul mot parmi: Excellent / TresBien / Bien / ARetravailler>
-
-N'ajoute aucun texte en dehors de ces sections.`;
-
-function parsePhoneticEval(raw){
-  const get = (name, stopNames)=>{
-    const stopPattern = stopNames.join('\\s*:|') + '\\s*:';
-    const re = new RegExp(name + '\\s*:\\s*([\\s\\S]*?)(?=' + stopPattern + '|$)', 'i');
-    const m = raw.match(re);
-    return m ? m[1].trim() : '';
-  };
-  const syllabes = get('SYLLABES', ['REGLE','COMPARAISON','CONSEIL','NOTE']);
-  const regle = get('REGLE', ['COMPARAISON','CONSEIL','NOTE','SYLLABES']);
-  const comparaison = get('COMPARAISON', ['CONSEIL','NOTE','SYLLABES','REGLE']);
-  const conseil = get('CONSEIL', ['NOTE','SYLLABES','REGLE','COMPARAISON']);
-  const note = get('NOTE', ['SYLLABES','REGLE','COMPARAISON','CONSEIL']);
-  const parsed = !!(syllabes || regle || comparaison || conseil || note);
-  return { syllabes, regle, comparaison, conseil, note, parsed, raw };
-}
-
-function noteStyle(note){
-  const n = (note||'').toLowerCase();
-  if(n.includes('excellent')) return 'text-emerald-600';
-  if(n.includes('tresbien') || n.includes('très bien')) return 'text-emerald-600';
-  if(n.includes('bien')) return 'text-amber-600';
-  if(n.includes('retravailler')) return 'text-red-600';
-  return 'text-slate-500';
-}
-function noteLabel(note){
-  const n = (note||'').toLowerCase();
-  if(n.includes('excellent')) return '⭐ Excellent';
-  if(n.includes('tresbien')) return '👍 Très bien';
-  if(n.includes('bien')) return '🙂 Bien';
-  if(n.includes('retravailler')) return '🔁 À retravailler';
-  return note || '—';
-}
-
-async function evaluateCharacterPronunciation(id){
-  const c = CHARACTERS.find(x=>x.id===id);
-  const st = charState[id];
-  const target = c.phrases[st.selectedIdx];
-  const transcript = st.transcript;
-  if(!target || !transcript) return;
-
-  const cfg = getConfig();
-  if(!cfg.baseUrl || !cfg.model){
-    document.getElementById('evalresult-'+id).innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-1">⚠️ Configure d'abord ton modèle (⚙️ Paramètres).</div>`;
-    return;
-  }
-
-  const evalBtn = document.getElementById('evalbtn-'+id);
-  evalBtn.disabled = true;
-  const resultBox = document.getElementById('evalresult-'+id);
-  resultBox.innerHTML = `<div class="text-xs text-indigo-500 font-semibold mt-1">💬 Analyse en cours...</div>`;
-
-  try{
-    const headers = { 'Content-Type': 'application/json' };
-    if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
-    const res = await fetch(cfg.baseUrl, {
-      method:'POST',
-      headers,
-      body: JSON.stringify({
-        model: cfg.model,
-        messages: [
-          { role:'system', content: PHONETIC_SYSTEM_PROMPT },
-          { role:'user', content: `Phrase cible: "${target}"\nTranscription de l'étudiant: "${transcript}"` }
-        ],
-        max_tokens: 500,
-        temperature: 0.4
-      })
-    });
-    if(!res.ok){
-      let detail = '';
-      try{ const body = await res.json(); detail = (body.error && (body.error.message || body.error)) || ''; }catch(e){}
-      throw new Error(`Erreur ${res.status}. ${detail}`);
-    }
-    const data = await res.json();
-    const raw = data?.choices?.[0]?.message?.content;
-    if(!raw) throw new Error('Réponse vide reçue.');
-    const parsed = parsePhoneticEval(raw);
-
-    if(!parsed.parsed){
-      resultBox.innerHTML = `<div class="text-xs bg-white border border-slate-200 rounded-lg p-3 mt-1 whitespace-pre-wrap">${escapeHtml(raw)}</div>`;
-    }else{
-      resultBox.innerHTML = `
-        <div class="text-xs bg-white border border-indigo-200 rounded-lg p-3 space-y-2 mt-1">
-          <div><span class="font-bold text-slate-500">Syllabes:</span> <span class="font-mono">${escapeHtml(parsed.syllabes)}</span></div>
-          <div><span class="font-bold text-slate-500">Rule:</span> ${escapeHtml(parsed.regle)}</div>
-          <div><span class="font-bold text-slate-500">Comparison:</span> ${escapeHtml(parsed.comparaison)}</div>
-          <div class="bg-indigo-50 rounded px-2 py-1.5"><span class="font-bold text-indigo-700">💡 Tip:</span> ${escapeHtml(parsed.conseil)}</div>
-          <div class="font-bold ${noteStyle(parsed.note)}">${noteLabel(parsed.note)}</div>
-        </div>`;
-    }
-  }catch(err){
-    resultBox.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-1">⚠️ ${escapeHtml(err.message)}</div>`;
-  }finally{
-    evalBtn.disabled = false;
-  }
-}
-
-document.getElementById('charactersGrid').addEventListener('click', (e)=>{
-  const btn = e.target.closest('.eval-btn');
-  if(btn) evaluateCharacterPronunciation(btn.dataset.id);
-});
-
 renderCharacters();
 
-/* ---------------- INIT ---------------- */
-updateConnStatus();
-if(!getConfig().baseUrl){
-  // First run: nudge the user to configure before they try to chat
-  setTimeout(openSettings, 400);
+/* ---------------- 3D Flashcards ---------------- */
+const VOCAB_CARDS = [
+  { g:'Masculin', fr:"L'environnement", en:"The environment", ex:"Il faut protéger l'environnement." },
+  { g:'Féminin', fr:"La pollution", en:"Pollution", ex:"La pollution augmente en ville." },
+  { g:'Verbe', fr:"Recycler", en:"To recycle", ex:"Nous recyclons le verre." }
+];
+let vocabIdx = 0;
+
+function renderVocabCard(){
+  const card = VOCAB_CARDS[vocabIdx];
+  document.getElementById('fcGenre').textContent = card.g;
+  document.getElementById('fcWord').textContent = card.fr;
+  document.getElementById('fcTranslation').textContent = card.en;
+  document.getElementById('fcExample').textContent = `"${card.ex}"`;
+  document.getElementById('vocabCard').classList.remove('flipped');
 }
+document.getElementById('vocabCard').onclick = function(){ this.classList.toggle('flipped'); };
+document.getElementById('nextCardBtn').onclick = ()=>{ vocabIdx = (vocabIdx + 1) % VOCAB_CARDS.length; renderVocabCard(); };
+document.getElementById('prevCardBtn').onclick = ()=>{ vocabIdx = (vocabIdx - 1 + VOCAB_CARDS.length) % VOCAB_CARDS.length; renderVocabCard(); };
+renderVocabCard();
+
+/* Init */
+updateConnStatus();
+if(!getConfig().baseUrl){ setTimeout(openSettings, 400); }
 </script>
 </body>
 </html>
