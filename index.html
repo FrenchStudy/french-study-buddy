@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — TCF & Phonetic Studio</title>
+<title>French Study Buddy — TCF & DELF Complete Interactive Studio</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -36,7 +36,7 @@
     <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center text-lg">🇫🇷</div>
     <div class="flex-1">
       <h1 class="font-bold text-lg leading-tight">French Study Buddy</h1>
-      <p class="text-indigo-200 text-xs">Ton coach TCF & Laboratoire Phonétique (Débutant & Intermédiaire)</p>
+      <p class="text-indigo-200 text-xs">Ton coach interactif TCF & DELF (A1, A2, B1, B2)</p>
     </div>
     <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
       <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -51,8 +51,8 @@
 
     <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/50">
-        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme A1 & A2 (Fondations)</h2>
-        <p class="text-xs text-slate-500 mt-1">Idéal pour débutants complets. Clique un thème pour guider l'IA en anglais/français.</p>
+        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Complet TCF / DELF</h2>
+        <p class="text-xs text-slate-500 mt-1">Clique sur n'importe quel sujet pour lancer une leçon interactive avec l'IA.</p>
       </div>
       <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
@@ -61,8 +61,8 @@
 
     <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50">
       <div class="flex border-b border-slate-200 bg-white px-3 sm:px-6 shrink-0 overflow-x-auto">
-        <button id="tabBtnConversation" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-700 whitespace-nowrap">💬 Conversation AI</button>
-        <button id="tabBtnPhonetics" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">✨ Labo Phonétique</button>
+        <button id="tabBtnConversation" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-700 whitespace-nowrap">💬 Conversation &amp; Correcteur</button>
+        <button id="tabBtnPhonetics" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">✨ Labo Phonétique &amp; Audio</button>
         <button id="tabBtnPersonnages" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">🎭 Rôles &amp; Professions</button>
         <button id="tabBtnVocab" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">🔤 Flashcards 3D</button>
       </div>
@@ -73,11 +73,11 @@
         <div class="border-t border-slate-200 bg-white p-3 sm:p-4">
           <div class="flex items-end gap-2 max-w-3xl mx-auto">
             <button id="micBtn" title="Parler en français" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-300 hover:border-indigo-400 flex items-center justify-center text-xl transition">🎙️</button>
-            <textarea id="chatInput" rows="1" placeholder="Écris ou dis quelque chose en français (ou en anglais si débutant)..."
+            <textarea id="chatInput" rows="1" placeholder="Écris ou utilise le micro en français (traduction et corrections automatiques)..."
               class="flex-1 resize-none border border-slate-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 max-h-32"></textarea>
             <button id="sendBtn" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition disabled:opacity-40">➤</button>
           </div>
-          <p class="text-[11px] text-slate-400 text-center mt-2">Chaque réponse inclut le français, la traduction anglaise et les corrections.</p>
+          <p class="text-[11px] text-slate-400 text-center mt-2">Chaque message inclut la réponse audio, la traduction en anglais et le correcteur d'erreurs.</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@
         <div class="max-w-4xl mx-auto space-y-6">
           <div class="bg-indigo-900 text-white p-6 rounded-2xl shadow-md">
             <h2 class="font-bold text-xl mb-1">Laboratoire de Phonétique &amp; Articulation</h2>
-            <p class="text-xs text-indigo-200">Maîtrise les bases (voyelles nasales, liaison, sons ch/j, ou/u) syllabe par syllabe avec un assistant vocal.</p>
+            <p class="text-xs text-indigo-200">Clique sur les mots, écoute les syllabes, et enregistre ta voix pour vérifier ton accent.</p>
           </div>
 
           <div id="phoneticCardsGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
@@ -106,15 +106,15 @@
               </div>
 
               <div class="mt-5 flex gap-2">
-                <button id="listenFullPhonetic" class="btn text-xs">🔊 Écouter le mot</button>
-                <button id="testVoicePhonetic" class="btn coral text-xs">🎙️ Tester ma prononciation</button>
+                <button id="listenFullPhonetic" class="bg-indigo-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition">🔊 Écouter le mot</button>
+                <button id="testVoicePhonetic" class="bg-rose-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl hover:bg-rose-600 transition">🎙️ Tester ma prononciation</button>
               </div>
             </div>
 
             <div class="bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center space-y-3">
               <div class="text-4xl">👄</div>
               <h4 class="font-bold text-slate-700">Guide de l'Articulateur</h4>
-              <p id="activePhoneticDesc" class="text-xs text-slate-500">Regarde la règle et entraîne-toi à répéter chaque syllabe distinctement.</p>
+              <p id="activePhoneticDesc" class="text-xs text-slate-500">Écoute l'audio du mot complet ou des syllabes, puis appuie sur le micro pour t'enregistrer.</p>
               <div id="phoneticVoiceResult" class="text-xs font-bold text-emerald-600"></div>
             </div>
           </div>
@@ -124,21 +124,24 @@
       <div id="tabPersonnages" class="hidden flex-1 overflow-y-auto px-3 sm:px-6 py-5">
         <div class="max-w-5xl mx-auto">
           <h2 class="font-bold text-slate-700 mb-1 text-lg">🎭 Rôles &amp; Professions (Masculin / Féminin)</h2>
-          <p class="text-xs text-slate-500 mb-5">Entraîne-toi à prononcer les métiers et leurs déclinaisons de genre (ex: Boulanger / Boulangère, Médecin).</p>
+          <p class="text-xs text-slate-500 mb-5">Clique pour écouter la prononciation masculine et féminine, ou lance un jeu de rôle interactif.</p>
           <div id="charactersGrid" class="grid gap-5 sm:grid-cols-2"></div>
         </div>
       </div>
 
       <div id="tabVocab" class="hidden flex-1 overflow-y-auto px-4 sm:px-8 py-8 flex flex-col items-center justify-center">
         <div class="max-w-md w-full space-y-6 text-center">
-          <h2 class="font-bold text-xl text-slate-800">🔤 Flashcards de Vocabulaire A1 / A2</h2>
-          <p class="text-xs text-slate-500">Clique sur la carte pour voir la traduction en anglais et un exemple en contexte.</p>
+          <h2 class="font-bold text-xl text-slate-800">🔤 Flashcards de Vocabulaire Interactives</h2>
+          <p class="text-xs text-slate-500">Écoute le mot en français, retourne la carte pour la traduction anglaise.</p>
 
           <div class="card-stage h-64 w-full">
             <div id="flashcard3D" class="flashcard relative w-full h-full bg-white border border-slate-200 rounded-2xl shadow-sm cursor-pointer p-6 flex flex-col items-center justify-center">
               <div class="flashcard-front flex flex-col items-center justify-center">
                 <span id="fcGenre" class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-full mb-3">Masculin</span>
                 <h3 id="fcWord" class="font-bold text-3xl text-slate-800">L'environnement</h3>
+                <div class="flex gap-3 mt-4">
+                  <button onclick="event.stopPropagation(); speakFrench(document.getElementById('fcWord').textContent);" class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold">🔊 Écouter</button>
+                </div>
                 <p class="text-xs text-slate-400 mt-3">👆 Clique pour retourner</p>
               </div>
               <div class="flashcard-back bg-indigo-50 border border-indigo-200 rounded-2xl p-6 flex flex-col items-center justify-center">
@@ -149,8 +152,8 @@
           </div>
 
           <div class="flex justify-center gap-4">
-            <button id="prevCardBtn" class="btn secondary text-xs">⬅️ Précédent</button>
-            <button id="nextCardBtn" class="btn text-xs">Suivant ➡️</button>
+            <button id="prevCardBtn" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
+            <button id="nextCardBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
           </div>
         </div>
       </div>
@@ -193,7 +196,7 @@
 
 <script>
 /* ============================================================
-   French Study Buddy — App Logic
+   French Study Buddy — Complete App Logic
    ============================================================ */
 
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
@@ -293,21 +296,17 @@ document.getElementById('testConnBtn').onclick = async ()=>{
   }
 };
 
-/* ---------------- LLM System Prompt (Absolute Beginner + Dual Language) ---------------- */
-const SYSTEM_PROMPT = `Tu es "Plume", un tuteur de français extrêmement patient et bienveillant, spécialisé pour les débutants absolus (niveau A1) ainsi que pour la préparation aux examens TCF/TEF. L'étudiant peut ne pas encore connaître le français, donc tu dois TOUJOURS être clair, encourageant, et fournir des explications en anglais si besoin.
-
-Règles pour CHAQUE réponse :
-1. Réponds en français simple et adapté, et pose toujours une question simple pour engager l'étudiant.
-2. Structure TOUJOURS ta réponse en utilisant EXACTEMENT ces trois en-têtes, chacun sur sa propre ligne :
+/* ---------------- LLM System Prompt (Dual Language + Corrective Coach) ---------------- */
+const SYSTEM_PROMPT = `Tu es "Plume", un tuteur de français interactif et bienveillant pour tous les niveaux (A1, A2, B1, B2) et coach TCF. L'étudiant peut utiliser l'anglais ou le français. Tu dois TOUJOURS structurer ta réponse en trois sections exactes :
 
 FRANÇAIS:
-<ta réponse conversationnelle simple en français>
+<ta réponse conversationnelle ou leçon en français adapté au sujet>
 
 ENGLISH:
-<une traduction et explication claire en anglais pour aider le débutant absolu>
+<traduction et explication claire en anglais>
 
 CORRECTIONS:
-<si l'étudiant a fait des erreurs, liste-les sous la forme "- incorrect → correct (explication en anglais)". S'il n'y a pas d'erreur, écris "No errors detected.">
+<si l'étudiant a fait des erreurs dans son dernier message, liste-les sous la forme "- incorrect → correct (explication en anglais)". S'il n'y a pas d'erreur, écris "No errors detected.">
 
 N'ajoute aucun texte en dehors de ces trois sections.`;
 
@@ -503,44 +502,55 @@ micBtn.onclick = ()=>{
   }catch(e){}
 };
 
-/* ---------------- DELF A1 / A2 Sidebar Modules ---------------- */
+/* ---------------- Complete A1, A2, B1, B2 Syllabus Sidebar ---------------- */
 const STUDY_MODULES = [
   {
-    title: '🟢 DELF A1 (Fondations & Survie)',
+    title: '🟢 DELF A1 (Fondations & Vocabulaire)',
     topics: [
-      { label: "1. L'alphabet & Les nombres", prompt: "Aide-moi à apprendre l'alphabet français et les nombres de 1 à 20 en anglais/français avec des exemples simples." },
-      { label: "2. Noms, prénoms & Adresse", prompt: "Montre-moi comment donner mon nom, mon prénom et mon adresse en français pour débutants." },
-      { label: "3. Salutations & Politesse (Tu vs Vous)", prompt: "Explique-moi les salutations de base (Bonjour, Au revoir) et la différence entre 'Tu' et 'Vous' avec des exemples." },
-      { label: "4. Les professions & Nationalités", prompt: "Comment dire sa nationalité et sa profession en français ? Donne-moi des exemples masculins et féminins." },
-      { label: "5. La famille & Les loisirs", prompt: "Apprends-moi le vocabulaire de la famille proche et des loisirs en français avec traduction en anglais." },
-      { label: "6. L'heure, les jours & la date", prompt: "Comment demander l'heure, dire les jours de la semaine et la date en français ?" },
-      { label: "7. Verbes essentiels (Être, Avoir, -er)", prompt: "Explique-moi comment conjuguer 'être', 'avoir' et les verbes en '-er' au présent avec des exemples simples." },
-      { label: "8. La phrase négative (ne... pas)", prompt: "Comment former une phrase négative en français avec 'ne... pas' ? Donne-moi des exemples." }
+      { label: "1. L'alphabet & Nombres", prompt: "Aide-moi à apprendre l'alphabet français et les nombres de 1 à 20 avec traduction." },
+      { label: "2. Noms, prénoms & Adresse", prompt: "Montre-moi comment donner mon nom, mon prénom et mon adresse en français." },
+      { label: "3. Objets personnels & Classe", prompt: "Apprends-moi le vocabulaire des objets personnels et de la classe en français." },
+      { label: "4. Nationalités & Professions", prompt: "Comment dire sa nationalité et sa profession en français (masculin et féminin) ?" },
+      { label: "5. Famille proche & Loisirs", prompt: "Apprends-moi le vocabulaire de la famille proche et des loisirs." },
+      { label: "6. Heure, prix, météo & Date", prompt: "Comment dire l'heure, les prix, la météo et la date en français ?" },
+      { label: "7. Couleurs & Descriptions", prompt: "Apprends-moi les couleurs et les adjectifs physiques de base (grand, petit, vieux)." }
     ]
   },
   {
-    title: '🟡 DELF A2 (Quotidien & Autonomie)',
+    title: '🟡 DELF A2 (Quotidien & Grammaire)',
     topics: [
-      { label: "1. Le Passé Composé & Imparfait", prompt: "Explique-moi la différence entre le passé composé et l'imparfait en français pour un niveau A2 avec des exemples." },
-      { label: "2. Le Futur Proche & Simple", prompt: "Comment exprimer le futur proche et le futur simple en français ? Donne-moi des exemples pratiques." },
-      { label: "3. Les pronoms COD, COI, En, Y", prompt: "Explique-moi simplement comment utiliser les pronoms COD, COI, 'en' et 'y' en français." },
-      { label: "4. Voyages, hôtels & restaurants", prompt: "Simulons une situation de voyage : je réserve un hôtel ou commande au restaurant en français." },
-      { label: "5. L'argent, les achats & paiements", prompt: "Apprends-moi le vocabulaire utile pour faire des achats, parler des prix et payer dans un magasin." }
+      { label: "1. Lieux, transports & Logement", prompt: "Vocabulaire des transports, des commerces, des restaurants et des pièces de la maison." },
+      { label: "2. Repas, cuisine & Animaux", prompt: "Vocabulaire de la nourriture, des repas et des animaux familiers." },
+      { label: "3. Présent, Passé composé & Imparfait", prompt: "Explique-moi la différence entre le présent, le passé composé et l'imparfait." },
+      { label: "4. Futur proche & Impératif", prompt: "Comment exprimer le futur proche et donner des ordres avec l'impératif ?" },
+      { label: "5. Pronoms COD, COI, EN, Y", prompt: "Explique-moi comment utiliser les pronoms COD, COI, 'en' et 'y' avec des exemples." }
     ]
   },
   {
-    title: '🔵 TCF / TEF (Intermédiaire & Avancé)',
+    title: '🔵 DELF B1 (Expression & Sentiments)',
     topics: [
-      { label: "Le Subjonctif Présent", prompt: "Introduis-moi le subjonctif présent en français (quand et comment l'utiliser avec 'il faut que')." },
-      { label: "Le Conditionnel (Hypothèses)", prompt: "Pratiquons le conditionnel pour exprimer des souhaits et des hypothèses." },
-      { label: "Expression écrite (Essai argumenté)", prompt: "Propose-moi un sujet d'essai argumenté (Tâche 3 du TCF) pour donner mon avis sur un sujet de société." }
+      { label: "1. Vie professionnelle & Scolaire", prompt: "Discutons du monde du travail, de l'emploi et de la formation professionnelle." },
+      { label: "2. Sentiments & Caractères", prompt: "Vocabulaire des émotions (joie, tristesse, peur, surprise, ennui)." },
+      { label: "3. Faits divers & Incidents", prompt: "Comment raconter un incident, un accident ou un fait divers au passé ?" },
+      { label: "4. Le Conditionnel Présent & Passé", prompt: "Pratiquons le conditionnel pour exprimer des souhaits, des regrets et des hypothèses." },
+      { label: "5. Le Subjonctif Présent", prompt: "Quand et comment utiliser le subjonctif présent en français ?" }
+    ]
+  },
+  {
+    title: '🟣 DELF B2 (Médias & Société - Avancé)',
+    topics: [
+      { label: "1. Médias & Culture (Cinéma, Presse)", prompt: "Discutons des programmes TV, des articles de presse, du cinéma et de la littérature." },
+      { label: "2. Sujets de société (Écologie, Économie)", prompt: "Débattons d'un sujet de société complexe (écologie, santé, justice, économie)." },
+      { label: "3. Discours rapporté & Voix passive", prompt: "Explique-moi le discours rapporté et la voix passive en français." },
+      { label: "4. Hypothèses complexes (Si + imparfait...)", prompt: "Pratiquons l'hypothèse complexe avec 'si'." },
+      { label: "5. Essai argumenté (Tâche 3 TCF)", prompt: "Simulons l'essai argumenté du TCF/DELF B2 sur un sujet d'actualité." }
     ]
   }
 ];
 
 function renderTopics(){
   const container = document.getElementById('topicsList');
-  container.innerHTML = STUDY_MODULES.map((mod,mi)=>`
+  container.innerHTML = STUDY_MODULES.map((mod)=>`
     <div>
       <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">${mod.title}</h3>
       <div class="space-y-1">
@@ -549,7 +559,6 @@ function renderTopics(){
     </div>
   `).join('');
   
-  // FIXED: Explicitly attach event listeners to all generated topic buttons
   container.querySelectorAll('.topic-btn').forEach(btn=>{
     btn.onclick = ()=>{
       switchTab('Conversation');
@@ -656,8 +665,8 @@ function renderCharacters(){
         </div>
       </div>
       <div class="flex gap-2 pt-2">
-        <button class="btn secondary text-xs py-2 flex-1" onclick="speakFrench('${c.m}')">🔊 Masculin</button>
-        <button class="btn secondary text-xs py-2 flex-1" onclick="speakFrench('${c.f}')">🔊 Féminin</button>
+        <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs py-2 px-3 rounded-xl font-bold flex-1" onclick="speakFrench('${c.m}')">🔊 Masculin</button>
+        <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs py-2 px-3 rounded-xl font-bold flex-1" onclick="speakFrench('${c.f}')">🔊 Féminin</button>
       </div>
       <button class="w-full text-xs font-semibold bg-indigo-600 text-white rounded-xl py-2.5 hover:bg-indigo-700 transition" onclick="switchTab('Conversation'); sendMessage('${escapeHtml(c.roleplay)}')">🎭 Démarrer le jeu de rôle</button>
     </div>
