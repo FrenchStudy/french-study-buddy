@@ -3,116 +3,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — Salon de Conversation Plume</title>
+<title>French Study Buddy — Plume</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
   
-  @keyframes talkPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.5); } 50% { transform: scale(1.03); box-shadow: 0 0 0 25px rgba(99,102,241,0); } }
-  .speaking-avatar { animation: talkPulse 1.5s infinite ease-in-out; }
+  @keyframes talkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); transform: scale(1); } 50% { box-shadow: 0 0 0 16px rgba(79,70,229,0); transform: scale(1.03); } }
+  .speaking-human { animation: humanGlow 1.5s infinite ease-in-out; }
 
-  @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
+  @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 14px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
   .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
+
+  @keyframes lipMove { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1.4); } }
+  .speaking-lips { animation: lipMove 0.25s infinite ease-in-out; transform-origin: center; }
 </style>
 </head>
-<body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
 
   <!-- TOP HEADER -->
-  <header class="bg-indigo-950 border-b border-indigo-900/50 text-white px-6 py-3.5 flex items-center gap-4 shadow-md z-20 shrink-0">
-    <div class="w-10 h-10 rounded-2xl bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center font-extrabold text-base">🇫🇷</div>
+  <header class="bg-indigo-700 text-white px-6 py-3.5 flex items-center gap-4 shadow-sm z-20 shrink-0">
+    <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center font-extrabold text-base">🇫🇷</div>
     <div class="flex-1">
       <h1 class="font-extrabold text-base sm:text-lg tracking-tight">French Study Buddy &amp; Plume</h1>
-      <p class="text-indigo-300 text-xs">Salon de Conversation Vivant &amp; Gratuit</p>
+      <p class="text-indigo-200 text-xs">Salon de Conversation Interactif</p>
     </div>
-    <span id="connStatus" class="hidden sm:inline-flex items-center gap-2 text-xs bg-indigo-900/50 border border-indigo-700/50 rounded-full px-3.5 py-1.5 font-medium text-indigo-200">
-      <span id="connDot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+    <span id="connStatus" class="hidden sm:inline-flex items-center gap-2 text-xs bg-white/10 rounded-full px-3.5 py-1.5 font-medium">
+      <span id="connDot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
       <span id="connLabel">Non configuré</span>
     </span>
-    <button id="settingsBtn" class="bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/30 transition rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2 text-indigo-100">
+    <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2">
       ⚙️ Paramètres
     </button>
   </header>
 
-  <!-- MAIN APP CONTAINER -->
+  <!-- MAIN APP CONTAINER (NO SCROLL) -->
   <div class="flex-1 flex overflow-hidden">
 
     <!-- LEFT SIDEBAR: Syllabus Topics -->
-    <aside id="sidebar" class="flex flex-col w-80 bg-slate-950 border-r border-indigo-950 overflow-y-auto shrink-0 shadow-sm">
-      <div class="p-4 border-b border-indigo-900/40 bg-indigo-950/40 sticky top-0 z-10 backdrop-blur">
-        <h2 class="font-bold text-xs text-indigo-300 uppercase tracking-wider">Sujets de Discussion (TCF)</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Clique pour changer de sujet avec Plume.</p>
+    <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur">
+        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Sujets de Discussion (TCF)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Clique pour changer de sujet instantanément.</p>
       </div>
-      <div id="topicsList" class="p-3 space-y-4"></div>
+      <div id="topicsList" class="p-3 space-y-3"></div>
     </aside>
 
-    <!-- RIGHT MAIN WORKSTATION -->
-    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-900 overflow-y-auto">
-      <div class="max-w-3xl mx-auto w-full p-6 space-y-5 my-auto flex flex-col items-center">
+    <!-- RIGHT MAIN WORKSTATION (NO SCROLL) -->
+    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-hidden p-6">
+      <div class="max-w-3xl mx-auto w-full h-full flex flex-col justify-between space-y-4 my-auto">
 
         <!-- TAB SWITCHER -->
-        <div class="flex gap-3 bg-slate-950 p-2 rounded-3xl border border-indigo-950 shadow-sm w-full">
-          <button id="paneBtnChat" class="flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm">
+        <div class="flex gap-3 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm shrink-0">
+          <button id="paneBtnChat" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm">
             💬 Salon de Discussion
           </button>
-          <button id="paneBtnVocab" class="flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900 text-slate-400 transition flex items-center justify-center gap-2">
+          <button id="paneBtnVocab" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2">
             🔤 Vocabulaire (vocabulary.csv)
           </button>
         </div>
 
         <!-- CONVERSATION PANE -->
-        <div id="paneChat" class="w-full space-y-5">
+        <div id="paneChat" class="flex-1 flex flex-col justify-between space-y-4 min-h-0">
           
-          <!-- PLUME INTERACTIVE AVATAR CARD -->
-          <div class="bg-gradient-to-b from-indigo-950/90 to-slate-950 border border-indigo-900/60 rounded-3xl p-7 shadow-xl space-y-5 flex flex-col items-center text-center">
+          <!-- PLUME HUMAN TEACHER CARD -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col items-center text-center shrink-0">
             
-            <!-- Plume Visual Avatar Node -->
-            <div id="plumeAvatar" class="relative w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg border-4 border-indigo-400/30 text-white text-3xl font-black transition-all">
-              P
-              <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full"></span>
+            <!-- Realistic Human Portrait with Animated Speaking Lips Overlay -->
+            <div id="plumeHumanAvatar" class="relative w-24 h-24 rounded-full bg-slate-200 shadow-md border-4 border-indigo-100 overflow-hidden transition-all">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Plume" class="w-full h-full object-cover">
+              <!-- Live Speaking Lips Overlay -->
+              <div id="speakingLipsOverlay" class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 transition-opacity">
+                <div class="w-5 h-2 bg-rose-500 rounded-full speaking-lips"></div>
+              </div>
+              <span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full z-10"></span>
             </div>
 
             <div>
-              <h2 class="font-extrabold text-base text-white flex items-center justify-center gap-2">
-                Plume <span id="plumeEmotionBadge" class="text-[10px] font-semibold bg-indigo-900/80 text-indigo-200 px-2.5 py-0.5 rounded-full border border-indigo-700/60">Souriante 😊</span>
+              <h2 class="font-extrabold text-sm text-slate-800 flex items-center justify-center gap-2">
+                Plume <span id="plumeEmotionBadge" class="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-100">Souriante 😊</span>
               </h2>
-              <p class="text-xs text-indigo-300 mt-0.5" id="currentTopicLabel">Sujet : Discussion libre</p>
+              <p class="text-xs text-slate-500 mt-0.5" id="currentTopicLabel">Sujet : Discussion libre</p>
             </div>
 
             <!-- Dialogue Speech Display -->
-            <div class="w-full space-y-3 bg-slate-900/90 p-6 rounded-2xl border border-indigo-950 shadow-inner text-left">
+            <div class="w-full space-y-2 bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-inner text-left">
               <div class="flex items-center justify-between pb-1">
-                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Plume (En direct)</span>
-                <button onclick="replayPlumeLastLine()" class="bg-indigo-950 hover:bg-indigo-900 text-indigo-300 font-bold text-xs px-3.5 py-1.5 rounded-xl border border-indigo-800 transition shadow-sm flex items-center gap-1.5">
+                <span class="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest">Plume (Professeur de français)</span>
+                <button onclick="replayPlumeLastLine()" class="bg-white hover:bg-indigo-50 text-indigo-700 font-bold text-xs px-3.5 py-1.5 rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1.5">
                   🔊 Réécouter
                 </button>
               </div>
-              <p id="plumeSpokenFr" class="text-slate-100 text-sm font-medium leading-relaxed">Bonjour ! Je suis ravie de discuter avec toi aujourd'hui. Comment s'est passée ta journée ? Raconte-moi !</p>
+              <p id="plumeSpokenFr" class="text-slate-800 text-sm font-semibold leading-relaxed">Bonjour ! Je suis ravie de discuter avec toi aujourd'hui. Comment s'est passée ta journée ? Raconte-moi !</p>
               <p id="plumeSpokenEn" class="text-slate-400 text-xs italic">Hello! I'm delighted to chat with you today. How was your day? Tell me!</p>
             </div>
 
-            <!-- Quick Suggestions -->
-            <div class="w-full flex flex-wrap gap-2 justify-center pt-1">
-              <button onclick="sendQuickReply('Ma journée s\'est très bien passée, merci !')" class="text-xs bg-indigo-950 hover:bg-indigo-900 text-indigo-200 px-3.5 py-2 rounded-xl border border-indigo-900 transition">✨ "Ma journée s'est bien passée !"</button>
-              <button onclick="sendQuickReply('Et toi Plume, comment ça va ?')" class="text-xs bg-indigo-950 hover:bg-indigo-900 text-indigo-200 px-3.5 py-2 rounded-xl border border-indigo-900 transition">✨ "Et toi Plume, comment ça va ?"</button>
-              <button onclick="sendQuickReply('Je veux parler de mes loisirs')" class="text-xs bg-indigo-950 hover:bg-indigo-900 text-indigo-200 px-3.5 py-2 rounded-xl border border-indigo-900 transition">✨ "Parlons de mes loisirs"</button>
+            <!-- Dynamic Topic-Aware Suggestions -->
+            <div class="w-full flex flex-wrap gap-2 justify-center pt-1" id="dynamicSuggestions">
+              <button onclick="sendQuickReply('Ma journée s\'est très bien passée, merci !')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Ma journée s'est bien passée !"</button>
+              <button onclick="sendQuickReply('Et toi Plume, comment ça va ?')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Et toi Plume, comment ça va ?"</button>
+              <button onclick="sendQuickReply('Je veux parler de mes loisirs')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Parlons de mes loisirs"</button>
             </div>
           </div>
 
           <!-- Input Bar -->
-          <div class="bg-slate-950 border border-indigo-950 rounded-2xl p-5 space-y-3 shadow-sm w-full">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 shadow-sm w-full shrink-0">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-300 uppercase tracking-wide">Réponds à Plume</span>
-              <span class="text-[11px] font-semibold text-slate-500">Oral ou écrit</span>
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Réponds à Plume</span>
+              <span class="text-[11px] font-semibold text-slate-400">Oral ou écrit</span>
             </div>
 
             <div class="flex gap-3">
-              <button id="studioMicBtn" onclick="toggleVoiceConversation()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-2xl px-5 py-3 text-xs font-bold transition flex items-center gap-2 shadow-sm shrink-0">
-                🎤 Parler à Plume
+              <button id="studioMicBtn" onclick="toggleVoiceConversation()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-2xl px-5 py-3 text-xs font-bold transition flex items-center gap-2 shadow-sm shrink-0">
+                🎤 Parler
               </button>
-              <input id="studioInput" type="text" autocomplete="off" name="no-autofill-conv" placeholder="Écris ta réponse en français..." class="flex-1 border border-slate-800 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-900 text-white">
+              <input id="studioInput" type="text" autocomplete="off" name="no-autofill-conv" placeholder="Écris ta réponse en français..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-800">
               <button onclick="sendUserMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-6 py-3 font-bold text-xs transition shadow-sm">
                 Envoyer →
               </button>
@@ -121,74 +128,59 @@
 
         </div>
 
-        <!-- VOCABULARY PANE -->
-        <div id="paneVocab" class="hidden w-full space-y-4">
+        <!-- VOCABULARY PANE (Hidden by default) -->
+        <div id="paneVocab" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
           <div class="flex flex-wrap gap-2 items-center" id="vocabLevelChips"></div>
 
-          <div class="flex items-center justify-between bg-slate-950 px-5 py-3 rounded-2xl border border-indigo-950 shadow-sm">
+          <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex gap-2">
               <button id="filterAllBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white transition shadow-sm">Toutes</button>
-              <button id="filterPracticeBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm">🔁 À revoir</button>
-              <button id="filterKnownBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm">✅ Connus</button>
+              <button id="filterPracticeBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm">🔁 À revoir</button>
+              <button id="filterKnownBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm">✅ Connus</button>
             </div>
-            <button id="vocabShuffleBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm flex items-center gap-1.5">🔀 Mélanger</button>
+            <button id="vocabShuffleBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm flex items-center gap-1.5">🔀 Mélanger</button>
           </div>
 
           <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
 
-          <div id="vocabCardWrap" class="hidden bg-slate-950 border border-indigo-950 rounded-3xl p-8 shadow-sm space-y-6">
+          <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-7 shadow-sm space-y-5">
             <div class="flex items-center justify-between">
-              <span id="vocabRankBadge" class="text-xs font-bold text-indigo-400 bg-indigo-950 border border-indigo-900 px-3 py-1.5 rounded-full">#504</span>
+              <span id="vocabRankBadge" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">#504</span>
               <span id="vocabCounter" class="text-xs font-bold text-slate-400">4 / 1000</span>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <div class="flex items-center gap-3 flex-wrap">
-                <h3 id="vocabWord" class="font-extrabold text-3xl text-white">oublier</h3>
-                <span id="vocabPos" class="text-xs font-extrabold text-indigo-400 bg-indigo-950 px-3 py-1 rounded-full uppercase">v</span>
+                <h3 id="vocabWord" class="font-extrabold text-2xl text-slate-800">oublier</h3>
+                <span id="vocabPos" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">v</span>
               </div>
               <p id="vocabIpa" class="text-xs text-slate-400 font-mono">[ublije]</p>
-              <p id="vocabEnglish" class="text-base text-indigo-400 font-bold pt-1">to forget</p>
+              <p id="vocabEnglish" class="text-sm text-indigo-600 font-bold pt-1">to forget</p>
             </div>
 
-            <div id="vocabExampleWrap" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-1.5 hidden">
-              <p id="vocabSentenceFr" class="text-slate-200 text-xs font-semibold">je ne t'oublierai jamais</p>
+            <div id="vocabExampleWrap" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1 hidden">
+              <p id="vocabSentenceFr" class="text-slate-800 text-xs font-semibold">je ne t'oublierai jamais</p>
               <p id="vocabSentenceEn" class="text-slate-400 text-[11px] italic">I will never forget you</p>
             </div>
 
-            <div class="bg-indigo-950/40 border border-indigo-900/60 rounded-2xl p-5 space-y-3">
+            <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-200">🎙️ Pratique de prononciation</span>
-                <button id="vocabListenBtn" class="text-xs bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-indigo-700 transition shadow-sm">🔊 Écouter</button>
+                <span class="text-xs font-bold text-indigo-900">🎙️ Prononciation</span>
+                <button id="vocabListenBtn" class="text-xs bg-indigo-600 text-white font-bold px-3.5 py-1.5 rounded-xl hover:bg-indigo-700 transition shadow-sm">🔊 Écouter</button>
               </div>
-              <button id="vocabRecBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-3.5 px-4 rounded-xl transition shadow-sm">🎙️ Enregistrer ma voix sur ce mot</button>
-              <div id="vocabTranscriptBox" class="hidden text-xs bg-slate-900 border border-indigo-900 rounded-xl p-3 text-slate-200 font-medium"></div>
-              <div id="vocabReactionArea" class="hidden space-y-2"></div>
+              <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition shadow-sm">🎙️ Enregistrer ma voix</button>
+              <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-indigo-100 rounded-xl p-2.5 text-slate-700 font-medium"></div>
+              <div id="vocabReactionArea" class="hidden space-y-1.5"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 pt-2">
-              <button id="vocabMarkPractice" class="bg-amber-950/50 border border-amber-800 text-amber-200 text-xs font-bold py-3.5 rounded-2xl hover:bg-amber-900/50 transition shadow-sm">🔁 À revoir</button>
-              <button id="vocabMarkKnown" class="bg-emerald-950/50 border border-emerald-800 text-emerald-200 text-xs font-bold py-3.5 rounded-2xl hover:bg-emerald-900/50 transition shadow-sm">✅ Je connais</button>
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <button id="vocabMarkPractice" class="bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold py-3 rounded-2xl hover:bg-amber-100 transition shadow-sm">🔁 À revoir</button>
+              <button id="vocabMarkKnown" class="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold py-3 rounded-2xl hover:bg-emerald-100 transition shadow-sm">✅ Je connais</button>
             </div>
 
-            <div class="flex justify-between gap-3 pt-2">
-              <button id="vocabPrevBtn" class="bg-slate-900 border border-slate-800 text-slate-300 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-slate-800 transition shadow-sm">⬅️ Précédent</button>
-              <button id="vocabNextBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-7 py-3 rounded-2xl text-xs font-bold transition shadow-sm">Suivant ➡️</button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div id="boxKnownCard" class="bg-slate-950 border-2 border-emerald-900 hover:border-emerald-600 cursor-pointer rounded-2xl p-4 text-center shadow-sm transition transform hover:-translate-y-0.5">
-              <div id="vocabKnownCount" class="font-extrabold text-xl text-emerald-400">0</div>
-              <div class="text-[10px] font-extrabold text-emerald-500 uppercase tracking-wider mt-0.5">✅ Connus (Filtrer)</div>
-            </div>
-            <div id="boxPracticeCard" class="bg-slate-950 border-2 border-amber-900 hover:border-amber-600 cursor-pointer rounded-2xl p-4 text-center shadow-sm transition transform hover:-translate-y-0.5">
-              <div id="vocabPracticeCount" class="font-extrabold text-xl text-amber-400">0</div>
-              <div class="text-[10px] font-extrabold text-amber-500 uppercase tracking-wider mt-0.5">🔁 À revoir (Filtrer)</div>
-            </div>
-            <div class="bg-slate-950 border border-indigo-950 rounded-2xl p-4 text-center shadow-sm">
-              <div id="vocabTotalCount" class="font-extrabold text-xl text-slate-200">1000</div>
-              <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5">Total Niveau</div>
+            <div class="flex justify-between gap-3 pt-1">
+              <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold hover:bg-slate-50 transition shadow-sm">⬅️ Précédent</button>
+              <button id="vocabNextBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition shadow-sm">Suivant ➡️</button>
             </div>
           </div>
         </div>
@@ -198,40 +190,43 @@
   </div>
 
   <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="hidden fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-slate-950 border border-indigo-900/60 rounded-3xl shadow-xl w-full max-w-md p-7 space-y-4 text-slate-100">
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-xl w-full max-w-md p-7 space-y-4 text-slate-800">
       <div class="flex items-center justify-between mb-2">
-        <h2 class="font-extrabold text-lg text-white">⚙️ Configuration Groq / Modèle</h2>
-        <button id="closeSettings" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+        <h2 class="font-extrabold text-lg text-slate-900">⚙️ Configuration Groq</h2>
+        <button id="closeSettings" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
       </div>
 
       <div class="flex gap-2 mb-2">
-        <button class="preset-btn flex-1 text-xs font-bold border border-slate-800 bg-slate-900 hover:bg-slate-800 rounded-xl py-2.5 transition text-slate-200" data-preset="groq">☁️ Groq (cloud)</button>
-        <button class="preset-btn flex-1 text-xs font-bold border border-slate-800 bg-slate-900 hover:bg-slate-800 rounded-xl py-2.5 transition text-slate-200" data-preset="ollama">💻 Ollama (local)</button>
+        <button class="preset-btn flex-1 text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 rounded-xl py-2.5 transition text-slate-700" data-preset="groq">☁️ Groq (cloud)</button>
+        <button class="preset-btn flex-1 text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 rounded-xl py-2.5 transition text-slate-700" data-preset="ollama">💻 Ollama (local)</button>
       </div>
 
-      <label class="block text-xs font-bold text-slate-400 mb-1">API Base URL</label>
+      <label class="block text-xs font-bold text-slate-500 mb-1">API Base URL</label>
       <input id="cfgBaseUrl" type="text" autocomplete="off" name="no-autofill-url" placeholder="https://api.groq.com/openai/v1/chat/completions"
-        class="w-full border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-900 text-white">
+        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
 
-      <label class="block text-xs font-bold text-slate-400 mb-1">API Key <span class="font-normal text-slate-500">(laisse vide pour Ollama)</span></label>
+      <label class="block text-xs font-bold text-slate-500 mb-1">API Key <span class="font-normal text-slate-400">(laisse vide pour Ollama)</span></label>
       <input id="cfgApiKey" type="password" autocomplete="new-password" name="no-autofill-key" placeholder="gsk_..."
-        class="w-full border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-900 text-white">
+        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
 
-      <label class="block text-xs font-bold text-slate-400 mb-1">Model Name</label>
+      <label class="block text-xs font-bold text-slate-500 mb-1">Model Name</label>
       <input id="cfgModel" type="text" autocomplete="off" name="no-autofill-mod" placeholder="llama-3.3-70b-versatile"
-        class="w-full border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-900 text-white">
+        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
 
-      <div id="settingsError" class="hidden mt-2 text-xs font-semibold text-red-400 bg-red-950/50 border border-red-900 rounded-xl px-3.5 py-2.5"></div>
+      <div id="settingsError" class="hidden mt-2 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5"></div>
 
       <div class="flex gap-3 pt-3">
-        <button id="testConnBtn" class="flex-1 border border-indigo-800 text-indigo-300 hover:bg-indigo-950 rounded-2xl py-3 text-xs font-bold transition">Tester</button>
+        <button id="testConnBtn" class="flex-1 border border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-2xl py-3 text-xs font-bold transition">Tester</button>
         <button id="saveSettingsBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-3 text-xs font-bold transition shadow-sm">Enregistrer</button>
       </div>
     </div>
   </div>
 
 <script>
+/* ============================================================
+   App Configuration & Groq AI Engine
+   ============================================================ */
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
 const PRESETS = {
   groq:   { baseUrl:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', key:'' },
@@ -256,7 +251,7 @@ function updateConnStatus(){
   const dot = document.getElementById('connDot');
   const label = document.getElementById('connLabel');
   if(cfg.baseUrl && cfg.model){
-    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
     label.textContent = cfg.model;
   }else{
     dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
@@ -323,19 +318,22 @@ function speakText(text, emotion = "Souriante 😊"){
 
 function updatePlumeUI(isSpeaking, emotion){
   const badge = document.getElementById('plumeEmotionBadge');
-  const avatar = document.getElementById('plumeAvatar');
+  const avatar = document.getElementById('plumeHumanAvatar');
+  const lips = document.getElementById('speakingLipsOverlay');
   if(badge) badge.textContent = emotion;
   if(isSpeaking){
-    if(avatar) avatar.classList.add('speaking-avatar');
+    if(avatar) avatar.classList.add('speaking-human');
+    if(lips) lips.style.opacity = '1';
   } else {
-    if(avatar) avatar.classList.remove('speaking-avatar');
+    if(avatar) avatar.classList.remove('speaking-human');
+    if(lips) lips.style.opacity = '0';
   }
 }
 
 function replayPlumeLastLine(){ speakText(currentUtteranceText); }
 
 let conversationHistory = [
-  { role: 'system', content: `Tu es Plume, une amie chaleureuse et bienveillante qui discute en français avec l'utilisateur pour l'aider à pratiquer (TCF). Parle comme une vraie amie dans une discussion naturelle et vivante. Pose une seule question ouverte à la fin. Réponds TOUJOURS sous ce format strict :
+  { role: 'system', content: `Tu es Plume, un professeur de français chaleureux et bienveillant qui discute en français avec l'utilisateur pour l'aider à pratiquer (TCF). Parle comme une vraie personne dans une discussion naturelle et vivante. Pose une seule question ouverte à la fin. Réponds TOUJOURS sous ce format strict :
 FR: <ta réplique naturelle en français>
 EN: <english translation>
 EMOTION: <ex: Souriante 😊 / Enthousiaste 🌟 / Curieuse 🤔>` }
@@ -405,13 +403,13 @@ async function toggleVoiceConversation(){
   rec.onresult = (e)=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
-    btn.textContent = "🎤 Parler à Plume";
+    btn.textContent = "🎤 Parler";
     document.getElementById('studioInput').value = said;
     processMessageWithPlume(said);
   };
   rec.onerror = ()=>{
     btn.classList.remove('recording-active');
-    btn.textContent = "🎤 Parler à Plume";
+    btn.textContent = "🎤 Parler";
     updatePlumeUI(false, "Souriante 😊");
   };
   rec.start();
@@ -436,16 +434,33 @@ const STUDY_MODULES = [
   }
 ];
 
+function updateDynamicSuggestions(topic){
+  const container = document.getElementById('dynamicSuggestions');
+  let suggestions = [
+    `✨ "Parlons de ${topic}"`,
+    `✨ "Peux-tu m'expliquer ${topic} ?"`,
+    `✨ "J'ai une question sur ce sujet"`
+  ];
+  if(topic === "Discussion libre"){
+    suggestions = [
+      `✨ "Ma journée s'est bien passée !"`,
+      `✨ "Et toi Plume, comment ça va ?"`,
+      `✨ "Parlons de mes loisirs"`
+    ];
+  }
+  container.innerHTML = suggestions.map(s=>`<button onclick="sendQuickReply(${s.replace('✨ ','').replace(/"/g, "'")})" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">${s}</button>`).join('');
+}
+
 function renderTopics(){
   const container = document.getElementById('topicsList');
   container.innerHTML = STUDY_MODULES.map((m,mi)=>`
     <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1.5 px-2 py-1 hover:bg-slate-900 rounded-xl transition" data-idx="${mi}">
-        <h3 class="text-xs font-extrabold text-indigo-300 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
-        <span class="cat-chevron text-slate-500 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
+      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1 px-2 py-1.5 hover:bg-slate-50 rounded-xl transition" data-idx="${mi}">
+        <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
+        <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
       </button>
       <div class="cat-body space-y-1 pl-2 ${mi===0?'':'hidden'}" data-idx="${mi}">
-        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-xl border border-slate-800 hover:border-indigo-600 hover:bg-indigo-950/50 transition font-semibold text-slate-300" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
+        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-semibold text-slate-700" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
       </div>
     </div>
   `).join('');
@@ -463,6 +478,7 @@ function renderTopics(){
       const topic = btn.dataset.topic;
       document.getElementById('currentTopicLabel').textContent = "Sujet : " + topic;
       document.getElementById('paneBtnChat').click();
+      updateDynamicSuggestions(topic);
       await processMessageWithPlume(`Discute avec moi sur le sujet : "${topic}". Dis un mot d'introduction et pose une question.`);
     };
   });
@@ -470,16 +486,16 @@ function renderTopics(){
 renderTopics();
 
 document.getElementById('paneBtnChat').onclick = ()=>{
-  document.getElementById('paneChat').classList.remove('hidden');
-  document.getElementById('paneVocab').classList.add('hidden');
-  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
-  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900 text-slate-400 transition flex items-center justify-center gap-2';
+  document.getElementById('paneChat').style.display = 'flex';
+  document.getElementById('paneVocab').style.display = 'none';
+  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
+  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
 };
 document.getElementById('paneBtnVocab').onclick = ()=>{
-  document.getElementById('paneVocab').classList.remove('hidden');
-  document.getElementById('paneChat').classList.add('hidden');
-  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
-  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900 text-slate-400 transition flex items-center justify-center gap-2';
+  document.getElementById('paneVocab').style.display = 'flex';
+  document.getElementById('paneChat').style.display = 'none';
+  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
+  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
 };
 
 const VOCAB_LEVELS = [
@@ -527,13 +543,13 @@ async function initVocab(){
     buildVocabDeck();
   }catch(err){
     document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}). Il doit être dans le même dossier que index.html.`;
+      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}).`;
   }
 }
 
 function renderVocabLevelChips(){
   const wrap = document.getElementById('vocabLevelChips');
-  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-xs font-bold px-3.5 py-2 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600 shadow-sm':'bg-slate-900 border-slate-800 text-slate-400'}" data-id="${lv.id}">${lv.label}</button>`).join('');
+  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-xs font-bold px-3.5 py-2 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600 shadow-sm':'bg-white border-slate-300 text-slate-600'}" data-id="${lv.id}">${lv.label}</button>`).join('');
   wrap.querySelectorAll('.vocab-level-chip').forEach(btn=>{
     btn.onclick = ()=>{ vocabLevel = btn.dataset.id; renderVocabLevelChips(); buildVocabDeck(); };
   });
@@ -563,7 +579,7 @@ function updateVocabCounters(){
 function renderVocabCard(){
   const wrap = document.getElementById('vocabCardWrap');
   if(vocabDeck.length===0){
-    wrap.innerHTML = `<div class="text-center py-12 space-y-3"><p class="text-sm font-semibold text-slate-400">Aucun mot trouvé dans cette catégorie (${vocabFilter}) 🎉</p><button onclick="setVocabFilter('all')" class="text-xs bg-indigo-600 text-white font-bold px-5 py-2.5 rounded-xl">Voir toutes les cartes</button></div>`;
+    wrap.innerHTML = `<div class="text-center py-8 space-y-2"><p class="text-xs font-semibold text-slate-500">Aucun mot trouvé (${vocabFilter})</p><button onclick="setVocabFilter('all')" class="text-xs bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl">Voir toutes</button></div>`;
     return;
   }
   const w = vocabDeck[vocabIdx];
@@ -585,17 +601,15 @@ function renderVocabCard(){
 
 function setVocabFilter(mode){
   vocabFilter = mode;
-  document.getElementById('filterAllBtn').className = mode==='all' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm';
-  document.getElementById('filterPracticeBtn').className = mode==='practice' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-amber-600 bg-amber-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm';
-  document.getElementById('filterKnownBtn').className = mode==='known' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-emerald-600 bg-emerald-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition shadow-sm';
+  document.getElementById('filterAllBtn').className = mode==='all' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
+  document.getElementById('filterPracticeBtn').className = mode==='practice' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-amber-500 bg-amber-500 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
+  document.getElementById('filterKnownBtn').className = mode==='known' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-emerald-600 bg-emerald-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
   buildVocabDeck();
 }
 
 document.getElementById('filterAllBtn').onclick = ()=>setVocabFilter('all');
 document.getElementById('filterPracticeBtn').onclick = ()=>setVocabFilter('practice');
 document.getElementById('filterKnownBtn').onclick = ()=>setVocabFilter('known');
-document.getElementById('boxKnownCard').onclick = ()=>setVocabFilter('known');
-document.getElementById('boxPracticeCard').onclick = ()=>setVocabFilter('practice');
 
 document.getElementById('vocabPrevBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx-1+vocabDeck.length)%vocabDeck.length; renderVocabCard(); } };
 document.getElementById('vocabNextBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx+1)%vocabDeck.length; renderVocabCard(); } };
@@ -628,7 +642,7 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
   const tBox = document.getElementById('vocabTranscriptBox');
   const reactionArea = document.getElementById('vocabReactionArea');
   btn.classList.add('recording-active');
-  btn.textContent = '🎙️ Parle maintenant...';
+  btn.textContent = '🎙️ Écoute...';
   tBox.classList.add('hidden');
   reactionArea.classList.add('hidden'); reactionArea.innerHTML = '';
 
@@ -637,25 +651,25 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
   rec.onresult = async (e)=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
-    btn.textContent = '🎙️ Enregistrer ma voix sur ce mot';
+    btn.textContent = '🎙️ Enregistrer ma voix';
     tBox.classList.add('hidden');
     reactionArea.classList.remove('hidden');
-    reactionArea.innerHTML = `<p class="text-xs text-slate-400 font-semibold">💬 Plume écoute...</p>`;
+    reactionArea.innerHTML = `<p class="text-xs text-slate-500 font-semibold">Plume analyse...</p>`;
     try{
       const cfg = getConfig();
       if(!cfg.baseUrl) throw new Error("Configure ton API Groq dans les paramètres ⚙️.");
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}"\nPrononciation de l'étudiant: "${said}"\n\nDonne une réaction amicale et encourageante en français avec traduction anglaise.`
+        `Mot cible: "${w.french}"\nPrononciation de l'étudiant: "${said}"\n\nDonne une réaction amicale en français avec traduction anglaise.`
       }], 200);
-      reactionArea.innerHTML = `<div class="bg-indigo-950/60 border border-indigo-900 p-3 rounded-xl text-xs text-indigo-200 font-medium">${escapeHtml(raw)}</div>`;
+      reactionArea.innerHTML = `<div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl text-xs text-indigo-950 font-medium">${escapeHtml(raw)}</div>`;
       confetti({ particleCount: 40, spread: 45, origin:{ y:0.6 } });
       await speakText(raw, "Encourageante 💪");
     }catch(err){
-      reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-400 bg-red-950 border border-red-900 rounded-xl p-3">⚠️ ${escapeHtml(err.message)}</div>`;
+      reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl p-2.5">⚠️ ${escapeHtml(err.message)}</div>`;
     }
   };
   rec.onerror = ()=>{
-    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix sur ce mot';
+    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix';
   };
   rec.start();
 };
