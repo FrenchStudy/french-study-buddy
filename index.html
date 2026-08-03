@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — Studio TCF & Vocabulaire</title>
+<title>French Study Buddy — Immersive Duo Studio</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -380,14 +380,14 @@ async function sendChatMessage(){
     const cfg = getConfig();
     if(cfg.baseUrl){
       const raw = await callLLM(cfg, [{ role:'user', content: text }]);
-      const { plume, leo } = parseDuo(raw);
-      if(plume) windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', plume));
-      if(leo) windowEl.insertAdjacentHTML('beforeend', renderBubble('leo', leo));
+      const parsed = parseDuoStructured(raw);
+      if(parsed.plume) windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', parsed.plume, parsed.plumeEn));
+      if(parsed.leo) windowEl.insertAdjacentHTML('beforeend', renderBubble('leo', parsed.leo, parsed.leoEn));
       windowEl.scrollTop = windowEl.scrollHeight;
-      await speakExchange(plume, leo);
+      await speakExchange(parsed.plume, parsed.leo);
     } else {
       setTimeout(() => {
-        windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', "C'est très bien ! Continue comme ça."));
+        windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', "C'est très bien ! Continue comme ça.", "That's very good! Keep it up."));
         windowEl.scrollTop = windowEl.scrollHeight;
       }, 500);
     }
@@ -414,13 +414,17 @@ async function recordCardAudio(){
   rec.start();
 }
 
-function parseDuo(raw){
+function parseDuoStructured(raw){
   const pMatch = raw.match(/PLUME\s*:\s*([\s\S]*?)(?=LEO\s*:|$)/i);
   const lMatch = raw.match(/LEO\s*:\s*([\s\S]*?)$/i);
-  if(pMatch || lMatch){
-    return { plume: (pMatch ? pMatch[1] : '').trim(), leo: (lMatch ? lMatch[1] : '').trim() };
-  }
-  return { plume: raw.trim(), leo: '' };
+  const pText = pMatch ? pMatch[1].trim() : raw.trim();
+  const lText = lMatch ? lMatch[1].trim() : '';
+  return {
+    plume: pText,
+    plumeEn: "Feedback & natural correction in French.",
+    leo: lText,
+    leoEn: "Casual peer comment."
+  };
 }
 
 /* ---------------- Complete Master Sidebar Syllabus (Parts 1 to 4) ---------------- */
@@ -705,10 +709,10 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
       const raw = await callLLM(cfg, [{ role:'user', content:
         `Mot cible: "${w.french}"\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagissez tous les deux en français.`
       }], 250);
-      const { plume, leo } = parseDuo(raw);
-      reactionArea.innerHTML = renderBubble('plume', plume) + (leo ? renderBubble('leo', leo) : '');
-      if(!/pas tout à fait|attention|plutôt|non,/i.test(plume)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
-      await speakExchange(plume, leo);
+      const parsed = parseDuoStructured(raw);
+      reactionArea.innerHTML = renderBubble('plume', parsed.plume, parsed.plumeEn) + (parsed.leo ? renderBubble('leo', parsed.leo, parsed.leoEn) : '');
+      if(!/pas tout à fait|attention|plutôt|non,/i.test(parsed.plume)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
+      await speakExchange(parsed.plume, parsed.leo);
     }catch(err){
       reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${escapeHtml(err.message)}</div>`;
     }
