@@ -3,20 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — Dynamic Expression Human Tutor Studio</title>
+<title>French Study Buddy — Studio TCF & Vocabulaire</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-  .msg-enter { animation: fadeIn .2s ease-out; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
   
   @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
   .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
 
-  /* Illustrated avatar system — no external images, no real people depicted */
   @keyframes speakRing { 0%{box-shadow:0 0 0 0 var(--ring,rgba(79,70,229,.45));} 70%{box-shadow:0 0 0 14px rgba(79,70,229,0);} 100%{box-shadow:0 0 0 0 rgba(79,70,229,0);} }
   .avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; transition:transform .2s ease, box-shadow .2s ease; border:3px solid transparent; }
   .avatar.speaking { animation:speakRing 1.4s infinite; transform:scale(1.06); }
@@ -30,11 +27,12 @@
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
+  <!-- TOP HEADER -->
   <header class="bg-indigo-700 text-white px-4 py-3 flex items-center gap-3 shadow-md z-20">
     <div class="avatar avatar-plume w-10 h-10 text-base" id="headerAvatar">P</div>
     <div class="flex-1">
       <h1 class="font-bold text-base sm:text-lg leading-tight">French Study Buddy &amp; Plume</h1>
-      <p class="text-indigo-200 text-xs">Studio Interactif TCF &amp; DELF — avec Plume et Léo</p>
+      <p class="text-indigo-200 text-xs">Studio Interactif TCF &amp; Vocabulaire — avec Plume et Léo</p>
     </div>
     <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
       <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -45,85 +43,57 @@
     </button>
   </header>
 
+  <!-- MAIN APP CONTAINER -->
   <div class="flex-1 flex overflow-hidden">
 
-    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
+    <!-- LEFT SIDEBAR: Full Syllabus -->
+    <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/50 sticky top-0 z-10 backdrop-blur">
         <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF (Parts 1-4)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer la session avec Plume.</p>
+        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer la session.</p>
       </div>
       <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
 
-    <button id="mobileTopicsBtn" class="md:hidden fixed bottom-24 right-4 z-30 bg-indigo-600 text-white rounded-full w-12 h-12 shadow-lg flex items-center justify-center text-xl">📚</button>
-
+    <!-- RIGHT MAIN WORKSTATION -->
     <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50">
       
-      <div class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-        
-        <div class="flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto">
-          <div class="max-w-2xl mx-auto w-full space-y-4">
+      <div class="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6">
+        <div class="max-w-3xl mx-auto w-full space-y-4">
 
-            <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
-              <div class="flex items-center justify-around">
-                <div class="text-center space-y-1.5">
-                  <div class="avatar avatar-plume w-14 h-14 text-xl mx-auto" id="plumeAvatar">P</div>
-                  <span id="tutorStateLabel" class="text-xs font-bold text-indigo-900 block">Plume</span>
-                </div>
-                <div class="text-center space-y-1.5">
-                  <div class="avatar avatar-leo w-12 h-12 text-lg mx-auto" id="leoAvatar">L</div>
-                  <span id="leoStateLabel" class="text-xs font-bold text-orange-800 block">Léo</span>
-                </div>
-                <div class="text-center space-y-1.5">
-                  <div class="avatar avatar-user w-12 h-12 text-lg mx-auto" id="cardStudentBox">🙂</div>
-                  <span id="studentStateLabel" class="text-xs font-bold text-slate-600 block">Toi</span>
-                </div>
-              </div>
-            </div>
+          <!-- TAB SWITCHER (Modules TCF vs Vocabulaire) -->
+          <div class="flex gap-3 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm">
+            <button id="paneBtnModules" class="pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2">
+              📚 Modules TCF
+            </button>
+            <button id="paneBtnVocab" class="pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2">
+              🔤 Vocabulaire (vocabulary.csv)
+            </button>
+          </div>
 
-            <div class="flex gap-2">
-              <button id="paneBtnModules" class="pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition">📚 Modules TCF</button>
-              <button id="paneBtnVocab" class="pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition">🔤 Vocabulaire</button>
-            </div>
-
-            <div id="paneModules" class="space-y-4">
+          <!-- MODULES PANE -->
+          <div id="paneModules" class="space-y-4">
             <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
-
-              <div class="flex items-center justify-between">
-                <span id="cardCategoryBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Part 1 · Foundations</span>
-                <span id="cardCounter" class="text-xs font-semibold text-slate-400">Sujet 1 sur 40+</span>
+              
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                  <span id="cardCategoryBadge" class="bg-indigo-50 text-indigo-700 font-bold text-xs px-3 py-1.5 rounded-full border border-indigo-100">The Alphabet & Pronunciation</span>
+                </div>
+                <span id="cardCounter" class="text-xs font-semibold text-slate-400">module interactif</span>
               </div>
 
-              <div>
-                <h3 id="cardTitle" class="font-bold text-2xl sm:text-3xl text-slate-800">Bonjour ! Comment tu t'appelles ?</h3>
-                <p id="cardTranslation" class="text-sm text-slate-500 mt-1">Hello! What is your name?</p>
-              </div>
+              <!-- Stream / Dialogue View -->
+              <div id="chatWindow" class="space-y-3 min-h-[220px] max-h-96 overflow-y-auto p-2"></div>
 
-              <div class="grid sm:grid-cols-2 gap-3">
-                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-950">
-                  <span class="font-bold text-indigo-700 block mb-1">📐 Grammaire :</span>
-                  <p id="cardGrammarText" class="leading-relaxed">Verbe pronominal 's'appeler' au présent de l'indicatif.</p>
-                </div>
-                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-950">
-                  <span class="font-bold text-amber-700 block mb-1">🗣️ Accent &amp; Phonétique :</span>
-                  <p id="cardAccentText" class="leading-relaxed">Intonation montante et liaison douce.</p>
-                </div>
-              </div>
-
-              <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-slate-700">🎙️ À toi de parler</span>
-                  <button onclick="speakCurrentCard()" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition flex items-center gap-1">🔊 Écouter Plume</button>
-                </div>
-
-                <div class="flex gap-2">
-                  <button id="cardMicBtn" onclick="recordCardAudio()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
-                    🎙️ Enregistrer ma réponse
-                  </button>
-                </div>
-
-                <div id="cardTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
-                <div id="reactionArea" class="hidden space-y-2"></div>
+              <!-- Unified Bottom Input Bar -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+                <button id="cardMicBtn" onclick="recordCardAudio()" class="bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 rounded-full w-10 h-10 flex items-center justify-center transition shrink-0" title="Enregistrer vocalement">
+                  🎤
+                </button>
+                <input id="chatInput" type="text" placeholder="réponds à l'écrit ou à l'oral..." class="flex-1 border border-slate-300 rounded-full px-5 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-10 h-10 flex items-center justify-center transition shrink-0 font-bold">
+                  →
+                </button>
               </div>
 
               <div class="flex justify-between gap-3 pt-1">
@@ -131,94 +101,91 @@
                 <button onclick="nextCard()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
               </div>
             </div>
+          </div>
+
+          <!-- VOCABULARY PANE -->
+          <div id="paneVocab" class="hidden space-y-4">
+            
+            <!-- Level Chips -->
+            <div class="flex flex-wrap gap-2 items-center" id="vocabLevelChips"></div>
+
+            <!-- Filter & Shuffle -->
+            <div class="flex items-center justify-between">
+              <div class="flex gap-1.5">
+                <button id="vocabModeAll" class="text-[11px] font-bold px-3 py-1.5 rounded-full border border-indigo-600 bg-indigo-600 text-white shadow-sm">Toutes</button>
+                <button id="vocabModePractice" class="text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm">🔁 À revoir</button>
+              </div>
+              <button id="vocabShuffleBtn" class="text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm flex items-center gap-1">🔀 Mélanger</button>
             </div>
 
-            <div id="paneVocab" class="hidden space-y-4">
-              <div class="flex flex-wrap gap-1.5" id="vocabLevelChips"></div>
+            <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
+
+            <!-- Flashcard Container -->
+            <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
               <div class="flex items-center justify-between">
-                <div class="flex gap-1.5">
-                  <button id="vocabModeAll" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white">Toutes</button>
-                  <button id="vocabModePractice" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔁 À revoir</button>
+                <span id="vocabRankBadge" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">#504</span>
+                <span id="vocabCounter" class="text-xs font-semibold text-slate-400">4 / 1000</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 id="vocabWord" class="font-bold text-3xl text-slate-800">oublier</h3>
+                  <span id="vocabPos" class="text-[11px] font-bold text-slate-400 uppercase">v</span>
                 </div>
-                <button id="vocabShuffleBtn" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔀 Mélanger</button>
+                <p id="vocabIpa" class="text-xs text-slate-400 mt-1 font-mono">[ublije]</p>
+                <p id="vocabEnglish" class="text-sm text-indigo-600 font-semibold mt-2">to forget</p>
               </div>
 
-              <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
+              <div id="vocabExampleWrap" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1 hidden">
+                <p id="vocabSentenceFr" class="text-slate-800 text-xs font-medium">je ne t'oublierai jamais</p>
+                <p id="vocabSentenceEn" class="text-slate-400 text-[11px]">I will never forget you</p>
+              </div>
 
-              <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+              <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
-                  <span id="vocabRankBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full"></span>
-                  <span id="vocabCounter" class="text-xs font-semibold text-slate-400"></span>
+                  <span class="text-xs font-bold text-slate-700 flex items-center gap-1">🎙️ Prononce-le</span>
+                  <button id="vocabListenBtn" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition">🔊 Écouter</button>
                 </div>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h3 id="vocabWord" class="font-bold text-3xl text-slate-800"></h3>
-                    <span id="vocabPos" class="text-[11px] font-bold text-slate-400 uppercase"></span>
-                  </div>
-                  <p id="vocabIpa" class="text-xs text-slate-400 mt-1 font-mono"></p>
-                  <p id="vocabEnglish" class="text-sm text-indigo-600 font-semibold mt-2"></p>
-                </div>
-                <div id="vocabExampleWrap" class="bg-slate-50 rounded-xl p-3 text-sm hidden">
-                  <p id="vocabSentenceFr" class="text-slate-700"></p>
-                  <p id="vocabSentenceEn" class="text-slate-400 text-xs mt-1"></p>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-700">🎙️ Prononce-le</span>
-                    <button id="vocabListenBtn" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition">🔊 Écouter</button>
-                  </div>
-                  <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition">🎙️ Enregistrer ma voix</button>
-                  <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
-                  <div id="vocabReactionArea" class="hidden space-y-2"></div>
-                </div>
-
-                <div class="flex gap-2">
-                  <button id="vocabMarkPractice" class="flex-1 bg-amber-50 border border-amber-300 text-amber-700 text-xs font-bold py-2.5 rounded-xl hover:bg-amber-100">🔁 À revoir</button>
-                  <button id="vocabMarkKnown" class="flex-1 bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold py-2.5 rounded-xl hover:bg-emerald-100">✅ Je connais</button>
-                </div>
-
-                <div class="flex justify-between gap-3 pt-1">
-                  <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
-                  <button id="vocabNextBtn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
-                </div>
+                <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3.5 px-4 rounded-xl transition shadow-sm">🎙️ Enregistrer ma voix</button>
+                <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
+                <div id="vocabReactionArea" class="hidden space-y-2"></div>
               </div>
 
-              <div class="flex gap-3">
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabKnownCount" class="font-bold text-lg text-emerald-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Connus</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabPracticeCount" class="font-bold text-lg text-amber-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">À revoir</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabTotalCount" class="font-bold text-lg text-slate-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Dans ce niveau</div>
-                </div>
+              <div class="grid grid-cols-2 gap-3">
+                <button id="vocabMarkPractice" class="bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold py-3 rounded-2xl hover:bg-amber-100 transition shadow-sm">🔁 À revoir</button>
+                <button id="vocabMarkKnown" class="bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold py-3 rounded-2xl hover:bg-emerald-100 transition shadow-sm">✅ Je connais</button>
+              </div>
+
+              <div class="flex justify-between gap-3 pt-1">
+                <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
+                <button id="vocabNextBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">Suivant ➡️</button>
+              </div>
+            </div>
+
+            <!-- Bottom Stats Counters -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm">
+                <div id="vocabKnownCount" class="font-bold text-xl text-emerald-600">2</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Connus</div>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm">
+                <div id="vocabPracticeCount" class="font-bold text-xl text-amber-600">1</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">À revoir</div>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm">
+                <div id="vocabTotalCount" class="font-bold text-xl text-slate-700">1000</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Dans ce niveau</div>
               </div>
             </div>
 
           </div>
-        </div>
 
-        <div class="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col shrink-0 h-64 lg:h-auto">
-          <div class="p-3 border-b border-slate-100 bg-slate-50 font-bold text-xs text-slate-600 uppercase tracking-wide">💬 Plume &amp; Léo</div>
-          <div id="chatWindow" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs"></div>
-          <div class="p-3 border-t border-slate-100 bg-white">
-            <div class="flex gap-2">
-              <input id="chatInput" type="text" placeholder="Pose ta question en français..." class="flex-1 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400">
-              <button onclick="sendChatMessage()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold">➤</button>
-            </div>
-          </div>
         </div>
-
       </div>
 
     </main>
   </div>
 
+  <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
@@ -254,7 +221,7 @@
 
 <script>
 /* ============================================================
-   French Study Buddy — Dynamic Expression Tutor Engine
+   French Study Buddy — Complete Syllabus Engine
    ============================================================ */
 
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
@@ -318,27 +285,7 @@ document.getElementById('saveSettingsBtn').onclick = ()=>{
   settingsModal.classList.add('hidden');
 };
 
-document.getElementById('testConnBtn').onclick = async ()=>{
-  const cfg = {
-    baseUrl: document.getElementById('cfgBaseUrl').value.trim(),
-    apiKey: document.getElementById('cfgApiKey').value.trim(),
-    model: document.getElementById('cfgModel').value.trim()
-  };
-  const err = document.getElementById('settingsError');
-  err.classList.add('hidden');
-  try{
-    await callLLM(cfg, [{ role:'user', content:'Réponds uniquement "OK".' }], 20);
-    err.textContent = '✅ Connexion réussie !';
-    err.className = 'mt-3 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2';
-    err.classList.remove('hidden');
-  }catch(e){
-    err.textContent = '⚠️ ' + e.message;
-    err.className = 'mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2';
-    err.classList.remove('hidden');
-  }
-};
-
-/* ---------------- Dual-persona speaking state + voices ---------------- */
+/* ---------------- Voice Engine ---------------- */
 let frenchVoice = null;
 function pickFrenchVoice(){
   if(!window.speechSynthesis) return;
@@ -349,26 +296,9 @@ if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoicesch
 
 const VOICE_PROFILES = {
   plume: { rate: 0.95, pitch: 1.0 },
-  leo:   { rate: 1.05, pitch: 0.85 }  // slightly faster & lower — a distinct second "voice" from the same TTS engine
+  leo:   { rate: 1.05, pitch: 0.85 }
 };
 
-function setSpeaking(who, active){
-  const map = { plume: ['plumeAvatar','tutorStateLabel','Plume'], leo: ['leoAvatar','leoStateLabel','Léo'] };
-  const [avatarId, labelId, name] = map[who];
-  const avatar = document.getElementById(avatarId);
-  const label = document.getElementById(labelId);
-  avatar.classList.toggle('speaking', active);
-  label.textContent = active ? name + ' (parle...)' : name;
-}
-function setUserSpeaking(active){
-  const box = document.getElementById('cardStudentBox');
-  const label = document.getElementById('studentStateLabel');
-  box.classList.toggle('speaking', active);
-  box.classList.toggle('recording-active', active);
-  label.textContent = active ? 'Toi (parle...)' : 'Toi';
-}
-
-// Returns a Promise that resolves when speech finishes — lets us speak Plume then Léo in sequence
 function speakAs(who, text){
   return new Promise(resolve=>{
     if(!text || !window.speechSynthesis){ resolve(); return; }
@@ -377,9 +307,7 @@ function speakAs(who, text){
     if(frenchVoice) u.voice = frenchVoice;
     const profile = VOICE_PROFILES[who] || VOICE_PROFILES.plume;
     u.rate = profile.rate; u.pitch = profile.pitch;
-    u.onstart = ()=> setSpeaking(who, true);
-    u.onend = ()=> { setSpeaking(who, false); resolve(); };
-    u.onerror = ()=> { setSpeaking(who, false); resolve(); };
+    u.onend = resolve; u.onerror = resolve;
     window.speechSynthesis.speak(u);
   });
 }
@@ -388,108 +316,104 @@ async function speakExchange(plumeText, leoText){
   if(leoText) await speakAs('leo', leoText);
 }
 
-/* ---------------- Master Curriculum Deck ---------------- */
+/* ---------------- Modules TCF Stream Engine ---------------- */
 const STUDY_DECK = [
-  { cat: "Part 1 · Prononciation", fr: "Bonjour ! Travaillons l'alphabet, les liaisons et les sons nasaux.", en: "Hello! Let's practice the alphabet, liaisons, and nasal sounds.", grammar: "Règles de prononciation et lettres muettes.", accent: "Précision des sons nasaux (an, en, in, on)." },
-  { cat: "Part 1 · Chiffres & Temps", fr: "Il est midi et quart, nous sommes le lundi cinq mars.", en: "It is a quarter past twelve, today is Monday, March fifth.", grammar: "Nombres cardinaux/ordinaux, jours, mois et l'expression de l'heure.", accent: "Enchaînement vocalique sur 'midi et quart'." },
-  { cat: "Part 2 · Grammaire A2", fr: "Je voudrais un peu de café et beaucoup de pain.", en: "I would like some coffee and a lot of bread.", grammar: "Expressions de quantité (un peu de, beaucoup de) et articles partitifs.", accent: "Accent tonique sur les quantités." },
-  { cat: "Part 2 · Grammaire B1", fr: "Si j'avais su, j'aurais pris le train.", en: "If I had known, I would have taken the train.", grammar: "Conditionnel passé et concordance des temps hypothétiques.", accent: "Intonation narrative et nuances de regret." },
-  { cat: "Part 3 · Module 3 (Écologie)", fr: "La transition écologique exige une sobriété énergétique immédiate.", en: "The ecological transition requires immediate energy conservation.", grammar: "Vocabulaire spécialisé de l'environnement et structures nominales.", accent: "Diction formelle adaptée aux épreuves du TCF B2/C1." },
-  { cat: "Part 3 · Module 22 (Politique)", fr: "La transparence institutionnelle renforce la confiance citoyenne.", en: "Institutional transparency strengthens citizen trust.", grammar: "Syntaxe formelle et lexique de la gouvernance démocratique.", accent: "Discours argumenté fluide sans hésitation." }
+  { 
+    cat: "The Alphabet & Pronunciation", 
+    counter: "Module 1",
+    dialogue: [
+      { who: 'plume', fr: "Bienvenue ! Travaillons l'alphabet, les lettres muettes, les liaisons et les sons nasaux.", en: "Welcome! Let's practice the alphabet, silent letters, liaisons, and nasal sounds." },
+      { who: 'leo', fr: "Les liaisons en français, c'est toute une histoire au début !", en: "Liaisons in French are quite a story at first!" },
+      { who: 'plume', fr: 'Écoute bien et répète après moi : "les enfants".', en: 'Listen carefully and repeat after me: "the children".' }
+    ]
+  }
 ];
 let cardIdx = 0;
 
 function renderCard(){
   const c = STUDY_DECK[cardIdx];
   document.getElementById('cardCategoryBadge').textContent = c.cat;
-  document.getElementById('cardCounter').textContent = `Sujet ${cardIdx + 1} sur ${STUDY_DECK.length}`;
-  document.getElementById('cardTitle').textContent = c.fr;
-  document.getElementById('cardTranslation').textContent = c.en;
-  document.getElementById('cardGrammarText').textContent = c.grammar;
-  document.getElementById('cardAccentText').textContent = c.accent;
-  document.getElementById('cardTranscriptBox').classList.add('hidden');
-  document.getElementById('reactionArea').classList.add('hidden');
-  document.getElementById('reactionArea').innerHTML = '';
+  document.getElementById('cardCounter').textContent = c.counter;
+  
+  const windowEl = document.getElementById('chatWindow');
+  windowEl.innerHTML = '';
+  c.dialogue.forEach(item => {
+    windowEl.insertAdjacentHTML('beforeend', renderBubble(item.who, item.fr, item.en));
+  });
+  windowEl.scrollTop = windowEl.scrollHeight;
 }
+
 function nextCard(){ cardIdx = (cardIdx + 1) % STUDY_DECK.length; renderCard(); }
 function prevCard(){ cardIdx = (cardIdx - 1 + STUDY_DECK.length) % STUDY_DECK.length; renderCard(); }
 
-function speakCurrentCard(){
-  speakAs('plume', STUDY_DECK[cardIdx].fr);
-}
+function renderBubble(who, fr, en){
+  if(who === 'user'){
+    return `<div class="flex items-start gap-2 justify-end">
+      <div class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl max-w-[75%] text-xs font-medium">${escapeHtml(fr)}</div>
+      <div class="avatar avatar-user w-7 h-7 text-[10px] shrink-0">🙂</div>
+    </div>`;
+  }
+  const isPlume = who === 'plume';
+  const label = isPlume ? 'P' : 'L';
+  const avatarCls = isPlume ? 'avatar-plume' : 'avatar-leo';
 
-/* ---------------- Interactive Recorder — Plume + Léo react together ---------------- */
-function reactionBubble(who, text){
-  const styles = {
-    plume: { label:'Plume', cls:'avatar-plume', bg:'bg-indigo-50 border-indigo-100 text-indigo-950' },
-    leo:   { label:'Léo',   cls:'avatar-leo',   bg:'bg-orange-50 border-orange-100 text-orange-950' }
-  };
-  const s = styles[who];
   return `<div class="flex items-start gap-2">
-    <div class="avatar ${s.cls} w-7 h-7 text-xs shrink-0">${s.label[0]}</div>
-    <div class="flex-1">
-      <p class="text-[10px] font-bold text-slate-400 mb-0.5">${s.label}</p>
-      <div class="border rounded-xl px-3 py-2 text-xs font-medium leading-relaxed ${s.bg}">${escapeHtml(text)}</div>
+    <div class="avatar ${avatarCls} w-7 h-7 text-[10px] shrink-0">${label}</div>
+    <div class="space-y-1 max-w-[80%]">
+      <div class="bg-white border border-slate-200 text-slate-800 px-4 py-2.5 rounded-2xl text-xs font-medium shadow-sm leading-relaxed">${escapeHtml(fr)}</div>
+      ${en ? `<div class="text-[11px] text-slate-400 pl-1 font-normal">${escapeHtml(en)}</div>` : ''}
     </div>
   </div>`;
 }
 
+async function sendChatMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+
+  const windowEl = document.getElementById('chatWindow');
+  windowEl.insertAdjacentHTML('beforeend', renderBubble('user', text));
+  windowEl.scrollTop = windowEl.scrollHeight;
+
+  try {
+    const cfg = getConfig();
+    if(cfg.baseUrl){
+      const raw = await callLLM(cfg, [{ role:'user', content: text }]);
+      const { plume, leo } = parseDuo(raw);
+      if(plume) windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', plume));
+      if(leo) windowEl.insertAdjacentHTML('beforeend', renderBubble('leo', leo));
+      windowEl.scrollTop = windowEl.scrollHeight;
+      await speakExchange(plume, leo);
+    } else {
+      setTimeout(() => {
+        windowEl.insertAdjacentHTML('beforeend', renderBubble('plume', "C'est très bien ! Continue comme ça."));
+        windowEl.scrollTop = windowEl.scrollHeight;
+      }, 500);
+    }
+  } catch(e) {
+    windowEl.insertAdjacentHTML('beforeend', `<div class="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs font-semibold">⚠️ ${escapeHtml(e.message)}</div>`);
+    windowEl.scrollTop = windowEl.scrollHeight;
+  }
+}
+
+document.getElementById('chatInput').addEventListener('keypress', (e)=>{
+  if(e.key === 'Enter') sendChatMessage();
+});
+
 async function recordCardAudio(){
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!Ctor){ alert("Reconnaissance vocale non supportée dans ce navigateur. Utilise Google Chrome."); return; }
-
-  const btn = document.getElementById('cardMicBtn');
-  const tBox = document.getElementById('cardTranscriptBox');
-  const reactionArea = document.getElementById('reactionArea');
-
-  btn.classList.add('recording-active');
-  btn.textContent = "🎙️ Parle maintenant...";
-  setUserSpeaking(true);
-  tBox.classList.add('hidden');
-  reactionArea.classList.add('hidden');
-  reactionArea.innerHTML = '';
-
   const rec = new Ctor();
   rec.lang = 'fr-FR';
-  rec.onresult = async (e)=>{
+  rec.onresult = (e)=>{
     const said = e.results[0][0].transcript;
-    btn.classList.remove('recording-active');
-    btn.textContent = "🎙️ Enregistrer ma réponse";
-    setUserSpeaking(false);
-
-    tBox.classList.remove('hidden');
-    tBox.innerHTML = `<strong>🗣️ Tu as dit :</strong> "${escapeHtml(said)}"`;
-
-    reactionArea.classList.remove('hidden');
-    reactionArea.innerHTML = `<p class="text-xs text-slate-400 font-semibold">💬 Plume et Léo écoutent...</p>`;
-
-    try {
-      const cfg = getConfig();
-      if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
-      const target = STUDY_DECK[cardIdx].fr;
-      const raw = await callLLM(cfg, [{ role:'user', content:
-        `Sujet de la carte: "${target}"\nCe que l'étudiant vient de dire: "${said}"\n\nRéagissez tous les deux, brièvement.`
-      }], 300);
-      const { plume, leo } = parseDuo(raw);
-      reactionArea.innerHTML = reactionBubble('plume', plume) + reactionBubble('leo', leo);
-      if(!/pas tout à fait|attention|plutôt|non,/i.test(plume)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
-      await speakExchange(plume, leo);
-    } catch(err) {
-      reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${escapeHtml(err.message)}</div>`;
-    }
-  };
-  rec.onerror = ()=>{
-    btn.classList.remove('recording-active');
-    btn.textContent = "🎙️ Enregistrer ma réponse";
-    setUserSpeaking(false);
-    tBox.classList.remove('hidden');
-    tBox.textContent = "⚠️ Erreur micro. Réessaie.";
+    document.getElementById('chatInput').value = said;
+    sendChatMessage();
   };
   rec.start();
 }
 
-// Parses a "PLUME: ...\nLEO: ..." formatted reply. Falls back gracefully if the model
-// doesn't follow the format (shows the raw text as Plume's line rather than nothing).
 function parseDuo(raw){
   const pMatch = raw.match(/PLUME\s*:\s*([\s\S]*?)(?=LEO\s*:|$)/i);
   const lMatch = raw.match(/LEO\s*:\s*([\s\S]*?)$/i);
@@ -499,34 +423,39 @@ function parseDuo(raw){
   return { plume: raw.trim(), leo: '' };
 }
 
-/* ---------------- Master Sidebar Syllabus (Parts 1 to 4) ---------------- */
+/* ---------------- Complete Master Sidebar Syllabus (Parts 1 to 4) ---------------- */
 const STUDY_MODULES = [
   {
-    title: 'PART 1: Core Foundations',
+    title: 'PART 1: THE CORE FOUNDATIONS',
     topics: [
-      "Alphabet, liaisons & Sons nasaux",
-      "Nombres (1-100), Heure & Dates",
-      "Objets de la maison & Vêtements",
-      "Nourriture, Boissons & Ville",
-      "Genres (Masculin/Féminin) & Articles",
-      "Verbes Être, Avoir & -er",
-      "Négation (ne...pas) & Questions",
-      "Salutations & Présentations"
+      "The Alphabet & Pronunciation",
+      "Numbers, Dates, & Time",
+      "Core Daily Objects & Environments",
+      "Colors, Shapes, & Adjectives",
+      "Gender and Articles",
+      "Subject Pronouns",
+      "Verbs & Conjugation (Present Tense)",
+      "Negation (ne...pas)",
+      "Asking Questions",
+      "Greetings & Politeness",
+      "Introductions & Personal Info",
+      "Expressing Wants & Needs",
+      "Basic Past & Future Tenses"
     ]
   },
   {
-    title: 'PART 2: CEFR Mastery (A1 to C2)',
+    title: 'PART 2: CEFR MASTERY (A1 TO C2)',
     topics: [
-      "Niveau A1 (Breakthrough)",
-      "Niveau A2 (Waystage - Passé composé/Imparfait)",
-      "Niveau B1 (Threshold - Conditionnel/Subjonctif)",
-      "Niveau B2 (Upper-Intermediate - Voix passive)",
-      "Niveau C1 (Advanced - Inversions stylistiques)",
-      "Niveau C2 (Mastery - Argot & Nuances)"
+      "Level A1: Beginner (Breakthrough)",
+      "Level A2: Elementary (Waystage)",
+      "Level B1: Intermediate (Threshold)",
+      "Level B2: Upper-Intermediate (Vantage)",
+      "Level C1: Advanced (Operational Proficiency)",
+      "Level C2: Mastery (Proficiency)"
     ]
   },
   {
-    title: 'PART 3: 24 Advanced Thematic Modules',
+    title: 'PART 3: 24 ADVANCED THEMATIC MODULES',
     topics: [
       "1. Santé et bien-être",
       "2. Le Travail & Emploi",
@@ -555,7 +484,7 @@ const STUDY_MODULES = [
     ]
   },
   {
-    title: 'PART 4: Flashcards & Wordlists',
+    title: 'PART 4: FLASHCARDS & WORDLISTS',
     topics: [
       "Vocabulaire thématique TCF",
       "Verbes essentiels & Conjugaisons",
@@ -590,113 +519,47 @@ function renderTopics(){
     btn.onclick = ()=>{
       const topic = btn.dataset.topic;
       STUDY_DECK.unshift({ 
-        cat: 'Module · ' + topic, 
-        fr: `Étudions le module officiel : ${topic}. Exprimez-vous en français sur ce sujet.`, 
-        en: `Let's study the official module: ${topic}. Express yourself in French on this topic.`,
-        grammar: `Règles grammaticales et syntaxe experte requises pour maîtriser : ${topic}.`,
-        accent: `Conseils phonétiques, enchaînements et intonation pour les épreuves orales du TCF.`
+        cat: topic, 
+        counter: "Module personnalisé",
+        dialogue: [
+          { who: 'plume', fr: `Étudions ensemble le module : ${topic}. Exprime-toi en français.`, en: `Let's study together the module: ${topic}. Express yourself in French.` },
+          { who: 'leo', fr: `Super choix ! C'est un sujet passionnant. Qu'en penses-tu ?`, en: `Great choice! It's a fascinating topic. What do you think?` }
+        ]
       });
       cardIdx = 0;
       renderCard();
-      speakAs('plume', `C'est parti pour le module : ${topic} !`);
+      document.getElementById('paneBtnModules').click();
     };
   });
 }
 renderTopics();
 
-const SYSTEM_PROMPT = `Tu joues DEUX personnages qui étudient le français avec l'utilisateur :
-
-- PLUME : tutrice chaleureuse mais franche. Elle corrige avec bienveillance, sans être condescendante, et n'hésite pas à dire quand quelque chose ne va pas. Elle explique brièvement en anglais si besoin.
-- LÉO : un pair apprenant, pas un expert. Il a son propre niveau, fait parfois des erreurs, réagit de façon décontractée et amicale, et peut se reconnaître dans les difficultés de l'utilisateur ("moi aussi je galère avec ça").
-
-Réponds TOUJOURS en utilisant ce format exact, chaque ligne étant COURTE (une phrase, parfois deux) :
-PLUME: <réaction ou correction naturelle, jamais un long paragraphe>
-LEO: <réaction courte et informelle, en tant que pair — peut être une question, une blague, ou un encouragement>
-
-Ne mets rien en dehors de ces deux lignes. Reste bref — c'est une conversation, pas un cours magistral.`;
-
-/* ---------------- LLM & Chat Integration ---------------- */
-async function callLLM(cfg, messages, maxTokens){
-  const headers = { 'Content-Type': 'application/json' };
-  if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
-  const res = await fetch(cfg.baseUrl, {
-    method:'POST',
-    headers,
-    body: JSON.stringify({
-      model: cfg.model,
-      messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
-      max_tokens: maxTokens || 300,
-      temperature: 0.75
-    })
-  });
-  if(!res.ok) throw new Error(`Erreur ${res.status}`);
-  const data = await res.json();
-  return data.choices[0].message.content.trim();
-}
-
-const chatWindow = document.getElementById('chatWindow');
-function chatBubble(who, text){
-  if(who === 'user'){
-    return `<div class="flex items-start gap-2 justify-end"><div class="bg-indigo-600 text-white p-2.5 rounded-xl max-w-[75%]">${escapeHtml(text)}</div><div class="avatar avatar-user w-6 h-6 text-[10px] shrink-0">🙂</div></div>`;
-  }
-  const styles = { plume:{cls:'avatar-plume', bg:'bg-white border-slate-200 text-slate-800', label:'Plume'}, leo:{cls:'avatar-leo', bg:'bg-orange-50 border-orange-100 text-orange-950', label:'Léo'} };
-  const s = styles[who];
-  return `<div class="flex items-start gap-2"><div class="avatar ${s.cls} w-6 h-6 text-[10px] shrink-0">${s.label[0]}</div><div class="border p-2.5 rounded-xl max-w-[80%] whitespace-pre-wrap ${s.bg}">${escapeHtml(text)}</div></div>`;
-}
-
-async function sendChatMessage(){
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = '';
-
-  chatWindow.insertAdjacentHTML('beforeend', chatBubble('user', text));
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-
-  try {
-    const cfg = getConfig();
-    if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
-    const raw = await callLLM(cfg, [{ role:'user', content: text }]);
-    const { plume, leo } = parseDuo(raw);
-    if(plume) chatWindow.insertAdjacentHTML('beforeend', chatBubble('plume', plume));
-    if(leo) chatWindow.insertAdjacentHTML('beforeend', chatBubble('leo', leo));
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    await speakExchange(plume, leo);
-  } catch(e) {
-    chatWindow.insertAdjacentHTML('beforeend', `<div class="bg-red-50 text-red-600 p-2.5 rounded-xl text-xs font-semibold">⚠️ ${escapeHtml(e.message)}</div>`);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-  }
-}
-
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* ---------------- Pane switching (Modules TCF vs Vocabulaire) ---------------- */
+/* ---------------- Pane Switching ---------------- */
 document.getElementById('paneBtnModules').onclick = ()=>{
   document.getElementById('paneModules').classList.remove('hidden');
   document.getElementById('paneVocab').classList.add('hidden');
-  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition';
-  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition';
+  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2';
+  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
 };
 document.getElementById('paneBtnVocab').onclick = ()=>{
   document.getElementById('paneVocab').classList.remove('hidden');
   document.getElementById('paneModules').classList.add('hidden');
-  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition';
-  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition';
+  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2';
+  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
 };
 
-/* ---------------- Vocabulaire — driven by vocabulary.csv (7,946-word master list) ---------------- */
+/* ---------------- Vocabulaire Engine ---------------- */
 const VOCAB_LEVELS = [
   { id:'essential', label:'🟢 Essentiel', range:[1,500] },
-  { id:'common',    label:'🟡 Courant',   range:[501,1500] },
+  { id:'common',    label:'🟡 Courant',    range:[501,1500] },
   { id:'inter',     label:'🟠 Intermédiaire', range:[1501,3500] },
-  { id:'advanced',  label:'🔴 Avancé',    range:[3501,7946] }
+  { id:'advanced',  label:'🔴 Avancé',     range:[3501,7946] }
 ];
-let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'essential', vocabPracticeOnly = false, vocabProgress = {};
+let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'common', vocabPracticeOnly = false, vocabProgress = {};
 
 function loadVocabProgress(){ try{ vocabProgress = JSON.parse(localStorage.getItem('fsb_vocab_progress')||'{}'); }catch(e){ vocabProgress = {}; } }
 function saveVocabProgress(){ try{ localStorage.setItem('fsb_vocab_progress', JSON.stringify(vocabProgress)); }catch(e){} }
 
-// Tiny CSV parser (quoted fields with commas/newlines) — no library needed
 function parseCSV(text){
   const rows = []; let row=[], field='', inQuotes=false;
   text = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
@@ -731,13 +594,13 @@ async function initVocab(){
     buildVocabDeck();
   }catch(err){
     document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}). Il doit être dans le même dossier que index.html, et servi via un serveur local ou GitHub Pages (pas ouvert en double-cliquant).`;
+      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}). Il doit être dans le même dossier que index.html.`;
   }
 }
 
 function renderVocabLevelChips(){
   const wrap = document.getElementById('vocabLevelChips');
-  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-[11px] font-bold px-2.5 py-1.5 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600':'bg-white border-slate-300 text-slate-600'}" data-id="${lv.id}">${lv.label}</button>`).join('');
+  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-xs font-bold px-3 py-1.5 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600 shadow-sm':'bg-white border-slate-300 text-slate-600'}" data-id="${lv.id}">${lv.label}</button>`).join('');
   wrap.querySelectorAll('.vocab-level-chip').forEach(btn=>{
     btn.onclick = ()=>{ vocabLevel = btn.dataset.id; renderVocabLevelChips(); buildVocabDeck(); };
   });
@@ -788,14 +651,14 @@ document.getElementById('vocabShuffleBtn').onclick = ()=>{
 };
 document.getElementById('vocabModeAll').onclick = ()=>{
   vocabPracticeOnly = false;
-  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white';
-  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
+  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-3 py-1.5 rounded-full border border-indigo-600 bg-indigo-600 text-white shadow-sm';
+  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm';
   buildVocabDeck();
 };
 document.getElementById('vocabModePractice').onclick = ()=>{
   vocabPracticeOnly = true;
-  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-500 bg-amber-500 text-white';
-  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
+  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-3 py-1.5 rounded-full border border-amber-500 bg-amber-500 text-white shadow-sm';
+  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm';
   buildVocabDeck();
 };
 document.getElementById('vocabMarkKnown').onclick = ()=>{
@@ -814,7 +677,6 @@ document.getElementById('vocabListenBtn').onclick = ()=>{
   speakAs('plume', w.sentence_fr ? w.french + '. ' + w.sentence_fr : w.french);
 };
 
-// Recording a vocab word reuses the same Plume+Léo duo reaction pattern as the module cards
 document.getElementById('vocabRecBtn').onclick = ()=>{
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
   const w = vocabDeck[vocabIdx];
@@ -824,7 +686,6 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
   const reactionArea = document.getElementById('vocabReactionArea');
   btn.classList.add('recording-active');
   btn.textContent = '🎙️ Parle maintenant...';
-  setUserSpeaking(true);
   tBox.classList.add('hidden');
   reactionArea.classList.add('hidden'); reactionArea.innerHTML = '';
 
@@ -834,7 +695,6 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
     btn.textContent = '🎙️ Enregistrer ma voix';
-    setUserSpeaking(false);
     tBox.classList.remove('hidden');
     tBox.innerHTML = `<strong>🗣️ Tu as dit :</strong> "${escapeHtml(said)}"`;
     reactionArea.classList.remove('hidden');
@@ -843,25 +703,55 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
       const cfg = getConfig();
       if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}" (prononciation IPA: ${w.ipa||'?'}, sens: ${w.english})\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagissez tous les deux, brièvement, sur sa prononciation.`
+        `Mot cible: "${w.french}"\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagissez tous les deux en français.`
       }], 250);
       const { plume, leo } = parseDuo(raw);
-      reactionArea.innerHTML = reactionBubble('plume', plume) + (leo ? reactionBubble('leo', leo) : '');
+      reactionArea.innerHTML = renderBubble('plume', plume) + (leo ? renderBubble('leo', leo) : '');
       if(!/pas tout à fait|attention|plutôt|non,/i.test(plume)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
       await speakExchange(plume, leo);
     }catch(err){
       reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${escapeHtml(err.message)}</div>`;
     }
   };
-  rec.onerror = (e)=>{
-    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix'; setUserSpeaking(false);
-    tBox.classList.remove('hidden'); tBox.textContent = `⚠️ Erreur micro (${e.error}). Réessaie.`;
+  rec.onerror = ()=>{
+    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix';
+    tBox.classList.add('hidden'); tBox.textContent = `⚠️ Erreur micro. Réessaie.`;
   };
   rec.start();
 };
 
+const SYSTEM_PROMPT = `Tu joues DEUX personnages qui étudient le français avec l'utilisateur :
+- PLUME : tutrice chaleureuse mais franche. Elle corrige avec bienveillance et s'exprime en français.
+- LÉO : un pair apprenant, sympathique et décontracté.
+
+Réponds TOUJOURS en utilisant ce format exact :
+PLUME: <réaction ou correction naturelle en français>
+LEO: <réaction courte et informelle en français>
+
+N'utilise jamais d'anglais dans tes répliques. Reste bref.`;
+
+async function callLLM(cfg, messages, maxTokens){
+  const headers = { 'Content-Type': 'application/json' };
+  if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
+  const res = await fetch(cfg.baseUrl, {
+    method:'POST',
+    headers,
+    body: JSON.stringify({
+      model: cfg.model,
+      messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
+      max_tokens: maxTokens || 300,
+      temperature: 0.75
+    })
+  });
+  if(!res.ok) throw new Error(`Erreur ${res.status}`);
+  const data = await res.json();
+  return data.choices[0].message.content.trim();
+}
+
 loadVocabProgress();
 initVocab();
+
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* Init */
 renderCard();
