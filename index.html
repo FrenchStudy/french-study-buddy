@@ -3,230 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — Plume</title>
+<title>French Study Buddy — Dynamic Expression Human Tutor Studio</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+  .msg-enter { animation: fadeIn .2s ease-out; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
   
-  @keyframes talkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); transform: scale(1); } 50% { box-shadow: 0 0 0 16px rgba(79,70,229,0); transform: scale(1.03); } }
-  .speaking-human { animation: humanGlow 1.5s infinite ease-in-out; }
-
-  @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 14px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
+  @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
   .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
 
-  @keyframes lipMove { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1.4); } }
-  .speaking-lips { animation: lipMove 0.25s infinite ease-in-out; transform-origin: center; }
+  /* Illustrated avatar system — no external images, no real people depicted */
+  @keyframes speakRing { 0%{box-shadow:0 0 0 0 var(--ring,rgba(79,70,229,.45));} 70%{box-shadow:0 0 0 14px rgba(79,70,229,0);} 100%{box-shadow:0 0 0 0 rgba(79,70,229,0);} }
+  .avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; transition:transform .2s ease, box-shadow .2s ease; border:3px solid transparent; }
+  .avatar.speaking { animation:speakRing 1.4s infinite; transform:scale(1.06); }
+  .avatar-plume { background:#EEF2FF; color:#4338CA; }
+  .avatar-plume.speaking { border-color:#4F46E5; --ring:rgba(79,70,229,.45); }
+  .avatar-leo { background:#FFF7ED; color:#C2410C; }
+  .avatar-leo.speaking { border-color:#F97316; --ring:rgba(249,115,22,.4); }
+  .avatar-user { background:#F1F5F9; color:#334155; }
+  .avatar-user.speaking { border-color:#F43F5E; --ring:rgba(244,63,94,.4); }
 </style>
 </head>
-<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-  <!-- TOP HEADER -->
-  <header class="bg-indigo-700 text-white px-6 py-3.5 flex items-center gap-4 shadow-sm z-20 shrink-0">
-    <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center font-extrabold text-base">🇫🇷</div>
+  <header class="bg-indigo-700 text-white px-4 py-3 flex items-center gap-3 shadow-md z-20">
+    <div class="avatar avatar-plume w-10 h-10 text-base" id="headerAvatar">P</div>
     <div class="flex-1">
-      <h1 class="font-extrabold text-base sm:text-lg tracking-tight">French Study Buddy &amp; Plume</h1>
-      <p class="text-indigo-200 text-xs">Salon de Conversation Interactif</p>
+      <h1 class="font-bold text-base sm:text-lg leading-tight">French Study Buddy &amp; Plume</h1>
+      <p class="text-indigo-200 text-xs">Studio Interactif TCF &amp; DELF — avec Plume et Léo</p>
     </div>
-    <span id="connStatus" class="hidden sm:inline-flex items-center gap-2 text-xs bg-white/10 rounded-full px-3.5 py-1.5 font-medium">
-      <span id="connDot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+    <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
+      <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
       <span id="connLabel">Non configuré</span>
     </span>
-    <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2">
-      ⚙️ Paramètres
+    <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-lg px-3 py-2 text-sm font-semibold flex items-center gap-1.5">
+      ⚙️ <span class="hidden sm:inline">Paramètres</span>
     </button>
   </header>
 
-  <!-- MAIN APP CONTAINER (NO SCROLL) -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT SIDEBAR: Syllabus Topics -->
-    <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
-      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur">
-        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Sujets de Discussion (TCF)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Clique pour changer de sujet instantanément.</p>
+    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/50 sticky top-0 z-10 backdrop-blur">
+        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF (Parts 1-4)</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer la session avec Plume.</p>
       </div>
-      <div id="topicsList" class="p-3 space-y-3"></div>
+      <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
 
-    <!-- RIGHT MAIN WORKSTATION (NO SCROLL) -->
-    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-hidden p-6">
-      <div class="max-w-3xl mx-auto w-full h-full flex flex-col justify-between space-y-4 my-auto">
+    <button id="mobileTopicsBtn" class="md:hidden fixed bottom-24 right-4 z-30 bg-indigo-600 text-white rounded-full w-12 h-12 shadow-lg flex items-center justify-center text-xl">📚</button>
 
-        <!-- TAB SWITCHER -->
-        <div class="flex gap-3 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm shrink-0">
-          <button id="paneBtnChat" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm">
-            💬 Salon de Discussion
-          </button>
-          <button id="paneBtnVocab" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2">
-            🔤 Vocabulaire (vocabulary.csv)
-          </button>
-        </div>
+    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-y-auto">
 
-        <!-- CONVERSATION PANE -->
-        <div id="paneChat" class="flex-1 flex flex-col justify-between space-y-4 min-h-0">
-          
-          <!-- PLUME HUMAN TEACHER CARD -->
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col items-center text-center shrink-0">
-            
-            <!-- Realistic Human Portrait with Animated Speaking Lips Overlay -->
-            <div id="plumeHumanAvatar" class="relative w-24 h-24 rounded-full bg-slate-200 shadow-md border-4 border-indigo-100 overflow-hidden transition-all">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Plume" class="w-full h-full object-cover">
-              <!-- Live Speaking Lips Overlay -->
-              <div id="speakingLipsOverlay" class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 transition-opacity">
-                <div class="w-5 h-2 bg-rose-500 rounded-full speaking-lips"></div>
+        <div class="flex-1 flex flex-col p-4 sm:p-6">
+          <div class="max-w-2xl mx-auto w-full space-y-4">
+
+            <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
+              <div class="flex items-center justify-center gap-10">
+                <div class="text-center space-y-1.5">
+                  <div class="mx-auto" style="width:64px;height:64px;">
+                    <svg id="plumeFaceSvg" viewBox="0 0 72 72" width="64" height="64" style="display:block;">
+                      <circle cx="36" cy="36" r="32" fill="#EEF2FF" stroke="#4F46E5" stroke-width="2.5" id="plumeFaceRing"/>
+                      <path id="plumeBrowL" d="M22 26 Q26 21 30 26" stroke="#4338CA" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0"/>
+                      <path id="plumeBrowR" d="M42 26 Q46 21 50 26" stroke="#4338CA" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0"/>
+                      <circle cx="26" cy="30" r="3.2" fill="#4338CA"/>
+                      <circle cx="46" cy="30" r="3.2" fill="#4338CA"/>
+                      <path id="plumeMouth" d="M26 46 Q36 46 46 46" stroke="#4338CA" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <span id="tutorStateLabel" class="text-xs font-bold text-indigo-900 block">Plume</span>
+                </div>
+                <div class="text-center space-y-1.5">
+                  <div class="avatar avatar-user w-14 h-14 text-xl mx-auto" id="cardStudentBox">🙂</div>
+                  <span id="studentStateLabel" class="text-xs font-bold text-slate-600 block">Toi</span>
+                </div>
               </div>
-              <span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full z-10"></span>
             </div>
 
-            <div>
-              <h2 class="font-extrabold text-sm text-slate-800 flex items-center justify-center gap-2">
-                Plume <span id="plumeEmotionBadge" class="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-100">Souriante 😊</span>
-              </h2>
-              <p class="text-xs text-slate-500 mt-0.5" id="currentTopicLabel">Sujet : Discussion libre</p>
-            </div>
-
-            <!-- Dialogue Speech Display -->
-            <div class="w-full space-y-2 bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-inner text-left">
-              <div class="flex items-center justify-between pb-1">
-                <span class="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest">Plume (Professeur de français)</span>
-                <button onclick="replayPlumeLastLine()" class="bg-white hover:bg-indigo-50 text-indigo-700 font-bold text-xs px-3.5 py-1.5 rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1.5">
-                  🔊 Réécouter
-                </button>
-              </div>
-              <p id="plumeSpokenFr" class="text-slate-800 text-sm font-semibold leading-relaxed">Bonjour ! Je suis ravie de discuter avec toi aujourd'hui. Comment s'est passée ta journée ? Raconte-moi !</p>
-              <p id="plumeSpokenEn" class="text-slate-400 text-xs italic">Hello! I'm delighted to chat with you today. How was your day? Tell me!</p>
-            </div>
-
-            <!-- Dynamic Topic-Aware Suggestions -->
-            <div class="w-full flex flex-wrap gap-2 justify-center pt-1" id="dynamicSuggestions">
-              <button onclick="sendQuickReply('Ma journée s\'est très bien passée, merci !')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Ma journée s'est bien passée !"</button>
-              <button onclick="sendQuickReply('Et toi Plume, comment ça va ?')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Et toi Plume, comment ça va ?"</button>
-              <button onclick="sendQuickReply('Je veux parler de mes loisirs')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Parlons de mes loisirs"</button>
-            </div>
-          </div>
-
-          <!-- Input Bar -->
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 shadow-sm w-full shrink-0">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Réponds à Plume</span>
-              <span class="text-[11px] font-semibold text-slate-400">Oral ou écrit</span>
-            </div>
-
-            <div class="flex gap-3">
-              <button id="studioMicBtn" onclick="toggleVoiceConversation()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-2xl px-5 py-3 text-xs font-bold transition flex items-center gap-2 shadow-sm shrink-0">
-                🎤 Parler
-              </button>
-              <input id="studioInput" type="text" autocomplete="off" name="no-autofill-conv" placeholder="Écris ta réponse en français..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-800">
-              <button onclick="sendUserMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-6 py-3 font-bold text-xs transition shadow-sm">
-                Envoyer →
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- VOCABULARY PANE (Hidden by default) -->
-        <div id="paneVocab" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
-          <div class="flex flex-wrap gap-2 items-center" id="vocabLevelChips"></div>
-
-          <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex gap-2">
-              <button id="filterAllBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white transition shadow-sm">Toutes</button>
-              <button id="filterPracticeBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm">🔁 À revoir</button>
-              <button id="filterKnownBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm">✅ Connus</button>
-            </div>
-            <button id="vocabShuffleBtn" class="text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm flex items-center gap-1.5">🔀 Mélanger</button>
-          </div>
-
-          <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
-
-          <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-7 shadow-sm space-y-5">
-            <div class="flex items-center justify-between">
-              <span id="vocabRankBadge" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">#504</span>
-              <span id="vocabCounter" class="text-xs font-bold text-slate-400">4 / 1000</span>
+              <button id="paneBtnModules" class="pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition">📚 Modules TCF</button>
+              <button id="paneBtnVocab" class="pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition">🔤 Vocabulaire</button>
             </div>
 
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-3 flex-wrap">
-                <h3 id="vocabWord" class="font-extrabold text-2xl text-slate-800">oublier</h3>
-                <span id="vocabPos" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">v</span>
+            <div id="paneModules" class="space-y-3">
+              <div class="flex items-center gap-2">
+                <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche, ou écris ci-dessous</span>
               </div>
-              <p id="vocabIpa" class="text-xs text-slate-400 font-mono">[ublije]</p>
-              <p id="vocabEnglish" class="text-sm text-indigo-600 font-bold pt-1">to forget</p>
+
+              <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 min-h-[160px]">
+                <p class="text-xs text-slate-400">👋 Choisis un thème dans le menu pour démarrer une leçon, ou écris directement ci-dessous pour discuter librement avec Plume et Léo.</p>
+              </div>
+
+              <div class="flex items-end gap-2">
+                <button id="lessonMicBtn" title="Parler" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-300 hover:border-indigo-400 flex items-center justify-center text-lg transition">🎙️</button>
+                <input id="lessonInput" type="text" placeholder="réponds à l'écrit ou à l'oral..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <button id="lessonSendBtn" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition disabled:opacity-40">➤</button>
+              </div>
             </div>
 
-            <div id="vocabExampleWrap" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1 hidden">
-              <p id="vocabSentenceFr" class="text-slate-800 text-xs font-semibold">je ne t'oublierai jamais</p>
-              <p id="vocabSentenceEn" class="text-slate-400 text-[11px] italic">I will never forget you</p>
-            </div>
-
-            <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
+            <div id="paneVocab" class="hidden space-y-4">
+              <div class="flex flex-wrap gap-1.5" id="vocabLevelChips"></div>
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-900">🎙️ Prononciation</span>
-                <button id="vocabListenBtn" class="text-xs bg-indigo-600 text-white font-bold px-3.5 py-1.5 rounded-xl hover:bg-indigo-700 transition shadow-sm">🔊 Écouter</button>
+                <div class="flex gap-1.5">
+                  <button id="vocabModeAll" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white">Toutes</button>
+                  <button id="vocabModePractice" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔁 À revoir</button>
+                </div>
+                <button id="vocabShuffleBtn" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔀 Mélanger</button>
               </div>
-              <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition shadow-sm">🎙️ Enregistrer ma voix</button>
-              <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-indigo-100 rounded-xl p-2.5 text-slate-700 font-medium"></div>
-              <div id="vocabReactionArea" class="hidden space-y-1.5"></div>
+
+              <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
+
+              <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                  <span id="vocabRankBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full"></span>
+                  <span id="vocabCounter" class="text-xs font-semibold text-slate-400"></span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 id="vocabWord" class="font-bold text-3xl text-slate-800"></h3>
+                    <span id="vocabPos" class="text-[11px] font-bold text-slate-400 uppercase"></span>
+                  </div>
+                  <p id="vocabIpa" class="text-xs text-slate-400 mt-1 font-mono"></p>
+                  <p id="vocabEnglish" class="text-sm text-indigo-600 font-semibold mt-2"></p>
+                </div>
+                <div id="vocabExampleWrap" class="bg-slate-50 rounded-xl p-3 text-sm hidden">
+                  <p id="vocabSentenceFr" class="text-slate-700"></p>
+                  <p id="vocabSentenceEn" class="text-slate-400 text-xs mt-1"></p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">🎙️ Prononce-le</span>
+                    <button id="vocabListenBtn" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition">🔊 Écouter</button>
+                  </div>
+                  <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition">🎙️ Enregistrer ma voix</button>
+                  <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
+                  <div id="vocabReactionArea" class="hidden space-y-2"></div>
+                </div>
+
+                <div class="flex gap-2">
+                  <button id="vocabMarkPractice" class="flex-1 bg-amber-50 border border-amber-300 text-amber-700 text-xs font-bold py-2.5 rounded-xl hover:bg-amber-100">🔁 À revoir</button>
+                  <button id="vocabMarkKnown" class="flex-1 bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold py-2.5 rounded-xl hover:bg-emerald-100">✅ Je connais</button>
+                </div>
+
+                <div class="flex justify-between gap-3 pt-1">
+                  <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
+                  <button id="vocabNextBtn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
+                  <div id="vocabKnownCount" class="font-bold text-lg text-emerald-600">0</div>
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">Connus</div>
+                </div>
+                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
+                  <div id="vocabPracticeCount" class="font-bold text-lg text-amber-600">0</div>
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">À revoir</div>
+                </div>
+                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
+                  <div id="vocabTotalCount" class="font-bold text-lg text-slate-600">0</div>
+                  <div class="text-[10px] font-bold text-slate-400 uppercase">Dans ce niveau</div>
+                </div>
+              </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-1">
-              <button id="vocabMarkPractice" class="bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold py-3 rounded-2xl hover:bg-amber-100 transition shadow-sm">🔁 À revoir</button>
-              <button id="vocabMarkKnown" class="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold py-3 rounded-2xl hover:bg-emerald-100 transition shadow-sm">✅ Je connais</button>
-            </div>
-
-            <div class="flex justify-between gap-3 pt-1">
-              <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold hover:bg-slate-50 transition shadow-sm">⬅️ Précédent</button>
-              <button id="vocabNextBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition shadow-sm">Suivant ➡️</button>
-            </div>
           </div>
         </div>
 
-      </div>
     </main>
   </div>
 
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white border border-slate-200 rounded-3xl shadow-xl w-full max-w-md p-7 space-y-4 text-slate-800">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="font-extrabold text-lg text-slate-900">⚙️ Configuration Groq</h2>
-        <button id="closeSettings" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg">⚙️ Configuration du modèle</h2>
+        <button id="closeSettings" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
       </div>
 
-      <div class="flex gap-2 mb-2">
-        <button class="preset-btn flex-1 text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 rounded-xl py-2.5 transition text-slate-700" data-preset="groq">☁️ Groq (cloud)</button>
-        <button class="preset-btn flex-1 text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 rounded-xl py-2.5 transition text-slate-700" data-preset="ollama">💻 Ollama (local)</button>
+      <div class="flex gap-2 mb-4">
+        <button class="preset-btn flex-1 text-xs font-semibold border border-slate-300 rounded-lg py-2 hover:bg-slate-50" data-preset="groq">☁️ Groq (cloud)</button>
+        <button class="preset-btn flex-1 text-xs font-semibold border border-slate-300 rounded-lg py-2 hover:bg-slate-50" data-preset="ollama">💻 Ollama (local)</button>
       </div>
 
-      <label class="block text-xs font-bold text-slate-500 mb-1">API Base URL</label>
-      <input id="cfgBaseUrl" type="text" autocomplete="off" name="no-autofill-url" placeholder="https://api.groq.com/openai/v1/chat/completions"
-        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
+      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Base URL</label>
+      <input id="cfgBaseUrl" type="text" placeholder="https://api.groq.com/openai/v1/chat/completions"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
-      <label class="block text-xs font-bold text-slate-500 mb-1">API Key <span class="font-normal text-slate-400">(laisse vide pour Ollama)</span></label>
-      <input id="cfgApiKey" type="password" autocomplete="new-password" name="no-autofill-key" placeholder="gsk_..."
-        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
+      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Key <span class="font-normal text-slate-400">(laisse vide pour Ollama local)</span></label>
+      <input id="cfgApiKey" type="password" placeholder="gsk_..." autocomplete="off"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
-      <label class="block text-xs font-bold text-slate-500 mb-1">Model Name</label>
-      <input id="cfgModel" type="text" autocomplete="off" name="no-autofill-mod" placeholder="llama-3.3-70b-versatile"
-        class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-800">
+      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">Model Name</label>
+      <input id="cfgModel" type="text" placeholder="llama-3.3-70b-versatile"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
-      <div id="settingsError" class="hidden mt-2 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5"></div>
+      <div id="settingsError" class="hidden mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></div>
 
-      <div class="flex gap-3 pt-3">
-        <button id="testConnBtn" class="flex-1 border border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-2xl py-3 text-xs font-bold transition">Tester</button>
-        <button id="saveSettingsBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-3 text-xs font-bold transition shadow-sm">Enregistrer</button>
+      <div class="flex gap-2 mt-5">
+        <button id="testConnBtn" class="flex-1 border border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-lg py-2.5 text-sm font-semibold transition">Tester la connexion</button>
+        <button id="saveSettingsBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2.5 text-sm font-semibold transition">Enregistrer</button>
       </div>
     </div>
   </div>
 
 <script>
 /* ============================================================
-   App Configuration & Groq AI Engine
+   French Study Buddy — Dynamic Expression Tutor Engine
    ============================================================ */
+
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
 const PRESETS = {
   groq:   { baseUrl:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', key:'' },
@@ -251,10 +240,10 @@ function updateConnStatus(){
   const dot = document.getElementById('connDot');
   const label = document.getElementById('connLabel');
   if(cfg.baseUrl && cfg.model){
-    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+    dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
     label.textContent = cfg.model;
   }else{
-    dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
+    dot.className = 'w-2 h-2 rounded-full bg-slate-400';
     label.textContent = 'Non configuré';
   }
 }
@@ -288,6 +277,27 @@ document.getElementById('saveSettingsBtn').onclick = ()=>{
   settingsModal.classList.add('hidden');
 };
 
+document.getElementById('testConnBtn').onclick = async ()=>{
+  const cfg = {
+    baseUrl: document.getElementById('cfgBaseUrl').value.trim(),
+    apiKey: document.getElementById('cfgApiKey').value.trim(),
+    model: document.getElementById('cfgModel').value.trim()
+  };
+  const err = document.getElementById('settingsError');
+  err.classList.add('hidden');
+  try{
+    await callLLM(cfg, [{ role:'user', content:'Réponds uniquement "OK".' }], 20);
+    err.textContent = '✅ Connexion réussie !';
+    err.className = 'mt-3 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2';
+    err.classList.remove('hidden');
+  }catch(e){
+    err.textContent = '⚠️ ' + e.message;
+    err.className = 'mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2';
+    err.classList.remove('hidden');
+  }
+};
+
+/* ---------------- Animated face + speaking state (Plume only — Léo removed) ---------------- */
 let frenchVoice = null;
 function pickFrenchVoice(){
   if(!window.speechSynthesis) return;
@@ -296,175 +306,286 @@ function pickFrenchVoice(){
 }
 if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoiceschanged = pickFrenchVoice; }
 
-let currentUtteranceText = "Bonjour ! Je suis ravie de discuter avec toi aujourd'hui. Comment s'est passée ta journée ? Raconte-moi !";
+const MOUTH = {
+  neutral: 'M26 46 Q36 46 46 46',
+  open:    'M27 44 Q36 58 45 44 Q36 50 27 44 Z',
+  closed:  'M28 47 Q36 49 44 47',
+  happy:   'M24 44 Q36 55 48 44'
+};
+function setPlumeExpression(state){
+  const mouth = document.getElementById('plumeMouth');
+  const browL = document.getElementById('plumeBrowL');
+  const browR = document.getElementById('plumeBrowR');
+  if(!mouth) return;
+  mouth.setAttribute('d', MOUTH[state] || MOUTH.neutral);
+  mouth.setAttribute('fill', state==='open' ? '#4338CA' : 'none');
+  const happy = state === 'happy';
+  if(browL) browL.setAttribute('opacity', happy ? '1' : '0');
+  if(browR) browR.setAttribute('opacity', happy ? '1' : '0');
+}
+let talkInterval = null;
+function startTalkAnimation(){
+  let open = true;
+  if(talkInterval) clearInterval(talkInterval);
+  talkInterval = setInterval(()=>{ setPlumeExpression(open ? 'open' : 'closed'); open = !open; }, 130);
+  const ring = document.getElementById('plumeFaceRing');
+  if(ring) ring.setAttribute('stroke', '#4F46E5');
+  document.getElementById('tutorStateLabel').textContent = 'Plume (parle...)';
+}
+function stopTalkAnimation(positive){
+  if(talkInterval){ clearInterval(talkInterval); talkInterval = null; }
+  setPlumeExpression(positive ? 'happy' : 'neutral');
+  document.getElementById('tutorStateLabel').textContent = 'Plume';
+}
+function setUserSpeaking(active){
+  const box = document.getElementById('cardStudentBox');
+  const label = document.getElementById('studentStateLabel');
+  box.classList.toggle('speaking', active);
+  box.classList.toggle('recording-active', active);
+  label.textContent = active ? 'Toi (parle...)' : 'Toi';
+}
 
-function speakText(text, emotion = "Souriante 😊"){
+// Heuristic: does this reply read like praise/success, to decide the "happy" face + confetti
+function soundsPositive(text){
+  return !/pas tout à fait|attention|plutôt|non,|erreur|ce n'est pas|essaie encore/i.test(text||'');
+}
+
+function speakPlume(text, positive){
   return new Promise(resolve=>{
     if(!text || !window.speechSynthesis){ resolve(); return; }
-    currentUtteranceText = text;
-    updatePlumeUI(true, emotion);
-
-    window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR';
     if(frenchVoice) u.voice = frenchVoice;
-    u.rate = 0.95; u.pitch = 1.0;
-
-    u.onend = ()=>{ updatePlumeUI(false, emotion); resolve(); };
-    u.onerror = ()=>{ updatePlumeUI(false, emotion); resolve(); };
+    u.rate = 0.95;
+    u.onstart = ()=> startTalkAnimation();
+    u.onend = ()=> { stopTalkAnimation(positive); resolve(); };
+    u.onerror = ()=> { stopTalkAnimation(positive); resolve(); };
     window.speechSynthesis.speak(u);
   });
 }
 
-function updatePlumeUI(isSpeaking, emotion){
-  const badge = document.getElementById('plumeEmotionBadge');
-  const avatar = document.getElementById('plumeHumanAvatar');
-  const lips = document.getElementById('speakingLipsOverlay');
-  if(badge) badge.textContent = emotion;
-  if(isSpeaking){
-    if(avatar) avatar.classList.add('speaking-human');
-    if(lips) lips.style.opacity = '1';
-  } else {
-    if(avatar) avatar.classList.remove('speaking-human');
-    if(lips) lips.style.opacity = '0';
+/* ---------------- LLM call — never exposes the raw endpoint/key in any visible text ---------------- */
+const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français patiente, chaleureuse mais franche, qui aide un(e) étudiant(e) à préparer le TCF/DELF.
+
+Réponds TOUJOURS en utilisant EXACTEMENT ces deux lignes, dans cet ordre :
+PLUME_FR: <ta réponse en français, courte — une à trois phrases maximum, jamais un long paragraphe>
+PLUME_EN: <traduction ou explication en anglais de cette même réponse, toujours présente, même courte>
+
+Règles importantes :
+- Si on te signale que la transcription vocale de l'étudiant semble ne pas correspondre à ce qu'il devait dire (erreur probable du micro), dis-le clairement et redemande — ne fais JAMAIS semblant que c'était une réponse volontaire à un nouveau sujet.
+- Quand tu enseignes un nouveau point (grammaire, prononciation, vocabulaire), explique-le concrètement en 1-2 phrases avec un exemple, puis termine par UNE tâche précise et simple que l'étudiant peut faire immédiatement (jamais "exprime-toi sur ce sujet" — donne une phrase à compléter, un mot à répéter, ou une question ciblée).
+- Ne mets rien en dehors des deux lignes PLUME_FR / PLUME_EN.`;
+
+function safeErrorMessage(err){
+  // Defensive: strip anything URL-like so a raw endpoint can never leak into the visible UI
+  let msg = String(err && err.message ? err.message : err || 'Erreur inconnue');
+  msg = msg.replace(/https?:\/\/\S+/gi, '[endpoint]');
+  return msg;
+}
+
+async function callLLM(cfg, messages, maxTokens){
+  const headers = { 'Content-Type': 'application/json' };
+  if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
+  let res;
+  try{
+    res = await fetch(cfg.baseUrl, {
+      method:'POST', headers,
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
+        max_tokens: maxTokens || 250,
+        temperature: 0.7
+      })
+    });
+  }catch(networkErr){
+    throw new Error("Connexion au serveur impossible. Vérifie ta configuration (⚙️ Paramètres).");
   }
+  if(!res.ok) throw new Error(`Erreur serveur (${res.status}). Vérifie ta clé API et le nom du modèle.`);
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if(!text) throw new Error('Réponse vide reçue.');
+  return text.trim();
 }
 
-function replayPlumeLastLine(){ speakText(currentUtteranceText); }
-
-let conversationHistory = [
-  { role: 'system', content: `Tu es Plume, un professeur de français chaleureux et bienveillant qui discute en français avec l'utilisateur pour l'aider à pratiquer (TCF). Parle comme une vraie personne dans une discussion naturelle et vivante. Pose une seule question ouverte à la fin. Réponds TOUJOURS sous ce format strict :
-FR: <ta réplique naturelle en français>
-EN: <english translation>
-EMOTION: <ex: Souriante 😊 / Enthousiaste 🌟 / Curieuse 🤔>` }
-];
-
-async function sendUserMessage(){
-  const input = document.getElementById('studioInput');
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = '';
-  await processMessageWithPlume(text);
+// Parses "PLUME_FR: ...\nPLUME_EN: ..." — falls back to raw text (no translation) rather than showing nothing
+function parseReply(raw){
+  const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|$)/i);
+  const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)$/i);
+  if(frMatch || enMatch){
+    return { fr: (frMatch ? frMatch[1] : '').trim(), en: (enMatch ? enMatch[1] : '').trim() };
+  }
+  return { fr: raw.trim(), en: '' };
 }
 
-function sendQuickReply(text){
-  document.getElementById('studioInput').value = text;
-  sendUserMessage();
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------------- Unified lesson stream (replaces the old split card + side chat) ---------------- */
+const lessonStream = document.getElementById('lessonStream');
+let lessonHistory = [];          // {role:'user'|'assistant', content} — sent as context to the LLM
+let lastExpectedPhrase = null;   // last quoted phrase Plume asked the student to repeat/produce
+let lastInputWasVoice = false;   // true if the pending send came from the mic, not typing
+let lessonBusy = false;
+
+function extractExpectedPhrase(plumeFr){
+  const m = plumeFr.match(/[«"]([^»"]{2,60})[»"]/);
+  return m ? m[1] : null;
 }
 
-async function processMessageWithPlume(userText){
-  document.getElementById('plumeSpokenFr').textContent = "Plume réfléchit...";
-  document.getElementById('plumeSpokenEn').textContent = "Plume is thinking...";
-  updatePlumeUI(true, "Réflexion 🤔");
+function streamBubble(role, fr, en){
+  if(role === 'user'){
+    return `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl rounded-br-sm px-3 py-2 text-sm max-w-[80%]">${escapeHtml(fr)}</div></div>`;
+  }
+  return `<div class="flex flex-col items-start max-w-[85%]">
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">${escapeHtml(fr)}</div>
+    ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1">${escapeHtml(en)}</p>` : ''}
+  </div>`;
+}
+function streamLoading(text){
+  return `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 ${escapeHtml(text)}</p>`;
+}
+function streamError(msg){
+  return `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${escapeHtml(msg)}</div>`;
+}
 
-  conversationHistory.push({ role: 'user', content: userText });
+function setLessonBusy(b){
+  lessonBusy = b;
+  document.getElementById('lessonSendBtn').disabled = b;
+}
 
-  try {
+async function startTopicLesson(topic){
+  if(lessonBusy) return;
+  document.getElementById('topicPill').textContent = topic;
+  lessonHistory = [];
+  lastExpectedPhrase = null;
+  lessonStream.innerHTML = streamLoading('Plume prépare la leçon...');
+  setLessonBusy(true);
+  try{
     const cfg = getConfig();
-    if(!cfg.baseUrl) throw new Error("Configure ton API Groq dans les paramètres ⚙️.");
-    const raw = await callLLM(cfg, conversationHistory, 300);
-    const parsed = parsePlumeResponse(raw);
-
-    document.getElementById('plumeSpokenFr').textContent = parsed.fr;
-    document.getElementById('plumeSpokenEn').textContent = parsed.en;
-    
-    conversationHistory.push({ role: 'assistant', content: parsed.fr });
-    if(conversationHistory.length > 10) conversationHistory.splice(1, 2);
-
-    await speakText(parsed.fr, parsed.emotion);
-  } catch(e) {
-    document.getElementById('plumeSpokenFr').textContent = "⚠️ " + e.message;
-    document.getElementById('plumeSpokenEn').textContent = "Error connecting to AI.";
-    updatePlumeUI(false, "Erreur ⚠️");
+    if(!cfg.baseUrl) throw new Error("Configure d'abord ton modèle (⚙️ Paramètres).");
+    const userMsg = `Nouveau thème choisi par l'étudiant : "${topic}". Enseigne ce point concrètement (explication + exemple courts), puis termine par UNE tâche précise et simple à faire tout de suite. Ne dis jamais juste "exprime-toi sur ce sujet".`;
+    const raw = await callLLM(cfg, [{ role:'user', content: userMsg }], 300);
+    const { fr, en } = parseReply(raw);
+    lessonHistory.push({ role:'assistant', content: raw });
+    lastExpectedPhrase = extractExpectedPhrase(fr);
+    lessonStream.innerHTML = streamBubble('plume', fr, en);
+    lessonStream.scrollTop = lessonStream.scrollHeight;
+    await speakPlume(fr, true);
+  }catch(err){
+    lessonStream.innerHTML = streamError(safeErrorMessage(err));
+  }finally{
+    setLessonBusy(false);
   }
 }
 
-function parsePlumeResponse(raw){
-  const frMatch = raw.match(/FR\s*:\s*([\s\S]*?)(?=EN\s*:|EMOTION\s*:|$)/i);
-  const enMatch = raw.match(/EN\s*:\s*([\s\S]*?)(?=EMOTION\s*:|$)/i);
-  const emotionMatch = raw.match(/EMOTION\s*:\s*([\s\S]*?)$/i);
-  return {
-    fr: frMatch ? frMatch[1].trim() : raw.trim(),
-    en: enMatch ? enMatch[1].trim() : "Let's keep chatting!",
-    emotion: emotionMatch ? emotionMatch[1].trim() : "Souriante 😊"
-  };
-}
+async function sendLessonMessage(){
+  const input = document.getElementById('lessonInput');
+  const text = input.value.trim();
+  if(!text || lessonBusy) return;
+  const cfg = getConfig();
+  if(!cfg.baseUrl){
+    lessonStream.insertAdjacentHTML('beforeend', streamError("Configure d'abord ton modèle (⚙️ Paramètres)."));
+    return;
+  }
 
-async function toggleVoiceConversation(){
+  // Clear the empty-state placeholder on first message
+  if(lessonHistory.length === 0 && lessonStream.querySelector('.text-slate-400')) lessonStream.innerHTML = '';
+
+  input.value = '';
+  lessonStream.insertAdjacentHTML('beforeend', streamBubble('user', text));
+  lessonStream.scrollTop = lessonStream.scrollHeight;
+  setLessonBusy(true);
+  lessonStream.insertAdjacentHTML('beforeend', streamLoading('Plume réfléchit...'));
+
+  try{
+    let userContent = text;
+    // If this came from the mic and clearly doesn't match what Plume asked for, flag it explicitly
+    // instead of letting the model silently treat a mis-heard transcript as a new topic.
+    if(lastInputWasVoice && lastExpectedPhrase){
+      const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
+      const similar = norm(text).includes(norm(lastExpectedPhrase)) || norm(lastExpectedPhrase).includes(norm(text));
+      if(!similar){
+        userContent = `[Le micro a peut-être mal entendu — l'étudiant devait dire/répéter "${lastExpectedPhrase}" mais le texte reconnu est "${text}". Si ça ressemble à une erreur de reconnaissance vocale plutôt qu'une vraie tentative sur un autre sujet, dis-le et redemande plutôt que d'enchaîner sur autre chose.]\n${text}`;
+      }
+    }
+    lastInputWasVoice = false;
+
+    lessonHistory.push({ role:'user', content: userContent });
+    const raw = await callLLM(cfg, lessonHistory.slice(-10), 300);
+    const { fr, en } = parseReply(raw);
+    lessonHistory.push({ role:'assistant', content: raw });
+    lastExpectedPhrase = extractExpectedPhrase(fr);
+
+    document.getElementById('streamLoadingLine')?.parentElement?.remove();
+    lessonStream.insertAdjacentHTML('beforeend', streamBubble('plume', fr, en));
+    lessonStream.scrollTop = lessonStream.scrollHeight;
+    if(soundsPositive(fr)) confetti({ particleCount: 50, spread: 50, origin:{ y:0.65 } });
+    await speakPlume(fr, soundsPositive(fr));
+  }catch(err){
+    document.getElementById('streamLoadingLine')?.parentElement?.remove();
+    lessonStream.insertAdjacentHTML('beforeend', streamError(safeErrorMessage(err)));
+  }finally{
+    setLessonBusy(false);
+  }
+}
+document.getElementById('lessonSendBtn').onclick = sendLessonMessage;
+document.getElementById('lessonInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendLessonMessage(); } });
+
+document.getElementById('lessonMicBtn').onclick = ()=>{
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!Ctor){ alert("Reconnaissance vocale non supportée dans ce navigateur. Utilise Google Chrome."); return; }
-  const btn = document.getElementById('studioMicBtn');
+  const btn = document.getElementById('lessonMicBtn');
+  const input = document.getElementById('lessonInput');
   btn.classList.add('recording-active');
-  btn.textContent = "🎙️ Je t'écoute...";
-  updatePlumeUI(true, "Écoute active 👂");
-
+  setUserSpeaking(true);
   const rec = new Ctor();
   rec.lang = 'fr-FR';
   rec.onresult = (e)=>{
-    const said = e.results[0][0].transcript;
-    btn.classList.remove('recording-active');
-    btn.textContent = "🎤 Parler";
-    document.getElementById('studioInput').value = said;
-    processMessageWithPlume(said);
+    input.value = e.results[0][0].transcript;
+    lastInputWasVoice = true;
+    input.focus(); // transcript lands in the field for review — nothing auto-sends
   };
-  rec.onerror = ()=>{
-    btn.classList.remove('recording-active');
-    btn.textContent = "🎤 Parler";
-    updatePlumeUI(false, "Souriante 😊");
-  };
+  rec.onerror = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
+  rec.onend = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
   rec.start();
-}
+};
 
+/* ---------------- Sidebar syllabus — now kicks off a real taught lesson, not a canned prompt ---------------- */
 const STUDY_MODULES = [
-  {
-    title: 'PART 1: THE CORE FOUNDATIONS',
-    topics: ["The Alphabet & Pronunciation", "Numbers, Dates, & Time", "Core Daily Objects & Environments", "Colors, Shapes, & Adjectives", "Gender and Articles", "Subject Pronouns", "Verbs & Conjugation", "Negation", "Asking Questions", "Greetings & Politeness", "Introductions", "Expressing Wants", "Basic Past & Future"]
-  },
-  {
-    title: 'PART 2: CEFR MASTERY (A1 TO C2)',
-    topics: ["Level A1: Beginner", "Level A2: Elementary", "Level B1: Intermediate", "Level B2: Upper-Intermediate", "Level C1: Advanced", "Level C2: Mastery"]
-  },
-  {
-    title: 'PART 3: 24 ADVANCED THEMATIC MODULES',
-    topics: ["Santé et bien-être", "Le Travail & Emploi", "L'Environnement", "Voyages & Mobilité", "Loisirs & Passions", "Technologie & I.A.", "Logement", "Éducation", "Société", "Consommation"]
-  },
-  {
-    title: 'PART 4: FLASHCARDS & WORDLISTS',
-    topics: ["Vocabulaire thématique TCF", "Verbes essentiels", "Expressions idiomatiques", "Connecteurs logiques"]
-  }
+  { title: 'PART 1: Core Foundations', topics: [
+    "Alphabet, liaisons & Sons nasaux", "Nombres (1-100), Heure & Dates", "Objets de la maison & Vêtements",
+    "Nourriture, Boissons & Ville", "Genres (Masculin/Féminin) & Articles", "Verbes Être, Avoir & -er",
+    "Négation (ne...pas) & Questions", "Salutations & Présentations"
+  ]},
+  { title: 'PART 2: CEFR Mastery (A1 to C2)', topics: [
+    "Niveau A1 (Breakthrough)", "Niveau A2 (Waystage - Passé composé/Imparfait)", "Niveau B1 (Threshold - Conditionnel/Subjonctif)",
+    "Niveau B2 (Upper-Intermediate - Voix passive)", "Niveau C1 (Advanced - Inversions stylistiques)", "Niveau C2 (Mastery - Argot & Nuances)"
+  ]},
+  { title: 'PART 3: 24 Advanced Thematic Modules', topics: [
+    "1. Santé et bien-être", "2. Le Travail & Emploi", "3. L'Environnement & Écologie", "4. Voyages & Mobilité",
+    "5. Loisirs & Passions", "6. Technologie & I.A.", "7. Logement & Urbanisme", "8. Éducation & Formation",
+    "9. Société & Civisme", "10. Consommation & Médias", "11. Immigration & Intégration", "12. Agriculture & Alimentation",
+    "13. Culture & Patrimoine", "14. Égalité & Diversité", "15. Économie & Finances", "16. Gestion du Temps",
+    "17. Changement & Innovation", "18. Avenir & Durabilité", "19. Psychologie & Comportement", "20. Justice & Droits Citoyens",
+    "21. Médias & Information", "22. Politique & Gouvernance", "23. Mondialisation & Relations Internationales", "24. Cadre de Vie & Urbanisme Écologique"
+  ]},
+  { title: 'PART 4: Flashcards & Wordlists', topics: [
+    "Vocabulaire thématique TCF", "Verbes essentiels & Conjugaisons", "Expressions idiomatiques", "Connecteurs logiques avancés"
+  ]}
 ];
-
-function updateDynamicSuggestions(topic){
-  const container = document.getElementById('dynamicSuggestions');
-  let suggestions = [
-    `✨ "Parlons de ${topic}"`,
-    `✨ "Peux-tu m'expliquer ${topic} ?"`,
-    `✨ "J'ai une question sur ce sujet"`
-  ];
-  if(topic === "Discussion libre"){
-    suggestions = [
-      `✨ "Ma journée s'est bien passée !"`,
-      `✨ "Et toi Plume, comment ça va ?"`,
-      `✨ "Parlons de mes loisirs"`
-    ];
-  }
-  container.innerHTML = suggestions.map(s=>`<button onclick="sendQuickReply(${s.replace('✨ ','').replace(/"/g, "'")})" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">${s}</button>`).join('');
-}
 
 function renderTopics(){
   const container = document.getElementById('topicsList');
   container.innerHTML = STUDY_MODULES.map((m,mi)=>`
     <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1 px-2 py-1.5 hover:bg-slate-50 rounded-xl transition" data-idx="${mi}">
-        <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
+      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1.5" data-idx="${mi}">
+        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
         <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
       </button>
-      <div class="cat-body space-y-1 pl-2 ${mi===0?'':'hidden'}" data-idx="${mi}">
-        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-semibold text-slate-700" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
+      <div class="cat-body space-y-1 ${mi===0?'':'hidden'}" data-idx="${mi}">
+        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
       </div>
     </div>
   `).join('');
-
   container.querySelectorAll('.cat-toggle').forEach(btn=>{
     btn.onclick = ()=>{
       const idx = btn.dataset.idx;
@@ -472,39 +593,37 @@ function renderTopics(){
       btn.querySelector('.cat-chevron').classList.toggle('rotate-90');
     };
   });
-
   container.querySelectorAll('.topic-btn').forEach(btn=>{
-    btn.onclick = async ()=>{
-      const topic = btn.dataset.topic;
-      document.getElementById('currentTopicLabel').textContent = "Sujet : " + topic;
-      document.getElementById('paneBtnChat').click();
-      updateDynamicSuggestions(topic);
-      await processMessageWithPlume(`Discute avec moi sur le sujet : "${topic}". Dis un mot d'introduction et pose une question.`);
+    btn.onclick = ()=>{
+      document.getElementById('paneBtnModules').click();
+      startTopicLesson(btn.dataset.topic);
     };
   });
 }
 renderTopics();
 
-document.getElementById('paneBtnChat').onclick = ()=>{
-  document.getElementById('paneChat').style.display = 'flex';
-  document.getElementById('paneVocab').style.display = 'none';
-  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
-  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
+/* ---------------- Pane switching (Modules TCF vs Vocabulaire) ---------------- */
+document.getElementById('paneBtnModules').onclick = ()=>{
+  document.getElementById('paneModules').classList.remove('hidden');
+  document.getElementById('paneVocab').classList.add('hidden');
+  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition';
+  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition';
 };
 document.getElementById('paneBtnVocab').onclick = ()=>{
-  document.getElementById('paneVocab').style.display = 'flex';
-  document.getElementById('paneChat').style.display = 'none';
-  document.getElementById('paneBtnVocab').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
-  document.getElementById('paneBtnChat').className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
+  document.getElementById('paneVocab').classList.remove('hidden');
+  document.getElementById('paneModules').classList.add('hidden');
+  document.getElementById('paneBtnVocab').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition';
+  document.getElementById('paneBtnModules').className = 'pane-btn flex-1 text-xs font-bold py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition';
 };
 
+/* ---------------- Vocabulaire — driven by vocabulary.csv (7,946-word master list) ---------------- */
 const VOCAB_LEVELS = [
   { id:'essential', label:'🟢 Essentiel', range:[1,500] },
-  { id:'common',    label:'🟡 Courant',    range:[501,1500] },
+  { id:'common',    label:'🟡 Courant',   range:[501,1500] },
   { id:'inter',     label:'🟠 Intermédiaire', range:[1501,3500] },
-  { id:'advanced',  label:'🔴 Avancé',     range:[3501,7946] }
+  { id:'advanced',  label:'🔴 Avancé',    range:[3501,7946] }
 ];
-let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'common', vocabFilter = 'all', vocabProgress = {};
+let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'essential', vocabPracticeOnly = false, vocabProgress = {};
 
 function loadVocabProgress(){ try{ vocabProgress = JSON.parse(localStorage.getItem('fsb_vocab_progress')||'{}'); }catch(e){ vocabProgress = {}; } }
 function saveVocabProgress(){ try{ localStorage.setItem('fsb_vocab_progress', JSON.stringify(vocabProgress)); }catch(e){} }
@@ -543,13 +662,13 @@ async function initVocab(){
     buildVocabDeck();
   }catch(err){
     document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}).`;
+      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(safeErrorMessage(err))}). Il doit être dans le même dossier que index.html, servi via un serveur local ou GitHub Pages (pas ouvert en double-cliquant).`;
   }
 }
 
 function renderVocabLevelChips(){
   const wrap = document.getElementById('vocabLevelChips');
-  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-xs font-bold px-3.5 py-2 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600 shadow-sm':'bg-white border-slate-300 text-slate-600'}" data-id="${lv.id}">${lv.label}</button>`).join('');
+  wrap.innerHTML = VOCAB_LEVELS.map(lv=>`<button class="vocab-level-chip text-[11px] font-bold px-2.5 py-1.5 rounded-full border transition ${lv.id===vocabLevel?'bg-indigo-600 text-white border-indigo-600':'bg-white border-slate-300 text-slate-600'}" data-id="${lv.id}">${lv.label}</button>`).join('');
   wrap.querySelectorAll('.vocab-level-chip').forEach(btn=>{
     btn.onclick = ()=>{ vocabLevel = btn.dataset.id; renderVocabLevelChips(); buildVocabDeck(); };
   });
@@ -558,15 +677,12 @@ function renderVocabLevelChips(){
 function buildVocabDeck(){
   const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
   let words = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
-  if(vocabFilter === 'practice') words = words.filter(w=>vocabProgress[w.rank]==='practice');
-  else if(vocabFilter === 'known') words = words.filter(w=>vocabProgress[w.rank]==='known');
-
+  if(vocabPracticeOnly) words = words.filter(w=>vocabProgress[w.rank]==='practice');
   vocabDeck = words; vocabIdx = 0;
-  updateVocabCounters();
+  updateVocabBinCounts();
   renderVocabCard();
 }
-
-function updateVocabCounters(){
+function updateVocabBinCounts(){
   const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
   const inLevel = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
   let known=0, practice=0;
@@ -575,11 +691,10 @@ function updateVocabCounters(){
   document.getElementById('vocabPracticeCount').textContent = practice;
   document.getElementById('vocabTotalCount').textContent = inLevel.length;
 }
-
 function renderVocabCard(){
   const wrap = document.getElementById('vocabCardWrap');
   if(vocabDeck.length===0){
-    wrap.innerHTML = `<div class="text-center py-8 space-y-2"><p class="text-xs font-semibold text-slate-500">Aucun mot trouvé (${vocabFilter})</p><button onclick="setVocabFilter('all')" class="text-xs bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl">Voir toutes</button></div>`;
+    wrap.innerHTML = `<div class="text-center py-10"><p class="text-sm font-semibold text-slate-500">Aucun mot ${vocabPracticeOnly?'à revoir':'dans ce niveau'} 🎉</p></div>`;
     return;
   }
   const w = vocabDeck[vocabIdx];
@@ -589,49 +704,45 @@ function renderVocabCard(){
   document.getElementById('vocabPos').textContent = w.pos || '';
   document.getElementById('vocabIpa').textContent = w.ipa ? '['+w.ipa+']' : '';
   document.getElementById('vocabEnglish').textContent = w.english;
-
   const exWrap = document.getElementById('vocabExampleWrap');
   if(w.sentence_fr){ exWrap.classList.remove('hidden'); document.getElementById('vocabSentenceFr').textContent = w.sentence_fr; document.getElementById('vocabSentenceEn').textContent = w.sentence_en; }
   else exWrap.classList.add('hidden');
-
   document.getElementById('vocabTranscriptBox').classList.add('hidden');
   document.getElementById('vocabReactionArea').classList.add('hidden');
   document.getElementById('vocabReactionArea').innerHTML = '';
 }
-
-function setVocabFilter(mode){
-  vocabFilter = mode;
-  document.getElementById('filterAllBtn').className = mode==='all' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
-  document.getElementById('filterPracticeBtn').className = mode==='practice' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-amber-500 bg-amber-500 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
-  document.getElementById('filterKnownBtn').className = mode==='known' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-emerald-600 bg-emerald-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
-  buildVocabDeck();
-}
-
-document.getElementById('filterAllBtn').onclick = ()=>setVocabFilter('all');
-document.getElementById('filterPracticeBtn').onclick = ()=>setVocabFilter('practice');
-document.getElementById('filterKnownBtn').onclick = ()=>setVocabFilter('known');
-
 document.getElementById('vocabPrevBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx-1+vocabDeck.length)%vocabDeck.length; renderVocabCard(); } };
 document.getElementById('vocabNextBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx+1)%vocabDeck.length; renderVocabCard(); } };
 document.getElementById('vocabShuffleBtn').onclick = ()=>{
   for(let i=vocabDeck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vocabDeck[i],vocabDeck[j]]=[vocabDeck[j],vocabDeck[i]]; }
   vocabIdx = 0; renderVocabCard();
 };
-
+document.getElementById('vocabModeAll').onclick = ()=>{
+  vocabPracticeOnly = false;
+  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white';
+  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
+  buildVocabDeck();
+};
+document.getElementById('vocabModePractice').onclick = ()=>{
+  vocabPracticeOnly = true;
+  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-500 bg-amber-500 text-white';
+  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
+  buildVocabDeck();
+};
 document.getElementById('vocabMarkKnown').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'known'; saveVocabProgress(); updateVocabCounters();
+  vocabProgress[w.rank] = 'known'; saveVocabProgress(); updateVocabBinCounts();
   confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabMarkPractice').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'practice'; saveVocabProgress(); updateVocabCounters();
+  vocabProgress[w.rank] = 'practice'; saveVocabProgress(); updateVocabBinCounts();
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabListenBtn').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  speakText(w.sentence_fr ? w.french + '. ' + w.sentence_fr : w.french, "Enthousiaste 🌟");
+  speakPlume(w.sentence_fr ? w.french + '. ' + w.sentence_fr : w.french, null);
 };
 
 document.getElementById('vocabRecBtn').onclick = ()=>{
@@ -642,7 +753,8 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
   const tBox = document.getElementById('vocabTranscriptBox');
   const reactionArea = document.getElementById('vocabReactionArea');
   btn.classList.add('recording-active');
-  btn.textContent = '🎙️ Écoute...';
+  btn.textContent = '🎙️ Parle maintenant...';
+  setUserSpeaking(true);
   tBox.classList.add('hidden');
   reactionArea.classList.add('hidden'); reactionArea.innerHTML = '';
 
@@ -652,53 +764,38 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
     btn.textContent = '🎙️ Enregistrer ma voix';
-    tBox.classList.add('hidden');
+    setUserSpeaking(false);
+    tBox.classList.remove('hidden');
+    tBox.innerHTML = `<strong>🗣️ Tu as dit :</strong> "${escapeHtml(said)}"`;
     reactionArea.classList.remove('hidden');
-    reactionArea.innerHTML = `<p class="text-xs text-slate-500 font-semibold">Plume analyse...</p>`;
+    reactionArea.innerHTML = streamLoading('Plume écoute...');
     try{
       const cfg = getConfig();
-      if(!cfg.baseUrl) throw new Error("Configure ton API Groq dans les paramètres ⚙️.");
+      if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}"\nPrononciation de l'étudiant: "${said}"\n\nDonne une réaction amicale en français avec traduction anglaise.`
+        `Mot cible: "${w.french}" (prononciation IPA: ${w.ipa||'?'}, sens: ${w.english})\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagis brièvement sur sa prononciation. Si le mot reconnu ne ressemble pas du tout au mot cible, c'est probablement une erreur du micro — dis-le plutôt que de commenter un autre mot.`
       }], 200);
-      reactionArea.innerHTML = `<div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl text-xs text-indigo-950 font-medium">${escapeHtml(raw)}</div>`;
-      confetti({ particleCount: 40, spread: 45, origin:{ y:0.6 } });
-      await speakText(raw, "Encourageante 💪");
+      const { fr, en } = parseReply(raw);
+      reactionArea.innerHTML = `<div class="border border-indigo-100 bg-indigo-50 rounded-xl px-3 py-2 text-xs text-indigo-950">${escapeHtml(fr)}</div>${en?`<p class="text-[11px] text-slate-400 mt-1">${escapeHtml(en)}</p>`:''}`;
+      if(soundsPositive(fr)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
+      await speakPlume(fr, soundsPositive(fr));
     }catch(err){
-      reactionArea.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl p-2.5">⚠️ ${escapeHtml(err.message)}</div>`;
+      reactionArea.innerHTML = streamError(safeErrorMessage(err));
     }
   };
-  rec.onerror = ()=>{
-    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix';
+  rec.onerror = (e)=>{
+    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix'; setUserSpeaking(false);
+    tBox.classList.remove('hidden'); tBox.textContent = `⚠️ Erreur micro (${e.error}). Réessaie.`;
   };
   rec.start();
 };
 
-async function callLLM(cfg, messages, maxTokens){
-  const headers = { 'Content-Type': 'application/json' };
-  if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
-  const res = await fetch(cfg.baseUrl, {
-    method:'POST',
-    headers,
-    body: JSON.stringify({
-      model: cfg.model,
-      messages: messages,
-      max_tokens: maxTokens || 300,
-      temperature: 0.8
-    })
-  });
-  if(!res.ok) throw new Error(`Erreur ${res.status}`);
-  const data = await res.json();
-  return data.choices[0].message.content.trim();
-}
-
 loadVocabProgress();
 initVocab();
 
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+/* Init */
 updateConnStatus();
-if(!getConfig().baseUrl){ setTimeout(document.getElementById('settingsBtn').click, 400); }
+if(!getConfig().baseUrl){ setTimeout(()=>document.getElementById('settingsBtn').click(), 400); }
 </script>
 </body>
 </html>
