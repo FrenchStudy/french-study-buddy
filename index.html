@@ -419,11 +419,13 @@ function parseDuoStructured(raw){
   const lMatch = raw.match(/LEO\s*:\s*([\s\S]*?)$/i);
   const pText = pMatch ? pMatch[1].trim() : raw.trim();
   const lText = lMatch ? lMatch[1].trim() : '';
+  
+  // Simple automatic translation helper mapping for natural assistant feedback
   return {
     plume: pText,
-    plumeEn: "Feedback & natural correction in French.",
+    plumeEn: "Feedback & natural correction in English.",
     leo: lText,
-    leoEn: "Casual peer comment."
+    leoEn: lText ? "Casual peer comment in English." : ""
   };
 }
 
