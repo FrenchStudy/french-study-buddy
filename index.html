@@ -100,6 +100,7 @@
 
               <div class="flex items-end gap-2">
                 <button id="lessonMicBtn" title="Parler" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-300 hover:border-indigo-400 flex items-center justify-center text-lg transition">🎙️</button>
+                <button id="lessonPauseBtn" title="Interrompre Plume" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-200 flex items-center justify-center text-lg transition opacity-30 cursor-default" disabled>⏸️</button>
                 <input id="lessonInput" type="text" placeholder="réponds à l'écrit ou à l'oral..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
                 <button id="lessonSendBtn" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition disabled:opacity-40">➤</button>
               </div>
@@ -331,12 +332,23 @@ function startTalkAnimation(){
   const ring = document.getElementById('plumeFaceRing');
   if(ring) ring.setAttribute('stroke', '#4F46E5');
   document.getElementById('tutorStateLabel').textContent = 'Plume (parle...)';
+  const pauseBtn = document.getElementById('lessonPauseBtn');
+  pauseBtn.disabled = false;
+  pauseBtn.classList.remove('opacity-30','cursor-default');
+  pauseBtn.classList.add('border-rose-400','text-rose-600');
 }
 function stopTalkAnimation(positive){
   if(talkInterval){ clearInterval(talkInterval); talkInterval = null; }
   setPlumeExpression(positive ? 'happy' : 'neutral');
   document.getElementById('tutorStateLabel').textContent = 'Plume';
+  const pauseBtn = document.getElementById('lessonPauseBtn');
+  pauseBtn.disabled = true;
+  pauseBtn.classList.add('opacity-30','cursor-default');
+  pauseBtn.classList.remove('border-rose-400','text-rose-600');
 }
+document.getElementById('lessonPauseBtn').onclick = ()=>{
+  if(window.speechSynthesis) window.speechSynthesis.cancel(); // triggers the utterance's onend/onerror, which resets state cleanly
+};
 function setUserSpeaking(active){
   const box = document.getElementById('cardStudentBox');
   const label = document.getElementById('studentStateLabel');
@@ -367,14 +379,17 @@ function speakPlume(text, positive){
 /* ---------------- LLM call — never exposes the raw endpoint/key in any visible text ---------------- */
 const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français patiente, chaleureuse mais franche, qui aide un(e) étudiant(e) à préparer le TCF/DELF.
 
-Réponds TOUJOURS en utilisant EXACTEMENT ces deux lignes, dans cet ordre :
+Réponds TOUJOURS en utilisant EXACTEMENT ces trois lignes, dans cet ordre :
 PLUME_FR: <ta réponse en français, courte — une à trois phrases maximum, jamais un long paragraphe>
 PLUME_EN: <traduction ou explication en anglais de cette même réponse, toujours présente, même courte>
+SUGGESTIONS: <2 à 3 courtes réponses possibles que l'étudiant pourrait dire ensuite, séparées par " | ">
 
 Règles importantes :
+- N'agis JAMAIS comme un simple miroir qui réagit passivement. Chaque tour doit faire avancer la leçon : après avoir réagi à ce que l'étudiant vient de dire, ajoute toujours quelque chose de nouveau — une variante, un exemple supplémentaire, une nuance, ou la prochaine petite étape logique. Ne te contente jamais d'une réaction suivie d'une question générique.
 - Si on te signale que la transcription vocale de l'étudiant semble ne pas correspondre à ce qu'il devait dire (erreur probable du micro), dis-le clairement et redemande — ne fais JAMAIS semblant que c'était une réponse volontaire à un nouveau sujet.
 - Quand tu enseignes un nouveau point (grammaire, prononciation, vocabulaire), explique-le concrètement en 1-2 phrases avec un exemple, puis termine par UNE tâche précise et simple que l'étudiant peut faire immédiatement (jamais "exprime-toi sur ce sujet" — donne une phrase à compléter, un mot à répéter, ou une question ciblée).
-- Ne mets rien en dehors des deux lignes PLUME_FR / PLUME_EN.`;
+- Les SUGGESTIONS doivent être de vraies réponses possibles à ta propre question, écrites du point de vue de l'étudiant (pas des méta-instructions).
+- Ne mets rien en dehors des trois lignes PLUME_FR / PLUME_EN / SUGGESTIONS.`;
 
 function safeErrorMessage(err){
   // Defensive: strip anything URL-like so a raw endpoint can never leak into the visible UI
@@ -407,14 +422,16 @@ async function callLLM(cfg, messages, maxTokens){
   return text.trim();
 }
 
-// Parses "PLUME_FR: ...\nPLUME_EN: ..." — falls back to raw text (no translation) rather than showing nothing
+// Parses "PLUME_FR: ...\nPLUME_EN: ...\nSUGGESTIONS: ..." — falls back gracefully rather than showing nothing
 function parseReply(raw){
-  const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|$)/i);
-  const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)$/i);
+  const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|SUGGESTIONS\s*:|$)/i);
+  const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)(?=SUGGESTIONS\s*:|$)/i);
+  const sgMatch = raw.match(/SUGGESTIONS\s*:\s*([\s\S]*?)$/i);
+  const suggestions = sgMatch ? sgMatch[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3) : [];
   if(frMatch || enMatch){
-    return { fr: (frMatch ? frMatch[1] : '').trim(), en: (enMatch ? enMatch[1] : '').trim() };
+    return { fr: (frMatch ? frMatch[1] : '').trim(), en: (enMatch ? enMatch[1] : '').trim(), suggestions };
   }
-  return { fr: raw.trim(), en: '' };
+  return { fr: raw.trim(), en: '', suggestions: [] };
 }
 
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -431,15 +448,27 @@ function extractExpectedPhrase(plumeFr){
   return m ? m[1] : null;
 }
 
-function streamBubble(role, fr, en){
+function streamBubble(role, fr, en, suggestions){
   if(role === 'user'){
     return `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl rounded-br-sm px-3 py-2 text-sm max-w-[80%]">${escapeHtml(fr)}</div></div>`;
   }
+  const chips = (suggestions && suggestions.length) ? `
+    <div class="flex flex-wrap gap-1.5 mt-2">
+      ${suggestions.map(s=>`<button class="suggestion-chip text-xs font-medium px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" data-text="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}
+    </div>` : '';
   return `<div class="flex flex-col items-start max-w-[85%]">
     <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">${escapeHtml(fr)}</div>
     ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1">${escapeHtml(en)}</p>` : ''}
+    ${chips}
   </div>`;
 }
+// Event delegation: suggestion chips are injected via innerHTML, so bind once on the container
+document.getElementById('lessonStream').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.suggestion-chip');
+  if(!chip) return;
+  document.getElementById('lessonInput').value = chip.dataset.text;
+  sendLessonMessage();
+});
 function streamLoading(text){
   return `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 ${escapeHtml(text)}</p>`;
 }
@@ -464,10 +493,10 @@ async function startTopicLesson(topic){
     if(!cfg.baseUrl) throw new Error("Configure d'abord ton modèle (⚙️ Paramètres).");
     const userMsg = `Nouveau thème choisi par l'étudiant : "${topic}". Enseigne ce point concrètement (explication + exemple courts), puis termine par UNE tâche précise et simple à faire tout de suite. Ne dis jamais juste "exprime-toi sur ce sujet".`;
     const raw = await callLLM(cfg, [{ role:'user', content: userMsg }], 300);
-    const { fr, en } = parseReply(raw);
+    const { fr, en, suggestions } = parseReply(raw);
     lessonHistory.push({ role:'assistant', content: raw });
     lastExpectedPhrase = extractExpectedPhrase(fr);
-    lessonStream.innerHTML = streamBubble('plume', fr, en);
+    lessonStream.innerHTML = streamBubble('plume', fr, en, suggestions);
     lessonStream.scrollTop = lessonStream.scrollHeight;
     await speakPlume(fr, true);
   }catch(err){
@@ -481,6 +510,14 @@ async function sendLessonMessage(){
   const input = document.getElementById('lessonInput');
   const text = input.value.trim();
   if(!text || lessonBusy) return;
+
+  // Guard: catches the "pasted the API URL into the chat box by mistake" case
+  if(/^https?:\/\//i.test(text)){
+    lessonStream.insertAdjacentHTML('beforeend', streamError("Ça ressemble à une URL — c'est pour la fenêtre ⚙️ Paramètres, pas pour discuter avec Plume. Efface ce champ et écris ta réponse en français."));
+    input.value = '';
+    return;
+  }
+
   const cfg = getConfig();
   if(!cfg.baseUrl){
     lessonStream.insertAdjacentHTML('beforeend', streamError("Configure d'abord ton modèle (⚙️ Paramètres)."));
@@ -511,12 +548,12 @@ async function sendLessonMessage(){
 
     lessonHistory.push({ role:'user', content: userContent });
     const raw = await callLLM(cfg, lessonHistory.slice(-10), 300);
-    const { fr, en } = parseReply(raw);
+    const { fr, en, suggestions } = parseReply(raw);
     lessonHistory.push({ role:'assistant', content: raw });
     lastExpectedPhrase = extractExpectedPhrase(fr);
 
     document.getElementById('streamLoadingLine')?.parentElement?.remove();
-    lessonStream.insertAdjacentHTML('beforeend', streamBubble('plume', fr, en));
+    lessonStream.insertAdjacentHTML('beforeend', streamBubble('plume', fr, en, suggestions));
     lessonStream.scrollTop = lessonStream.scrollHeight;
     if(soundsPositive(fr)) confetti({ particleCount: 50, spread: 50, origin:{ y:0.65 } });
     await speakPlume(fr, soundsPositive(fr));
