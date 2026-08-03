@@ -40,7 +40,7 @@
     <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/60 sticky top-0 z-10 backdrop-blur">
         <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Programme Officiel TCF (Parts 1-4)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer le cours avec Plume.</p>
+        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour afficher le cours de Plume.</p>
       </div>
       <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
@@ -65,54 +65,54 @@
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <span id="cardCategoryBadge" class="bg-indigo-50 text-indigo-700 font-extrabold text-xs px-3.5 py-1.5 rounded-full border border-indigo-100 uppercase tracking-wide">The Alphabet & Pronunciation</span>
-              <span id="cardCounter" class="text-xs font-bold text-slate-400 bg-slate-100 px-3.5 py-1.5 rounded-full">Module interactif</span>
+              <span id="cardCounter" class="text-xs font-bold text-slate-400 bg-slate-100 px-3.5 py-1.5 rounded-full">Cours interactif</span>
             </div>
 
-            <!-- Plume Lesson Studio Card (Active Teaching) -->
+            <!-- Plume Lesson Studio Card (Direct Teaching Content) -->
             <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-6 space-y-4 shadow-sm">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow-sm">P</div>
                   <div>
-                    <h3 class="font-bold text-sm text-indigo-950">Plume (Tutrice TCF & Enseignante)</h3>
-                    <p class="text-[11px] text-indigo-600 font-medium">Cours interactif & Explications</p>
+                    <h3 class="font-bold text-sm text-indigo-950">Plume (Professeur de Français)</h3>
+                    <p class="text-[11px] text-indigo-600 font-medium">Leçon &amp; Explication directe</p>
                   </div>
                 </div>
                 <button onclick="speakStudioPrompt()" class="bg-white hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-4 py-2.5 rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1.5">
-                  🔊 Écouter Plume
+                  🔊 Écouter la leçon
                 </button>
               </div>
 
               <div class="space-y-3 bg-white/90 p-5 rounded-2xl border border-indigo-100">
-                <p id="moduleFrPrompt" class="text-slate-800 text-sm font-semibold leading-relaxed">Bienvenue ! Je t'enseigne l'alphabet français de A à Z. En français, les voyelles (A, E, I, O, U, Y) ont des sons précis. Écoutons les 4 premières lettres : A [a], B [be], C [se], D [de]. Répète après moi : "A, B, C, D".</p>
-                <p id="moduleEnPrompt" class="text-slate-400 text-xs italic">Welcome! I will teach you the French alphabet from A to Z. In French, vowels have precise sounds. Let's listen to the first 4 letters: A, B, C, D. Repeat after me.</p>
+                <p id="moduleFrPrompt" class="text-slate-800 text-sm font-semibold leading-relaxed">Bienvenue dans le cours de l'alphabet ! En français, l'alphabet comporte 26 lettres. Commençons par les voyelles et les premières consonnes : A [a], B [bé], C [cé], D [dé]. Répète après moi : A, B, C, D.</p>
+                <p id="moduleEnPrompt" class="text-slate-400 text-xs italic">Welcome to the alphabet lesson! Let's start with vowels and first consonants: A, B, C, D. Repeat after me.</p>
               </div>
             </div>
 
-            <!-- Response & Input Bar -->
+            <!-- Response & Interactive Practice Bar -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Pratique avec Plume</span>
-                <span class="text-[11px] font-semibold text-slate-400">Oral ou écrit</span>
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Pratique &amp; Questions</span>
+                <span class="text-[11px] font-semibold text-slate-400">Pose une question ou répète</span>
               </div>
 
               <div class="flex gap-3">
                 <button id="studioMicBtn" onclick="recordStudioAudio()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-2xl px-5 py-3 text-xs font-bold transition flex items-center gap-2 shadow-sm shrink-0">
                   🎤 Parler
                 </button>
-                <input id="studioInput" type="text" autocomplete="off" name="no-autofill-stud" placeholder="Répète ou pose une question à Plume..." class="flex-1 border border-slate-300 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
+                <input id="studioInput" type="text" autocomplete="off" name="no-autofill-stud" placeholder="Demande une explication, ex: 'Enseigne-moi E, F, G'..." class="flex-1 border border-slate-300 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
                 <button onclick="sendStudioReply()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-6 py-3 font-bold text-xs transition shadow-sm">
                   Envoyer →
                 </button>
               </div>
 
-              <!-- Feedback Box with Replay Audio Button -->
+              <!-- Explanation / Next Lesson Box -->
               <div id="studioFeedbackBox" class="hidden bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">👩‍🏫 Leçon &amp; Correction de Plume</span>
+                  <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">📖 Suite du cours par Plume</span>
                   <div class="flex items-center gap-2">
-                    <button onclick="replaysLastPlumeAudio()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] px-3 py-1 rounded-full border border-indigo-200 transition shadow-sm">🔊 Réécouter Plume</button>
-                    <span id="evalScoreTag" class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-100">Enseignement</span>
+                    <button onclick="replaysLastPlumeAudio()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] px-3 py-1 rounded-full border border-indigo-200 transition shadow-sm">🔊 Réécouter</button>
+                    <span id="evalScoreTag" class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">Leçon</span>
                   </div>
                 </div>
                 <p id="evalCommentFr" class="text-xs font-semibold text-slate-700 leading-relaxed"></p>
@@ -247,7 +247,7 @@
 
 <script>
 /* ============================================================
-   French Study Buddy — Active Teaching Engine
+   French Study Buddy — Direct Teacher Engine
    ============================================================ */
 
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
@@ -337,14 +337,14 @@ function replaysLastPlumeAudio(){
   if(lastPlumeResponseText) speakText(lastPlumeResponseText);
 }
 
-/* ---------------- Active Teaching Engine (Plume Teaches First!) ---------------- */
+/* ---------------- Direct Teaching Engine (Plume Teaches Content Immediately) ---------------- */
 const STUDY_DECK = [
   {
     cat: "The Alphabet & Pronunciation",
     title: "Alphabet, Liaisons & Sons Nasaux",
     counter: "Module 1",
-    fr: "Bienvenue ! Je t'enseigne l'alphabet français de A à Z. En français, les voyelles ont des sons précis. Écoutons les 4 premières lettres : A [a], B [be], C [se], D [de]. Répète après moi : 'A, B, C, D'.",
-    en: "Welcome! I will teach you the French alphabet from A to Z. Let's listen to the first 4 letters: A, B, C, D. Repeat after me."
+    fr: "Bienvenue ! Je suis Plume, ton professeur. Aujourd'hui, apprenons l'alphabet français de A à D :\n• A [a] comme dans 'avion'\n• B [bé] comme dans 'bonjour'\n• C [cé] comme dans 'café'\n• D [dé] comme dans 'dossier'.\nRépète après moi : A, B, C, D.",
+    en: "Welcome! I am Plume, your teacher. Today let's learn the French alphabet from A to D with examples."
   }
 ];
 let modIdx = 0;
@@ -371,19 +371,18 @@ async function sendStudioReply(){
 
   const box = document.getElementById('studioFeedbackBox');
   box.classList.remove('hidden');
-  document.getElementById('evalCommentFr').textContent = "Plume prépare la suite du cours...";
-  document.getElementById('evalCommentEn').textContent = "Plume is preparing the next lesson step...";
+  document.getElementById('evalCommentFr').textContent = "Plume poursuit le cours...";
+  document.getElementById('evalCommentEn').textContent = "Plume continues the lesson...";
 
   try {
     const cfg = getConfig();
     if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
     const raw = await callLLM(cfg, [{ role:'user', content:
-      `Leçon actuelle: "${STUDY_DECK[modIdx].title}" (${STUDY_DECK[modIdx].fr})\nRéponse de l'étudiant: "${text}"\n\nEn tant qu'enseignante bienveillante, enseigne la suite de la leçon ou donne l'explication suivante en français, puis donne la traduction anglaise.`
-    }], 350);
+      `Leçon en cours: "${STUDY_DECK[modIdx].title}"\nDemande ou remarque de l'étudiant: "${text}"\n\nNE FAIS PAS de critique grammaticale. Enseigne directement la suite, donne les lettres, les règles ou le vocabulaire demandés en français clair, puis la traduction anglaise.`
+    }], 400);
     const parsed = parseStudioEval(raw);
     document.getElementById('evalCommentFr').textContent = parsed.fr;
     document.getElementById('evalCommentEn').textContent = parsed.en;
-    if(parsed.score) document.getElementById('evalScoreTag').textContent = parsed.score;
     lastPlumeResponseText = parsed.fr;
     await speakText(parsed.fr);
   } catch(e) {
@@ -420,13 +419,11 @@ async function recordStudioAudio(){
 }
 
 function parseStudioEval(raw){
-  const frMatch = raw.match(/FR\s*:\s*([\s\S]*?)(?=EN\s*:|SCORE\s*:|$)/i);
-  const enMatch = raw.match(/EN\s*:\s*([\s\S]*?)(?=SCORE\s*:|$)/i);
-  const scoreMatch = raw.match(/SCORE\s*:\s*([\s\S]*?)$/i);
+  const frMatch = raw.match(/FR\s*:\s*([\s\S]*?)(?=EN\s*:|$)/i);
+  const enMatch = raw.match(/EN\s*:\s*([\s\S]*?)$/i);
   return {
     fr: frMatch ? frMatch[1].trim() : raw.trim(),
-    en: enMatch ? enMatch[1].trim() : "Great! Let's continue learning.",
-    score: scoreMatch ? scoreMatch[1].trim() : "Enseignement"
+    en: enMatch ? enMatch[1].trim() : "Continuing our lesson together."
   };
 }
 
@@ -528,15 +525,15 @@ function renderTopics(){
       document.getElementById('paneBtnModules').click();
       document.getElementById('cardCategoryBadge').textContent = topic;
       document.getElementById('moduleTitle').textContent = topic;
-      document.getElementById('moduleFrPrompt').textContent = `Chargement du cours sur "${topic}"...`;
-      document.getElementById('moduleEnPrompt').textContent = `Loading lesson on "${topic}"...`;
+      document.getElementById('moduleFrPrompt').textContent = `Plume prépare le cours sur "${topic}"...`;
+      document.getElementById('moduleEnPrompt').textContent = `Plume is preparing the lesson on "${topic}"...`;
       
       try {
         const cfg = getConfig();
         if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
         const raw = await callLLM(cfg, [{ role:'user', content:
-          `Enseigne directement et activement le module de français "${topic}" à l'étudiant. Donne le cours, les explications et un exemple clair à répéter en français.`
-        }], 350);
+          `Enseigne directement et activement le module de français "${topic}". Donne le cours structuré, les mots ou lettres clés, et des exemples en français clair, puis la traduction anglaise.`
+        }], 400);
         const parsed = parseStudioEval(raw);
         document.getElementById('moduleFrPrompt').textContent = parsed.fr;
         document.getElementById('moduleEnPrompt').textContent = parsed.en;
@@ -721,8 +718,7 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
     btn.textContent = '🎙️ Enregistrer ma voix sur ce mot';
-    tBox.classList.remove('hidden');
-    tBox.innerHTML = `<strong>🗣️ Tu as dit :</strong> "${escapeHtml(said)}"`;
+    tBox.classList.add('hidden');
     reactionArea.classList.remove('hidden');
     reactionArea.innerHTML = `<p class="text-xs text-slate-400 font-semibold">💬 Plume analyse...</p>`;
     try{
@@ -744,12 +740,12 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
   rec.start();
 };
 
-const SYSTEM_PROMPT = `Tu es PLUME, une enseignante de français chaleureuse et experte. 
-NE SOIS PAS un simple juge de grammaire. Lorsque l'étudiant clique sur un module ou pose une question, TU DOIS ENSEIGNER activement en expliquant les règles, les lettres, le vocabulaire ou la grammaire en français clair, puis donner la traduction anglaise et poser une question simple pour continuer.
+const SYSTEM_PROMPT = `Tu es PLUME, un professeur de français expert. 
+RÈGLE ABSOLUE : INTERDICTION DE FAIRE DES REMARQUES DE GRAMMAIRE SUR LA FAÇON D'ÉCRIRE DE L'ÉTUDIANT.
+Si l'étudiant demande à apprendre un sujet, des lettres ou du vocabulaire, tu dois IMMÉDIATEMENT lui enseigner le contenu, donner les explications, les lettres ou les mots en français, suivis de leur traduction en anglais.
 Réponds TOUJOURS au format exact :
-FR: <ton cours, explication ou enseignement direct en français>
-EN: <english translation of your lesson>
-SCORE: Enseignement`;
+FR: <ton cours direct, explications et contenu en français>
+EN: <english translation>`;
 
 async function callLLM(cfg, messages, maxTokens){
   const headers = { 'Content-Type': 'application/json' };
@@ -760,7 +756,7 @@ async function callLLM(cfg, messages, maxTokens){
     body: JSON.stringify({
       model: cfg.model,
       messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
-      max_tokens: maxTokens || 350,
+      max_tokens: maxTokens || 400,
       temperature: 0.75
     })
   });
