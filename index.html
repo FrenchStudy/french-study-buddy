@@ -68,13 +68,13 @@
               <span id="cardCounter" class="text-xs font-bold text-slate-400 bg-slate-100 px-3.5 py-1.5 rounded-full">Cours interactif</span>
             </div>
 
-            <!-- Plume Lesson Studio Card (Direct Teaching Content) -->
+            <!-- Plume Lesson Studio Card (Dynamic Topic Teaching) -->
             <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-6 space-y-4 shadow-sm">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow-sm">P</div>
                   <div>
-                    <h3 class="font-bold text-sm text-indigo-950">Plume (Professeur de Français)</h3>
+                    <h3 id="moduleTitle" class="font-bold text-sm text-indigo-950">Alphabet, Liaisons & Sons Nasaux</h3>
                     <p class="text-[11px] text-indigo-600 font-medium">Leçon &amp; Explication directe</p>
                   </div>
                 </div>
@@ -84,8 +84,8 @@
               </div>
 
               <div class="space-y-3 bg-white/90 p-5 rounded-2xl border border-indigo-100">
-                <p id="moduleFrPrompt" class="text-slate-800 text-sm font-semibold leading-relaxed">Bienvenue dans le cours de l'alphabet ! En français, l'alphabet comporte 26 lettres. Commençons par les voyelles et les premières consonnes : A [a], B [bé], C [cé], D [dé]. Répète après moi : A, B, C, D.</p>
-                <p id="moduleEnPrompt" class="text-slate-400 text-xs italic">Welcome to the alphabet lesson! Let's start with vowels and first consonants: A, B, C, D. Repeat after me.</p>
+                <p id="moduleFrPrompt" class="text-slate-800 text-sm font-semibold leading-relaxed">Bienvenue ! Je suis Plume, ton professeur. Aujourd'hui, apprenons l'alphabet français de A à D :\n• A [a] comme dans 'avion'\n• B [bé] comme dans 'bonjour'\n• C [cé] comme dans 'café'\n• D [dé] comme dans 'dossier'.\nRépète après moi : A, B, C, D.</p>
+                <p id="moduleEnPrompt" class="text-slate-400 text-xs italic">Welcome! I am Plume, your teacher. Today let's learn the French alphabet from A to D with examples.</p>
               </div>
             </div>
 
@@ -528,6 +528,16 @@ function renderTopics(){
       document.getElementById('moduleFrPrompt').textContent = `Plume prépare le cours sur "${topic}"...`;
       document.getElementById('moduleEnPrompt').textContent = `Plume is preparing the lesson on "${topic}"...`;
       
+      // Update STUDY_DECK dynamically so next/prev step works for this topic
+      STUDY_DECK[0] = {
+        cat: topic,
+        title: topic,
+        counter: "Module personnalisé",
+        fr: `Chargement de la leçon...`,
+        en: `Loading lesson...`
+      };
+      modIdx = 0;
+
       try {
         const cfg = getConfig();
         if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
@@ -535,6 +545,8 @@ function renderTopics(){
           `Enseigne directement et activement le module de français "${topic}". Donne le cours structuré, les mots ou lettres clés, et des exemples en français clair, puis la traduction anglaise.`
         }], 400);
         const parsed = parseStudioEval(raw);
+        STUDY_DECK[0].fr = parsed.fr;
+        STUDY_DECK[0].en = parsed.en;
         document.getElementById('moduleFrPrompt').textContent = parsed.fr;
         document.getElementById('moduleEnPrompt').textContent = parsed.en;
         lastPlumeResponseText = parsed.fr;
