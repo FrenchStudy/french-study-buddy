@@ -107,7 +107,7 @@
 
             <!-- Dynamic Topic-Aware Suggestions -->
             <div class="w-full flex flex-wrap gap-2 justify-center pt-1" id="dynamicSuggestions">
-              <button onclick="sendQuickReply('Ma journée s\'est très bien passée, merci !')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Ma journée s'est bien passée !"</button>
+              <button onclick="sendQuickReply('Ma journée s\'est bien passée, merci !')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Ma journée s'est bien passée !"</button>
               <button onclick="sendQuickReply('Et toi Plume, comment ça va ?')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Et toi Plume, comment ça va ?"</button>
               <button onclick="sendQuickReply('Je veux parler de mes loisirs')" class="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition font-medium">✨ "Parlons de mes loisirs"</button>
             </div>
@@ -517,8 +517,8 @@ function updateDynamicSuggestions(topic){
 function renderTopics(){
   const container = document.getElementById('topicsList');
   container.innerHTML = STUDY_MODULES.map((m,mi)=>`
-    <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1 px-2 py-1.5 hover:bg-slate-50 rounded-xl transition" data-idx="${mi}">
+    <div class="space-y-1">
+      <button class="cat-toggle w-full flex items-center justify-between text-left px-2 py-2 hover:bg-slate-50 rounded-xl transition" data-idx="${mi}">
         <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
         <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
       </button>
