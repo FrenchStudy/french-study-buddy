@@ -271,7 +271,7 @@ document.getElementById('settingsBtn').onclick = ()=>{
   document.getElementById('cfgApiKey').value = cfg.apiKey;
   document.getElementById('cfgModel').value = cfg.model;
   document.getElementById('settingsError').classList.add('hidden');
-  settingsModal.classList.0 ? settingsModal.classList.remove('hidden') : settingsModal.classList.remove('hidden');
+  settingsModal.classList.remove('hidden');
 };
 document.getElementById('closeSettings').onclick = ()=> settingsModal.classList.add('hidden');
 
@@ -360,7 +360,7 @@ function replayPlumeLastLine(){ speakText(currentUtteranceText); }
 
 let conversationHistory = [
   { role: 'system', content: `Tu es Plume, un professeur de français chaleureux et bienveillant qui enseigne et discute en français avec l'étudiant pour l'aider à pratiquer (DELF/TCF). 
-RÈGLE 1 : Sois CONCISE et COURTE (maximum 2 à 3 phrases courtes au total). N'écris jamais de longs paragraphes ou de monologues. Va droit au but.
+RÈGLE 1 : Sois CONCISE et COURTE (maximum 2 à 3 phrases courtes au total). N'écris jamais de longs paragraphes.
 RÈGLE 2 : Lorsque l'étudiant clique sur un sujet du programme (par exemple "Les nationalités"), présente le concept brièvement en une phrase simple et pose immédiatement une question courte et précise pour l'interroger ou lancer la pratique.
 Réponds TOUJOURS sous ce format strict :
 FR: <ta réplique très courte et naturelle en français>
@@ -391,7 +391,7 @@ async function processMessageWithPlume(userText){
   try {
     const cfg = getConfig();
     if(!cfg.baseUrl) throw new Error("Configure ton API Groq dans les paramètres ⚙️.");
-    const raw = await callLLM(cfg, conversationHistory, 200);
+    const raw = await callLLM(cfg, conversationHistory, 150);
     const parsed = parsePlumeResponse(raw);
 
     document.getElementById('plumeSpokenFr').textContent = parsed.fr;
