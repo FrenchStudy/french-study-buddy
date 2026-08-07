@@ -42,13 +42,45 @@
   <!-- MAIN APP CONTAINER (NO SCROLL) -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT SIDEBAR: Syllabus Topics -->
+    <!-- LEFT SIDEBAR: Syllabus Topics & Cheat Sheet -->
     <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
-      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur">
-        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Programme Officiel (A1 - B2)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Clique pour démarrer une leçon sur un sujet.</p>
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Programme &amp; Mémo</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Sujets officiels &amp; aide-mémoire.</p>
+        </div>
       </div>
-      <div id="topicsList" class="p-3 space-y-3"></div>
+      
+      <!-- SUB-TABS FOR SIDEBAR -->
+      <div class="flex border-b border-slate-200 bg-slate-50 p-2 gap-2">
+        <button id="sideTabSyllabus" onclick="switchSidebarTab('syllabus')" class="flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm">Programme</button>
+        <button id="sideTabMemo" onclick="switchSidebarTab('memo')" class="flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg">Mémo &amp; Règles</button>
+      </div>
+
+      <!-- SYLLABUS CONTAINER -->
+      <div id="sidebarSyllabus" class="p-3 space-y-3">
+        <div id="topicsList"></div>
+      </div>
+
+      <!-- MEMO & CHEAT SHEET CONTAINER -->
+      <div id="sidebarMemo" class="hidden p-4 space-y-4 text-xs">
+        <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-2xl space-y-1.5">
+          <h3 class="font-bold text-indigo-900">📌 Verbes Essentiels</h3>
+          <p class="text-slate-600"><strong>Être:</strong> je suis, tu es, il est, nous sommes, vous êtes, ils sont</p>
+          <p class="text-slate-600"><strong>Avoir:</strong> j'ai, tu as, il a, nous avons, vous avez, ils ont</p>
+          <p class="text-slate-600"><strong>S'appeler:</strong> je m'appelle, tu t'appelles, il s'appelle</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl space-y-1.5">
+          <h3 class="font-bold text-slate-800">📌 Articles Possessifs</h3>
+          <p class="text-slate-600"><strong>Mon / Ma / Mes:</strong> my (m / f / pl)</p>
+          <p class="text-slate-600"><strong>Ton / Ta / Tes:</strong> your (m / f / pl)</p>
+          <p class="text-slate-600"><strong>Son / Sa / Ses:</strong> his/her (m / f / pl)</p>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl space-y-1.5">
+          <h3 class="font-bold text-emerald-900">💡 Astuce Prononciation</h3>
+          <p class="text-slate-600"><strong>U vs OU:</strong> "U" (comme dans *tu*) se prononce avec les lèvres serrées en disant "i". "OU" (comme dans *tout*) se prononce comme l'anglais "oo".</p>
+        </div>
+      </div>
     </aside>
 
     <!-- RIGHT MAIN WORKSTATION (NO SCROLL) -->
@@ -92,12 +124,18 @@
             <div class="w-full space-y-2 bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-inner text-left">
               <div class="flex items-center justify-between pb-1">
                 <span class="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest">Plume (Professeur de français)</span>
-                <div class="flex gap-2">
+                <div class="flex gap-2 items-center">
+                  <button id="speedToggleBtn" onclick="toggleAudioSpeed()" class="bg-white hover:bg-slate-100 text-slate-700 font-bold text-[11px] px-2.5 py-1 rounded-xl border border-slate-200 transition shadow-sm">
+                    ⚡ Vitesse: 1.0x
+                  </button>
                   <button id="pauseAudioBtn" onclick="pausePlumeSpeech()" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs px-3 py-1.5 rounded-xl border border-rose-200 transition shadow-sm items-center gap-1">
                     ⏸️ Pause
                   </button>
                   <button onclick="replayPlumeLastLine()" class="bg-white hover:bg-indigo-50 text-indigo-700 font-bold text-xs px-3.5 py-1.5 rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1.5">
                     🔊 Réécouter
+                  </button>
+                  <button onclick="exportChatSession()" class="bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-sm flex items-center gap-1" title="Exporter la conversation">
+                    📥 Exporter
                   </button>
                 </div>
               </div>
@@ -124,7 +162,7 @@
               <button id="studioMicBtn" onclick="toggleVoiceConversation()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-2xl px-5 py-3 text-xs font-bold transition flex items-center gap-2 shadow-sm shrink-0">
                 🎤 Parler
               </button>
-              <input id="studioInput" type="text" autocomplete="off" name="no-autofill-conv" placeholder="Écris ta réponse ou une lettre (ex: b) puis Entrée..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-800">
+              <input id="studioInput" type="text" autocomplete="off" name="no-autofill-conv" placeholder="Écris ta réponse..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-800">
               <button onclick="sendUserMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-6 py-3 font-bold text-xs transition shadow-sm">
                 Envoyer →
               </button>
@@ -170,7 +208,7 @@
 
             <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-900">🎙️ Prononciation</span>
+                <span class="text-xs font-bold text-indigo-900">🎙️ Prononciation &amp; Intonation</span>
                 <button id="vocabListenBtn" class="text-xs bg-indigo-600 text-white font-bold px-3.5 py-1.5 rounded-xl hover:bg-indigo-700 transition shadow-sm">🔊 Écouter</button>
               </div>
               <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition shadow-sm">🎙️ Enregistrer ma voix</button>
@@ -294,12 +332,24 @@ document.getElementById('saveSettingsBtn').onclick = ()=>{
 };
 
 let frenchVoice = null;
+let currentSpeechRate = 1.0;
+
 function pickFrenchVoice(){
   if(!window.speechSynthesis) return;
   const voices = window.speechSynthesis.getVoices();
   frenchVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('fr')) || null;
 }
 if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoiceschanged = pickFrenchVoice; }
+
+function toggleAudioSpeed(){
+  if(currentSpeechRate === 1.0) {
+    currentSpeechRate = 0.75;
+    document.getElementById('speedToggleBtn').textContent = "⚡ Vitesse: 0.75x";
+  } else {
+    currentSpeechRate = 1.0;
+    document.getElementById('speedToggleBtn').textContent = "⚡ Vitesse: 1.0x";
+  }
+}
 
 let currentUtteranceText = "Bonjour ! Je suis ravie de discuter avec toi aujourd'hui. Comment s'est passée ta journée ? Raconte-moi !";
 
@@ -315,7 +365,7 @@ function speakText(text, emotion = "Souriante 😊"){
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR';
     if(frenchVoice) u.voice = frenchVoice;
-    u.rate = 0.95; u.pitch = 1.0;
+    u.rate = currentSpeechRate; u.pitch = 1.0;
 
     u.onend = ()=>{ 
       updatePlumeUI(false, emotion); 
@@ -358,10 +408,25 @@ function updatePlumeUI(isSpeaking, emotion){
 
 function replayPlumeLastLine(){ speakText(currentUtteranceText); }
 
+function exportChatSession(){
+  let content = "--- JOURNAL DE CONVERSATION / PLUME ---\n\n";
+  conversationHistory.forEach(msg => {
+    if(msg.role === 'user') content += `Étudiant: ${msg.content}\n`;
+    if(msg.role === 'assistant') content += `Plume: ${msg.content}\n\n`;
+  });
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'plume-session-chat.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 let conversationHistory = [
   { role: 'system', content: `Tu es Plume, un professeur de français chaleureux et bienveillant qui enseigne et discute en français avec l'étudiant pour l'aider à pratiquer (DELF/TCF). 
 RÈGLE 1 : Sois CONCISE et COURTE (maximum 2 à 3 phrases courtes au total). N'écris jamais de longs paragraphes.
-RÈGLE 2 : Lorsque l'étudiant clique sur un sujet du programme (par exemple "Les nationalités"), présente le concept brièvement en une phrase simple et pose immédiatement une question courte et précise pour l'interroger ou lancer la pratique.
+RÈGLE 2 : Si l'étudiant fait une petite erreur de grammaire, de conjugaison ou d'accord dans sa phrase, corrige-la gentiment et brièvement au début de ta réplique (ex: "On dit plutôt... parce que..."), puis continue la conversation normalement sans le décourager.
 Réponds TOUJOURS sous ce format strict :
 FR: <ta réplique très courte et naturelle en français>
 EN: <english translation>
@@ -381,7 +446,6 @@ function sendQuickReply(text){
   sendUserMessage();
 }
 
-// Permet d'appuyer sur Entrée pour envoyer directement
 document.getElementById('studioInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){
     sendUserMessage();
@@ -444,7 +508,6 @@ async function toggleVoiceConversation(){
     btn.classList.remove('recording-active');
     btn.textContent = "🎤 Parler";
     document.getElementById('studioInput').value = said;
-    // Envoi automatique direct dès la reconnaissance vocale !
     processMessageWithPlume(said);
   };
   rec.onerror = ()=>{
@@ -457,6 +520,25 @@ async function toggleVoiceConversation(){
     btn.textContent = "🎤 Parler";
   };
   rec.start();
+}
+
+function switchSidebarTab(tab){
+  const syllabusBtn = document.getElementById('sideTabSyllabus');
+  const memoBtn = document.getElementById('sideTabMemo');
+  const syllabusDiv = document.getElementById('sidebarSyllabus');
+  const memoDiv = document.getElementById('sidebarMemo');
+
+  if(tab === 'syllabus'){
+    syllabusBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm';
+    memoBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
+    syllabusDiv.classList.remove('hidden');
+    memoDiv.classList.add('hidden');
+  } else {
+    memoBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm';
+    syllabusBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
+    memoDiv.classList.remove('hidden');
+    syllabusDiv.classList.add('hidden');
+  }
 }
 
 const STUDY_MODULES = [
@@ -481,33 +563,6 @@ const STUDY_MODULES = [
       "Phrases affirmatives/négatives", "Négation (ne...pas)", "Complément du nom avec « de »", "Adjectifs possessifs",
       "Articles partitifs", "Adverbes de quantité", "Quantité indéterminée", "Forme impersonnelle (météo)",
       "Localisation temporelle", "Expression du moment", "Localisation spatiale", "Il y a", "Articulateurs du discours"
-    ]
-  },
-  {
-    title: 'DELF A1: SPEAKING & SOCIO-CULTURAL',
-    topics: [
-      "Entrer en contact avec qn", "Présenter qn", "Parler de son environnement quotidien", "Décrire un objet / une personne",
-      "Demander une information", "Situer des événements dans le temps", "Se situer dans l'espace", "Donner des instructions/indications",
-      "Accepter / Refuser qch", "Participer à une conversation", "Les salutations", "Formules de politesse", "Tu ou Vous", "Je veux vs Je voudrais", "Rituels de la lettre amicale"
-    ]
-  },
-  {
-    title: 'DELF A2: VOCABULARY & GRAMMAR',
-    topics: [
-      "Les personnes (famille, description)", "Les lieux (café, restos, banques)", "Les loisirs (sports, sorties)",
-      "Moyens de transport", "La vie quotidienne & logement", "Aliments, repas & cuisine", "Animaux familiers",
-      "Itinéraire & météo", "Argent & paiements", "Présent de l'indicatif", "Verbes 1er, 2e, 3e groupes",
-      "Verbes pronominaux", "Verbes usuels (venir, prendre)", "Verbes + infinitif", "Passé composé & imparfait",
-      "Impératif (positif/négatif)", "Futur proche, simple, passé récent", "Pronoms COD, COI, Y, EN", "Pronoms relatifs simples (qui, que)"
-    ]
-  },
-  {
-    title: 'DELF B1 & B2: THEMES & ADVANCED GRAMMAR',
-    topics: [
-      "La vie quotidienne et professionnelle", "Les sentiments et caractères", "Les événements et faits divers",
-      "Les médias et la culture", "Sujets de société et politique", "Temps du passé avancés (Plus-que-parfait)",
-      "Le conditionnel présent et passé", "Le subjonctif (présent et passé)", "Le discours rapporté",
-      "Le passif et le gérondif", "L'hypothèse complexe (si)", "Doubles pronoms & relatifs complexes", "Nominalisation & articulateurs"
     ]
   }
 ];
@@ -557,7 +612,7 @@ function renderTopics(){
       document.getElementById('currentTopicLabel').textContent = "Sujet : " + topic;
       document.getElementById('paneBtnChat').click();
       updateDynamicSuggestions(topic);
-      await processMessageWithPlume(`L'étudiant vient de choisir le sujet : "${topic}". Présente ce sujet très brièvement en une phrase, puis pose-lui une question courte et directe pour savoir ce qu'il aimerait pratiquer en premier.`);
+      await processMessageWithPlume(`L'étudiant vient de choisir le sujet : "${topic}". Présente ce sujet très brièvement en une phrase, puis pose-lui une question courte et directe.`);
     };
   });
 }
@@ -578,9 +633,7 @@ document.getElementById('paneBtnVocab').onclick = ()=>{
 
 const VOCAB_LEVELS = [
   { id:'essential', label:'🟢 Essentiel', range:[1,500] },
-  { id:'common',    label:'🟡 Courant',    range:[501,1500] },
-  { id:'inter',     label:'🟠 Intermédiaire', range:[1501,3500] },
-  { id:'advanced',  label:'🔴 Avancé',     range:[3501,7946] }
+  { id:'common',    label:'🟡 Courant',    range:[501,1500] }
 ];
 let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'common', vocabFilter = 'all', vocabProgress = {};
 
@@ -620,8 +673,7 @@ async function initVocab(){
     renderVocabLevelChips();
     buildVocabDeck();
   }catch(err){
-    document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}).`;
+    document.getElementById('vocabLoadStatus').innerHTML = `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(err.message)}).`;
   }
 }
 
@@ -634,30 +686,19 @@ function renderVocabLevelChips(){
 }
 
 function buildVocabDeck(){
-  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
+  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel) || VOCAB_LEVELS[0];
   let words = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
   if(vocabFilter === 'practice') words = words.filter(w=>vocabProgress[w.rank]==='practice');
   else if(vocabFilter === 'known') words = words.filter(w=>vocabProgress[w.rank]==='known');
 
   vocabDeck = words; vocabIdx = 0;
-  updateVocabCounters();
   renderVocabCard();
-}
-
-function updateVocabCounters(){
-  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
-  const inLevel = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
-  let known=0, practice=0;
-  inLevel.forEach(w=>{ const st=vocabProgress[w.rank]; if(st==='known') known++; else if(st==='practice') practice++; });
-  document.getElementById('vocabKnownCount').textContent = known;
-  document.getElementById('vocabPracticeCount').textContent = practice;
-  document.getElementById('vocabTotalCount').textContent = inLevel.length;
 }
 
 function renderVocabCard(){
   const wrap = document.getElementById('vocabCardWrap');
   if(vocabDeck.length===0){
-    wrap.innerHTML = `<div class="text-center py-8 space-y-2"><p class="text-xs font-semibold text-slate-500">Aucun mot trouvé (${vocabFilter})</p><button onclick="setVocabFilter('all')" class="text-xs bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl">Voir toutes</button></div>`;
+    wrap.innerHTML = `<div class="text-center py-8 space-y-2"><p class="text-xs font-semibold text-slate-500">Aucun mot trouvé</p><button onclick="setVocabFilter('all')" class="text-xs bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl">Voir toutes</button></div>`;
     return;
   }
   const w = vocabDeck[vocabIdx];
@@ -679,9 +720,6 @@ function renderVocabCard(){
 
 function setVocabFilter(mode){
   vocabFilter = mode;
-  document.getElementById('filterAllBtn').className = mode==='all' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-indigo-600 bg-indigo-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
-  document.getElementById('filterPracticeBtn').className = mode==='practice' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-amber-500 bg-amber-500 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
-  document.getElementById('filterKnownBtn').className = mode==='known' ? 'text-xs font-bold px-4 py-2 rounded-xl border border-emerald-600 bg-emerald-600 text-white shadow-sm':'text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 transition shadow-sm';
   buildVocabDeck();
 }
 
@@ -698,13 +736,13 @@ document.getElementById('vocabShuffleBtn').onclick = ()=>{
 
 document.getElementById('vocabMarkKnown').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'known'; saveVocabProgress(); updateVocabCounters();
+  vocabProgress[w.rank] = 'known'; saveVocabProgress();
   confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabMarkPractice').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'practice'; saveVocabProgress(); updateVocabCounters();
+  vocabProgress[w.rank] = 'practice'; saveVocabProgress();
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabListenBtn').onclick = ()=>{
@@ -730,14 +768,15 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
     const said = e.results[0][0].transcript;
     btn.classList.remove('recording-active');
     btn.textContent = '🎙️ Enregistrer ma voix';
-    tBox.classList.add('hidden');
+    tBox.textContent = `Tu as dit: "${said}"`;
+    tBox.classList.remove('hidden');
     reactionArea.classList.remove('hidden');
-    reactionArea.innerHTML = `<p class="text-xs text-slate-500 font-semibold">Plume analyse...</p>`;
+    reactionArea.innerHTML = `<p class="text-xs text-slate-500 font-semibold">Plume analyse ton intonation...</p>`;
     try{
       const cfg = getConfig();
       if(!cfg.baseUrl) throw new Error("Configure ton API Groq dans les paramètres ⚙️.");
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}"\nPrononciation de l'étudiant: "${said}"\n\nDonne une réaction amicale en français avec traduction anglaise.`
+        `Mot cible: "${w.french}"\nPrononciation de l'étudiant: "${said}"\n\nÉvalue la prononciation. Donne un conseil phonétique ciblé (par exemple sur les voyelles nasales, les liaisons ou le son u/ou) et une réaction encourageante en français.`
       }], 200);
       reactionArea.innerHTML = `<div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded-xl text-xs text-indigo-950 font-medium">${escapeHtml(raw)}</div>`;
       confetti({ particleCount: 40, spread: 45, origin:{ y:0.6 } });
