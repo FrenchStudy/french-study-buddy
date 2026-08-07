@@ -42,24 +42,40 @@
   <!-- MAIN APP CONTAINER (NO SCROLL) -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT SIDEBAR: Syllabus Topics & Cheat Sheet -->
+    <!-- LEFT SIDEBAR: Syllabus Topics & Numbers / Cheat Sheet -->
     <aside id="sidebar" class="flex flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur flex justify-between items-center">
         <div>
-          <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Programme &amp; Mémo</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Sujets officiels &amp; aide-mémoire.</p>
+          <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">Programme &amp; Modules</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Sujets officiels &amp; nombres.</p>
         </div>
       </div>
       
       <!-- SUB-TABS FOR SIDEBAR -->
       <div class="flex border-b border-slate-200 bg-slate-50 p-2 gap-2">
         <button id="sideTabSyllabus" onclick="switchSidebarTab('syllabus')" class="flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm">Programme</button>
-        <button id="sideTabMemo" onclick="switchSidebarTab('memo')" class="flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg">Mémo &amp; Règles</button>
+        <button id="sideTabNumbers" onclick="switchSidebarTab('numbers')" class="flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg">🔢 Nombres</button>
+        <button id="sideTabMemo" onclick="switchSidebarTab('memo')" class="flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg">Mémo</button>
       </div>
 
       <!-- SYLLABUS CONTAINER -->
       <div id="sidebarSyllabus" class="p-3 space-y-3">
         <div id="topicsList"></div>
+      </div>
+
+      <!-- NUMBERS CONTAINER -->
+      <div id="sidebarNumbers" class="hidden p-3 space-y-3 text-xs">
+        <div class="bg-blue-50 border border-blue-100 p-3 rounded-2xl space-y-2">
+          <h3 class="font-bold text-blue-900">🔢 Module Nombres</h3>
+          <p class="text-slate-600 text-[11px]">Clique pour écouter et pratiquer :</p>
+          <div class="grid grid-cols-2 gap-1.5 pt-1" id="numbersGridSidebar"></div>
+        </div>
+        <div class="bg-blue-900 text-white p-3 rounded-2xl space-y-2">
+          <span class="text-[10px] uppercase font-semibold text-blue-300">Actif: <span id="numActiveWordSidebar">zéro</span></span>
+          <button onclick="listenNumberSidebar()" class="w-full bg-blue-700 hover:bg-blue-600 py-1.5 rounded-xl font-bold text-xs">🔊 Écouter</button>
+          <button onclick="toggleNumRecSidebar()" id="numRecBtnSidebar" class="w-full bg-red-500 hover:bg-red-600 py-1.5 rounded-xl font-bold text-xs">🔴 Pratiquer</button>
+          <div id="numFeedbackSidebar" class="hidden bg-blue-950 p-2 rounded-lg text-[11px]">...</div>
+        </div>
       </div>
 
       <!-- MEMO & CHEAT SHEET CONTAINER -->
@@ -76,41 +92,28 @@
           <p class="text-slate-600"><strong>Ton / Ta / Tes:</strong> your (m / f / pl)</p>
           <p class="text-slate-600"><strong>Son / Sa / Ses:</strong> his/her (m / f / pl)</p>
         </div>
-        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-2xl space-y-1.5">
-          <h3 class="font-bold text-emerald-900">💡 Astuce Prononciation</h3>
-          <p class="text-slate-600"><strong>U vs OU:</strong> "U" (comme dans *tu*) se prononce avec les lèvres serrées en disant "i". "OU" (comme dans *tout*) se prononce comme l'anglais "oo".</p>
-        </div>
       </div>
     </aside>
 
     <!-- RIGHT MAIN WORKSTATION (NO SCROLL) -->
     <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-hidden p-6">
-      <div class="max-w-4xl mx-auto w-full h-full flex flex-col justify-between space-y-4 my-auto">
+      <div class="max-w-3xl mx-auto w-full h-full flex flex-col justify-between space-y-4 my-auto">
 
-        <!-- TAB SWITCHER (Safe Separate Tabs for Working Features & Modules) -->
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm shrink-0">
-          <button id="paneBtnChat" onclick="switchMainTab('chat')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-1 shadow-sm truncate">
+        <!-- TAB SWITCHER (Discussion, Vocabulaire, and Games) -->
+        <div class="flex gap-2 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm shrink-0">
+          <button id="paneBtnChat" onclick="switchMainTab('chat')" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm">
             💬 Discussion
           </button>
-          <button id="paneBtnVocab" onclick="switchMainTab('vocab')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate">
+          <button id="paneBtnVocab" onclick="switchMainTab('vocab')" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2">
             🔤 Vocabulaire
           </button>
-          <button id="paneBtnNumbers" onclick="switchMainTab('numbers')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate">
-            🔢 Nombres
-          </button>
-          <button id="paneBtnProf" onclick="switchMainTab('prof')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate">
-            💼 Professions
-          </button>
-          <button id="paneBtnNat" onclick="switchMainTab('nat')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate">
-            🌍 Nationalités
-          </button>
-          <button id="paneBtnPron" onclick="switchMainTab('pron')" class="text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate">
-            🗣️ Phonics
+          <button id="paneBtnGames" onclick="switchMainTab('games')" class="flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2">
+            🎮 Mini-Jeux
           </button>
         </div>
 
         <!-- CONVERSATION PANE -->
-        <div id="paneChat" class="flex-1 flex flex-col justify-between space-y-4 min-h-0">
+        <div id="paneChat" style="display:flex;" class="flex-1 flex flex-col justify-between space-y-4 min-h-0">
           
           <!-- PLUME HUMAN TEACHER CARD -->
           <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col items-center text-center shrink-0">
@@ -182,7 +185,7 @@
         </div>
 
         <!-- VOCABULARY PANE (Hidden by default) -->
-        <div id="paneVocab" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
+        <div id="paneVocab" style="display:none;" class="flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
           <div class="flex flex-wrap gap-2 items-center" id="vocabLevelChips"></div>
 
           <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm">
@@ -238,133 +241,40 @@
           </div>
         </div>
 
-        <!-- NUMBERS MODULE TAB PANE -->
-        <div id="paneNumbers" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
-          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
-            <div class="flex-1 space-y-2">
-              <h3 class="text-base font-extrabold text-blue-900">🔢 Module Nombres (0 à 1,000,000)</h3>
-              <p class="text-xs text-slate-600">Sélectionne un nombre pour l'inspecter, écouter sa prononciation native, et pratiquer avec le coach vocal.</p>
-              <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2 max-h-64 overflow-y-auto pr-1" id="numbersGridPane"></div>
+        <!-- GAMES PANE (Dedicated Tab for Games) -->
+        <div id="paneGames" style="display:none;" class="flex-1 flex-col space-y-4 min-h-0 overflow-y-auto bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+          <h3 class="font-extrabold text-base text-indigo-900">🎯 Atelier de Construction de Phrases (Mini-Jeux)</h3>
+          <p class="text-xs text-slate-500">Combine tes blocs pour créer une phrase correcte et valide-la avec Plume !</p>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2" id="gameBlocksContainer">
+            <div class="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 text-center space-y-2">
+              <span class="text-xs font-bold text-indigo-900 block">Pronoun</span>
+              <select id="gamePronoun" class="w-full text-xs p-2 rounded-xl border border-slate-300">
+                <option value="Je">Je (I)</option>
+                <option value="Tu">Tu (You)</option>
+                <option value="Il">Il (He)</option>
+              </select>
             </div>
-            <div class="w-full md:w-80 bg-blue-900 text-white p-5 rounded-2xl shadow-md space-y-4 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] uppercase tracking-wider text-blue-300 font-semibold">Forme Active</span>
-                <h4 id="numActiveWord" class="text-xl font-bold mt-0.5">zéro</h4>
-                <p id="numActiveDesc" class="text-xs text-blue-200 mt-1">0 (0 à 20)</p>
-              </div>
-              <div class="space-y-2">
-                <button onclick="listenNumberActive()" class="w-full bg-blue-700 hover:bg-blue-600 py-2.5 px-3 rounded-xl text-xs font-bold shadow">🔊 Écouter l'audio</button>
-                <div class="bg-blue-950 p-3 rounded-xl text-xs border border-blue-800">
-                  <span class="font-bold text-blue-300 block mb-1">📖 Règle Phonétique:</span>
-                  <p id="numActiveTip" class="text-slate-200">Prononce le 'é' clairement.</p>
-                </div>
-                <button onclick="toggleNumRecording()" id="numRecBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow">🔴 Pratiquer à l'oral</button>
-                <div id="numFeedbackBox" class="hidden bg-blue-800 p-2.5 rounded-xl text-xs space-y-1">
-                  <p><strong>Entendu:</strong> <span id="numTrans" class="italic text-blue-200">...</span></p>
-                  <p id="numCorrection" class="text-emerald-300 font-medium">...</p>
-                </div>
-              </div>
+            <div class="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 text-center space-y-2">
+              <span class="text-xs font-bold text-indigo-900 block">Verb</span>
+              <select id="gameVerb" class="w-full text-xs p-2 rounded-xl border border-slate-300">
+                <option value="suis">suis (am)</option>
+                <option value="ai">ai (have)</option>
+                <option value="s'appelle">s'appelle (is named)</option>
+              </select>
             </div>
-          </div>
-        </div>
-
-        <!-- PROFESSIONS MODULE TAB PANE -->
-        <div id="paneProf" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
-          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
-            <div class="flex-1 space-y-2">
-              <h3 class="text-base font-extrabold text-indigo-900">💼 Module Professions &amp; Genres</h3>
-              <p class="text-xs text-slate-600">Explore les formes masculines et féminines des métiers et entraîne ta voix.</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 max-h-64 overflow-y-auto pr-1" id="profGridPane"></div>
-            </div>
-            <div class="w-full md:w-80 bg-indigo-900 text-white p-5 rounded-2xl shadow-md space-y-4 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Forme Active</span>
-                <h4 id="profActiveWord" class="text-xl font-bold mt-0.5">Médecin</h4>
-                <p id="profActiveDesc" class="text-xs text-indigo-200 mt-1">Doctor</p>
-              </div>
-              <div class="space-y-2">
-                <div class="grid grid-cols-2 gap-1.5">
-                  <button onclick="setProfForm('masc')" id="profBtnMasc" class="py-1.5 px-2 rounded-lg text-[11px] font-bold bg-indigo-600 text-white">M: <span id="profMascLbl">Médecin</span></button>
-                  <button onclick="setProfForm('fem')" id="profBtnFem" class="py-1.5 px-2 rounded-lg text-[11px] font-bold bg-indigo-800 text-indigo-200">F: <span id="profFemLbl">Médecin</span></button>
-                </div>
-                <button onclick="listenProfActive()" class="w-full bg-indigo-700 hover:bg-indigo-600 py-2.5 px-3 rounded-xl text-xs font-bold shadow">🔊 Écouter l'audio</button>
-                <div class="bg-indigo-950 p-3 rounded-xl text-xs border border-indigo-800">
-                  <span class="font-bold text-indigo-300 block mb-1">📖 Règle de Genre:</span>
-                  <p id="profActiveTip" class="text-slate-200">Identique pour les deux genres.</p>
-                </div>
-                <button onclick="toggleProfRecording()" id="profRecBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow">🔴 Pratiquer à l'oral</button>
-                <div id="profFeedbackBox" class="hidden bg-indigo-800 p-2.5 rounded-xl text-xs space-y-1">
-                  <p><strong>Entendu:</strong> <span id="profTrans" class="italic text-indigo-200">...</span></p>
-                  <p id="profCorrection" class="text-emerald-300 font-medium">...</p>
-                </div>
-              </div>
+            <div class="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 text-center space-y-2">
+              <span class="text-xs font-bold text-indigo-900 block">Profession / Famille</span>
+              <select id="gameNoun" class="w-full text-xs p-2 rounded-xl border border-slate-300">
+                <option value="professeur">professeur</option>
+                <option value="mon frère">mon frère</option>
+                <option value="étudiant">étudiant</option>
+              </select>
             </div>
           </div>
-        </div>
-
-        <!-- NATIONALITIES MODULE TAB PANE -->
-        <div id="paneNat" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
-          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
-            <div class="flex-1 space-y-2">
-              <h3 class="text-base font-extrabold text-blue-900">🌍 Module Nationalités &amp; Pays</h3>
-              <p class="text-xs text-slate-600">Découvre les pays, nationalités masculines et féminines avec leurs accords.</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 max-h-64 overflow-y-auto pr-1" id="natGridPane"></div>
-            </div>
-            <div class="w-full md:w-80 bg-blue-900 text-white p-5 rounded-2xl shadow-md space-y-4 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] uppercase tracking-wider text-blue-300 font-semibold">Forme Active</span>
-                <h4 id="natActiveWord" class="text-xl font-bold mt-0.5">Canadien</h4>
-                <p id="natActiveDesc" class="text-xs text-blue-200 mt-1">Canada</p>
-              </div>
-              <div class="space-y-2">
-                <div class="grid grid-cols-3 gap-1">
-                  <button onclick="setNatForm('country')" id="natBtnC" class="py-1 px-1 rounded text-[10px] font-bold bg-blue-800 text-blue-200">Pays</button>
-                  <button onclick="setNatForm('masc')" id="natBtnM" class="py-1 px-1 rounded text-[10px] font-bold bg-blue-600 text-white">Masc</button>
-                  <button onclick="setNatForm('fem')" id="natBtnF" class="py-1 px-1 rounded text-[10px] font-bold bg-blue-800 text-blue-200">Fem</button>
-                </div>
-                <button onclick="listenNatActive()" class="w-full bg-blue-700 hover:bg-blue-600 py-2.5 px-3 rounded-xl text-xs font-bold shadow">🔊 Écouter l'audio</button>
-                <div class="bg-blue-950 p-3 rounded-xl text-xs border border-blue-800">
-                  <span class="font-bold text-blue-300 block mb-1">📖 Règle de Prononciation:</span>
-                  <p id="natActiveTip" class="text-slate-200">Nasale sur -ien.</p>
-                </div>
-                <button onclick="toggleNatRecording()" id="natRecBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow">🔴 Pratiquer à l'oral</button>
-                <div id="natFeedbackBox" class="hidden bg-blue-800 p-2.5 rounded-xl text-xs space-y-1">
-                  <p><strong>Entendu:</strong> <span id="natTrans" class="italic text-blue-200">...</span></p>
-                  <p id="natCorrection" class="text-emerald-300 font-medium">...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PRONUNCIATION PHONICS MODULE TAB PANE -->
-        <div id="panePron" class="hidden flex-1 flex-col space-y-4 min-h-0 overflow-y-auto">
-          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
-            <div class="flex-1 space-y-2">
-              <h3 class="text-base font-extrabold text-blue-900">🗣️ Module Phonétique &amp; Accents</h3>
-              <p class="text-xs text-slate-600">Explore les voyelles, liaisons et règles de prononciation essentielles.</p>
-              <div class="space-y-3 max-h-64 overflow-y-auto pr-1" id="pronSectionsPane"></div>
-            </div>
-            <div class="w-full md:w-80 bg-blue-900 text-white p-5 rounded-2xl shadow-md space-y-4 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] uppercase tracking-wider text-blue-300 font-semibold">Exemple Actif</span>
-                <h4 id="pronActiveWord" class="text-xl font-bold mt-0.5">été</h4>
-                <p id="pronActiveDesc" class="text-xs text-blue-200 mt-1">1. Voyelles &amp; Accents (é → Close-mid 'ay')</p>
-              </div>
-              <div class="space-y-2">
-                <button onclick="listenPronActive()" class="w-full bg-blue-700 hover:bg-blue-600 py-2.5 px-3 rounded-xl text-xs font-bold shadow">🔊 Écouter l'audio</button>
-                <div class="bg-blue-950 p-3 rounded-xl text-xs border border-blue-800">
-                  <span class="font-bold text-blue-300 block mb-1">📖 Règle Phonétique:</span>
-                  <p id="pronActiveTip" class="text-slate-200">Prononce comme le 'ay' en anglais.</p>
-                </div>
-                <button onclick="togglePronRecording()" id="pronRecBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow">🔴 Pratiquer à l'oral</button>
-                <div id="pronFeedbackBox" class="hidden bg-blue-800 p-2.5 rounded-xl text-xs space-y-1">
-                  <p><strong>Entendu:</strong> <span id="pronTrans" class="italic text-blue-200">...</span></p>
-                  <p id="pronCorrection" class="text-emerald-300 font-medium">...</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button onclick="submitGameSentence()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-2xl shadow-sm transition">
+            Valider la phrase avec Plume 🚀
+          </button>
         </div>
 
       </div>
@@ -662,38 +572,38 @@ async function toggleVoiceConversation(){
 }
 
 function switchSidebarTab(tab){
-  const syllabusBtn = document.getElementById('sideTabSyllabus');
-  const memoBtn = document.getElementById('sideTabMemo');
-  const syllabusDiv = document.getElementById('sidebarSyllabus');
-  const memoDiv = document.getElementById('sidebarMemo');
+  const sBtn = document.getElementById('sideTabSyllabus');
+  const nBtn = document.getElementById('sideTabNumbers');
+  const mBtn = document.getElementById('sideTabMemo');
+  const sDiv = document.getElementById('sidebarSyllabus');
+  const nDiv = document.getElementById('sidebarNumbers');
+  const mDiv = document.getElementById('sidebarMemo');
 
-  if(tab === 'syllabus'){
-    syllabusBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm';
-    memoBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
-    syllabusDiv.classList.remove('hidden');
-    memoDiv.classList.add('hidden');
-  } else {
-    memoBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm';
-    syllabusBtn.className = 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
-    memoDiv.classList.remove('hidden');
-    syllabusDiv.classList.add('hidden');
-  }
+  sBtn.className = tab === 'syllabus' ? 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm' : 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
+  nBtn.className = tab === 'numbers' ? 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm' : 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
+  mBtn.className = tab === 'memo' ? 'flex-1 text-[11px] font-bold py-1.5 bg-indigo-600 text-white rounded-lg shadow-sm' : 'flex-1 text-[11px] font-bold py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg';
+
+  sDiv.classList.toggle('hidden', tab !== 'syllabus');
+  nDiv.classList.toggle('hidden', tab !== 'numbers');
+  mDiv.classList.toggle('hidden', tab !== 'memo');
 }
 
 function switchMainTab(tab){
-  const panes = { chat: 'paneChat', vocab: 'paneVocab', numbers: 'paneNumbers', prof: 'paneProf', nat: 'paneNat', pron: 'panePron' };
-  const btns = { chat: 'paneBtnChat', vocab: 'paneBtnVocab', numbers: 'paneBtnNumbers', prof: 'paneBtnProf', nat: 'paneBtnNat', pron: 'paneBtnPron' };
+  const panes = { chat: 'paneChat', vocab: 'paneVocab', games: 'paneGames' };
+  const btns = { chat: 'paneBtnChat', vocab: 'paneBtnVocab', games: 'paneBtnGames' };
 
   Object.keys(panes).forEach(k => {
-    document.getElementById(panes[k]).style.display = (k === tab) ? 'flex' : 'hidden';
-    if(k !== tab) document.getElementById(panes[k]).classList.add('hidden');
-    else document.getElementById(panes[k]).classList.remove('hidden');
-
-    const btn = document.getElementById(btns[k]);
+    const paneEl = document.getElementById(panes[k]);
+    const btnEl = document.getElementById(btns[k]);
+    
     if(k === tab){
-      btn.className = 'text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-1 shadow-sm truncate';
+      paneEl.style.display = 'flex';
+      paneEl.classList.remove('hidden');
+      btnEl.className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white transition flex items-center justify-center gap-2 shadow-sm';
     } else {
-      btn.className = 'text-xs font-bold py-2.5 px-2 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-1 truncate';
+      paneEl.style.display = 'none';
+      paneEl.classList.add('hidden');
+      btnEl.className = 'flex-1 text-xs font-bold py-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 transition flex items-center justify-center gap-2';
     }
   });
 }
@@ -776,272 +686,68 @@ function renderTopics(){
 renderTopics();
 
 /* ============================================================
-   NUMBERS MODULE LOGIC
+   NUMBERS IN LEFT SIDEBAR LOGIC
    ============================================================ */
 const numbersData = [
-  { digit: "0", word: "zéro", category: "0 to 20", desc: "Zero", tip: "Prononce le 'é' clairement." },
-  { digit: "1", word: "un", category: "0 to 20", desc: "One", tip: "Voyelle nasale 'un'." },
-  { digit: "2", word: "deux", category: "0 to 20", desc: "Two", tip: "Lèvres arrondies 'eu', 'x' muet." },
-  { digit: "5", word: "cinq", category: "0 to 20", desc: "Five", tip: "Le 'q' final se prononce 'k'." },
-  { digit: "10", word: "dix", category: "0 to 20", desc: "Ten", tip: "Se prononce 'deess'." },
-  { digit: "20", word: "vingt", category: "0 to 20", desc: "Twenty", tip: "'g' et 't' muets." },
-  { digit: "100", word: "cent", category: "Hundreds", desc: "One hundred", tip: "'t' final muet." },
-  { digit: "1,000", word: "mille", category: "Thousands", desc: "One thousand", tip: "Invariable." }
+  { digit: "0", word: "zéro" }, { digit: "1", word: "un" }, { digit: "2", word: "deux" },
+  { digit: "3", word: "trois" }, { digit: "4", word: "quatre" }, { digit: "5", word: "cinq" },
+  { digit: "10", word: "dix" }, { digit: "20", word: "vingt" }, { digit: "100", word: "cent" }
 ];
-let activeNumber = numbersData[0];
+let activeNumberSidebar = numbersData[0];
 
-function renderNumbersGrid(){
-  const grid = document.getElementById('numbersGridPane');
-  grid.innerHTML = numbersData.map(item => `
-    <button onclick="selectNumberItem('${item.digit}')" class="p-2.5 rounded-xl border text-left transition ${activeNumber.digit===item.digit?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}">
-      <span class="font-bold block text-sm">${item.digit}</span>
-      <span class="text-[10px] truncate block opacity-80">${item.word}</span>
+function renderNumbersSidebar(){
+  const grid = document.getElementById('numbersGridSidebar');
+  grid.innerHTML = numbersData.map(n => `
+    <button onclick="selectNumSidebar('${n.digit}')" class="p-2 rounded-lg border text-left transition ${activeNumberSidebar.digit===n.digit?'bg-blue-600 text-white border-blue-600':'bg-white text-slate-700 border-slate-200'}">
+      <span class="font-bold block">${n.digit}</span>
+      <span class="text-[10px] opacity-80 block">${n.word}</span>
     </button>
   `).join('');
 }
-function selectNumberItem(digit){
-  activeNumber = numbersData.find(n=>n.digit===digit);
-  document.getElementById('numActiveWord').textContent = activeNumber.word;
-  document.getElementById('numActiveDesc').textContent = `${activeNumber.digit} (${activeNumber.category})`;
-  document.getElementById('numActiveTip').textContent = activeNumber.tip;
-  document.getElementById('numFeedbackBox').classList.add('hidden');
-  renderNumbersGrid();
-  listenNumberActive();
+function selectNumSidebar(dig){
+  activeNumberSidebar = numbersData.find(x=>x.digit===dig);
+  document.getElementById('numActiveWordSidebar').textContent = activeNumberSidebar.word;
+  listenNumberSidebar();
 }
-function listenNumberActive(){
+function listenNumberSidebar(){
   if('speechSynthesis' in window){
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(activeNumber.word);
+    const u = new SpeechSynthesisUtterance(activeNumberSidebar.word);
     u.lang = 'fr-FR';
     window.speechSynthesis.speak(u);
   }
 }
-function toggleNumRecording(){
-  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Ctor){ alert("Reconnaissance vocale requiert Google Chrome."); return; }
-  const rec = new Ctor();
-  rec.lang = 'fr-FR';
-  rec.onstart = ()=>{ document.getElementById('numRecBtn').textContent = "⏹️ Écoute..."; };
-  rec.onresult = (e)=>{
-    const said = e.results[0][0].transcript;
-    document.getElementById('numTrans').textContent = said;
-    document.getElementById('numFeedbackBox').classList.remove('hidden');
-    if(said.toLowerCase().includes(activeNumber.word.toLowerCase())){
-      document.getElementById('numCorrection').textContent = `🎉 Bravo ! "${activeNumber.word}" reconnu.`;
-    } else {
-      document.getElementById('numCorrection').textContent = `⚠️ Entendu "${said}". Conseil: ${activeNumber.tip}`;
-    }
-  };
-  rec.onend = ()=>{ document.getElementById('numRecBtn').textContent = "🔴 Pratiquer à l'oral"; };
-  rec.start();
-}
-renderNumbersGrid();
-
-/* ============================================================
-   PROFESSIONS MODULE LOGIC
-   ============================================================ */
-const professionsData = [
-  { masc: "Médecin", fem: "Médecin", en: "Doctor", tip: "Identique pour les deux genres." },
-  { masc: "Acteur", fem: "Actrice", en: "Actor/Actress", tip: "-teur devient -trice." },
-  { masc: "Infirmier", fem: "Infirmière", en: "Nurse", tip: "-ier devient -ière." },
-  { masc: "Professeur", fem: "Professeur", en: "Teacher", tip: "Généralement invariable." }
-];
-let activeProf = professionsData[0];
-let activeProfForm = 'masc';
-
-function renderProfGrid(){
-  const grid = document.getElementById('profGridPane');
-  grid.innerHTML = professionsData.map(item => `
-    <button onclick="selectProfItem('${item.masc}')" class="p-2.5 rounded-xl border text-left transition ${activeProf.masc===item.masc?'bg-indigo-600 text-white border-indigo-600 shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'}">
-      <span class="font-bold block text-xs truncate">${item.masc}</span>
-      <span class="text-[10px] block opacity-80">${item.en}</span>
-    </button>
-  `).join('');
-}
-function selectProfItem(masc){
-  activeProf = professionsData.find(p=>p.masc===masc);
-  activeProfForm = 'masc';
-  updateProfUI();
-  renderProfGrid();
-  listenProfActive();
-}
-function setProfForm(f){
-  activeProfForm = f;
-  updateProfUI();
-  listenProfActive();
-}
-function updateProfUI(){
-  const w = activeProfForm === 'masc' ? activeProf.masc : activeProf.fem;
-  document.getElementById('profActiveWord').textContent = w;
-  document.getElementById('profActiveDesc').textContent = activeProf.en;
-  document.getElementById('profActiveTip').textContent = activeProf.tip;
-  document.getElementById('profMascLbl').textContent = activeProf.masc;
-  document.getElementById('profFemLbl').textContent = activeProf.fem;
-  document.getElementById('profBtnMasc').className = activeProfForm==='masc' ? 'py-1.5 px-2 rounded-lg text-[11px] font-bold bg-indigo-600 text-white shadow' : 'py-1.5 px-2 rounded-lg text-[11px] font-bold bg-indigo-800 text-indigo-200';
-  document.getElementById('profBtnFem').className = activeProfForm==='fem' ? 'py-1.5 px-2 rounded-lg text-[11px] font-bold bg-purple-600 text-white shadow' : 'py-1.5 px-2 rounded-lg text-[11px] font-bold bg-indigo-800 text-indigo-200';
-  document.getElementById('profFeedbackBox').classList.add('hidden');
-}
-function listenProfActive(){
-  if('speechSynthesis' in window){
-    window.speechSynthesis.cancel();
-    const w = activeProfForm === 'masc' ? activeProf.masc : activeProf.fem;
-    const u = new SpeechSynthesisUtterance(w);
-    u.lang = 'fr-FR';
-    window.speechSynthesis.speak(u);
-  }
-}
-function toggleProfRecording(){
-  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Ctor) return;
-  const target = activeProfForm === 'masc' ? activeProf.masc : activeProf.fem;
-  const rec = new Ctor();
-  rec.lang = 'fr-FR';
-  rec.onstart = ()=>{ document.getElementById('profRecBtn').textContent = "⏹️ Écoute..."; };
-  rec.onresult = (e)=>{
-    const said = e.results[0][0].transcript;
-    document.getElementById('profTrans').textContent = said;
-    document.getElementById('profFeedbackBox').classList.remove('hidden');
-    if(said.toLowerCase().includes(target.toLowerCase())){
-      document.getElementById('profCorrection').textContent = `🎉 Bravo ! "${target}" reconnu.`;
-    } else {
-      document.getElementById('profCorrection').textContent = `⚠️ Entendu "${said}". Conseil: ${activeProf.tip}`;
-    }
-  };
-  rec.onend = ()=>{ document.getElementById('profRecBtn').textContent = "🔴 Pratiquer à l'oral"; };
-  rec.start();
-}
-renderProfGrid();
-updateProfUI();
-
-/* ============================================================
-   NATIONALITIES MODULE LOGIC
-   ============================================================ */
-const nationalitesData = [
-  { country: "Canada", masc: "Canadien", fem: "Canadienne", tip: "Nasale sur -ien." },
-  { country: "France", masc: "Français", fem: "Française", tip: "S final muet au masc." },
-  { country: "Chine", masc: "Chinois", fem: "Chinoise", tip: "Prononciation nette du 'se'." }
-];
-let activeNat = nationalitesData[0];
-let activeNatForm = 'masc';
-
-function renderNatGrid(){
-  const grid = document.getElementById('natGridPane');
-  grid.innerHTML = nationalitesData.map(item => `
-    <button onclick="selectNatItem('${item.country}')" class="p-2.5 rounded-xl border text-left transition ${activeNat.country===item.country?'bg-blue-600 text-white border-blue-600 shadow-sm':'bg-white text-slate-700 border-slate-200 hover:border-blue-300'}">
-      <span class="font-bold block text-xs truncate">🌍 ${item.country}</span>
-      <span class="text-[10px] block opacity-80">${item.masc}</span>
-    </button>
-  `).join('');
-}
-function selectNatItem(c){
-  activeNat = nationalitesData.find(n=>n.country===c);
-  activeNatForm = 'masc';
-  updateNatUI();
-  renderNatGrid();
-  listenNatActive();
-}
-function setNatForm(f){
-  activeNatForm = f;
-  updateNatUI();
-  listenNatActive();
-}
-function updateNatUI(){
-  let w = activeNat.masc;
-  if(activeNatForm==='country') w = activeNat.country;
-  if(activeNatForm==='fem') w = activeNat.fem;
-  document.getElementById('natActiveWord').textContent = w;
-  document.getElementById('natActiveDesc').textContent = activeNat.country;
-  document.getElementById('natActiveTip').textContent = activeNat.tip;
-  document.getElementById('natFeedbackBox').classList.add('hidden');
-}
-function listenNatActive(){
-  if('speechSynthesis' in window){
-    window.speechSynthesis.cancel();
-    let w = activeNat.masc;
-    if(activeNatForm==='country') w = activeNat.country;
-    if(activeNatForm==='fem') w = activeNat.fem;
-    const u = new SpeechSynthesisUtterance(w);
-    u.lang = 'fr-FR';
-    window.speechSynthesis.speak(u);
-  }
-}
-function toggleNatRecording(){
-  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Ctor) return;
-  let target = activeNat.masc;
-  if(activeNatForm==='country') target = activeNat.country;
-  if(activeNatForm==='fem') target = activeNat.fem;
-  const rec = new Ctor();
-  rec.lang = 'fr-FR';
-  rec.onresult = (e)=>{
-    const said = e.results[0][0].transcript;
-    document.getElementById('natTrans').textContent = said;
-    document.getElementById('natFeedbackBox').classList.remove('hidden');
-    if(said.toLowerCase().includes(target.toLowerCase())){
-      document.getElementById('natCorrection').textContent = `🎉 Bravo ! "${target}" reconnu.`;
-    } else {
-      document.getElementById('natCorrection').textContent = `⚠️ Entendu "${said}".`;
-    }
-  };
-  rec.start();
-}
-renderNatGrid();
-
-/* ============================================================
-   PRONUNCIATION / PHONICS MODULE LOGIC
-   ============================================================ */
-const phonicsData = [
-  { rule: "é", sound: "Close-mid 'ay'", examples: ["été", "café"], tip: "Prononce comme 'ay' en anglais." },
-  { rule: "è / ê", sound: "Open-mid 'eh'", examples: ["très", "père"], tip: "Comme le 'e' dans bed." },
-  { rule: "ch", sound: "sh sound", examples: ["chat", "chambre"], tip: "Son 'sh' net." }
-];
-let activePhonic = { rule: "é", word: "été", sound: "Close-mid 'ay'", tip: "Prononce comme 'ay' en anglais." };
-
-function renderPhonicsPane(){
-  const container = document.getElementById('pronSectionsPane');
-  container.innerHTML = phonicsData.map(p => `
-    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-      <div class="flex justify-between items-center"><span class="font-bold text-blue-900">${p.rule}</span><span class="text-[10px] text-slate-500">${p.sound}</span></div>
-      <div class="flex flex-wrap gap-1.5">
-        ${p.examples.map(ex => `<button onclick="selectPhonicExample('${p.rule}','${ex}','${p.sound}','${p.tip}')" class="px-2.5 py-1 rounded-lg border text-xs font-semibold bg-white text-blue-900 border-slate-200 hover:bg-blue-50">🔊 ${ex}</button>`).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-function selectPhonicExample(rule, word, sound, tip){
-  activePhonic = { rule, word, sound, tip };
-  document.getElementById('pronActiveWord').textContent = word;
-  document.getElementById('pronActiveDesc').textContent = `${rule} → ${sound}`;
-  document.getElementById('pronActiveTip').textContent = tip;
-  document.getElementById('pronFeedbackBox').classList.add('hidden');
-  listenPronActive();
-}
-function listenPronActive(){
-  if('speechSynthesis' in window){
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(activePhonic.word);
-    u.lang = 'fr-FR';
-    window.speechSynthesis.speak(u);
-  }
-}
-function togglePronRecording(){
+function toggleNumRecSidebar(){
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!Ctor) return;
   const rec = new Ctor();
   rec.lang = 'fr-FR';
   rec.onresult = (e)=>{
     const said = e.results[0][0].transcript;
-    document.getElementById('pronTrans').textContent = said;
-    document.getElementById('pronFeedbackBox').classList.remove('hidden');
-    if(said.toLowerCase().includes(activePhonic.word.toLowerCase())){
-      document.getElementById('pronCorrection').textContent = `🎉 Bravo ! "${activePhonic.word}" reconnu.`;
+    const box = document.getElementById('numFeedbackSidebar');
+    box.classList.remove('hidden');
+    if(said.toLowerCase().includes(activeNumberSidebar.word.toLowerCase())){
+      box.innerHTML = `🎉 Bravo ! "${activeNumberSidebar.word}" bien prononcé.`;
     } else {
-      document.getElementById('pronCorrection').textContent = `⚠️ Entendu "${said}". Conseil: ${activePhonic.tip}`;
+      box.innerHTML = `⚠️ Entendu "${said}" (cible: ${activeNumberSidebar.word}).`;
     }
   };
   rec.start();
 }
-renderPhonicsPane();
+renderNumbersSidebar();
+
+/* ============================================================
+   GAMES LOGIC (MINI-JEUX)
+   ============================================================ */
+function submitGameSentence(){
+  const p = document.getElementById('gamePronoun').value;
+  const v = document.getElementById('gameVerb').value;
+  const n = document.getElementById('gameNoun').value;
+  const sentence = `${p} ${v} ${n}.`;
+  switchMainTab('chat');
+  document.getElementById('studioInput').value = sentence;
+  sendUserMessage();
+}
 
 /* ============================================================
    VOCABULARY CSV ENGINE (PRESERVED)
