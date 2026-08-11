@@ -542,11 +542,13 @@ function streamBubble(role, fr, en, suggestions){
   </div>`;
 }
 
+// Safely handle suggestion chip clicks to prevent API endpoints or HTML from leaking into the input
 document.getElementById('lessonStream').addEventListener('click', (e)=>{
   const chip = e.target.closest('.suggestion-chip');
   if(!chip) return;
   const input = document.getElementById('lessonInput');
-  input.value = chip.dataset.text;
+  const textValue = chip.getAttribute('data-text') || chip.textContent || '';
+  input.value = textValue.trim();
   sendLessonMessage();
 });
 
