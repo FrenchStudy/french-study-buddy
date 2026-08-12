@@ -105,7 +105,8 @@
                 </div>
               </div>
 
-              <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 min-h-[160px]">
+              <!-- Conversation stream container with visible spacing and padding -->
+              <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-4 min-h-[220px] max-h-[450px] overflow-y-auto shadow-sm">
                 <p class="text-xs text-slate-400">👋 Choisis un thème dans le menu pour démarrer une leçon, ou écris directement ci-dessous pour discuter librement avec Plume.</p>
               </div>
 
@@ -535,8 +536,8 @@ function streamBubble(role, fr, en, suggestions){
     <div class="flex flex-wrap gap-1.5 mt-2">
       ${suggestions.map(s=>`<button class="suggestion-chip text-xs font-medium px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" data-text="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}
     </div>` : '';
-  return `<div class="flex flex-col items-start max-w-[85%]">
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">${escapeHtml(fr)}</div>
+  return `<div class="flex flex-col items-start max-w-[85%] w-full">
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm w-full">${escapeHtml(fr)}</div>
     ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1">${escapeHtml(en)}</p>` : ''}
     ${chips}
   </div>`;
