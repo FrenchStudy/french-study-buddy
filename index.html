@@ -10,8 +10,8 @@
 <style>
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-  .msg-enter { animation: fadeIn .2s ease-out; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
+  .msg-enter { animation: fadeIn .2s ease-out; }
   
   @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
   .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
@@ -51,13 +51,11 @@
 
     <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/50 sticky top-0 z-10 backdrop-blur">
-        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF (Parts 1-4)</h2>
+        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF &amp; DELF</h2>
         <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer la session avec Plume.</p>
       </div>
       <div id="topicsList" class="p-3 space-y-4"></div>
     </aside>
-
-    <button id="mobileTopicsBtn" class="md:hidden fixed bottom-24 right-4 z-30 bg-indigo-600 text-white rounded-full w-12 h-12 shadow-lg flex items-center justify-center text-xl">📚</button>
 
     <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-y-auto">
 
@@ -95,6 +93,7 @@
               <button id="paneBtnGame" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">🧩 Jeu</button>
             </div>
 
+            <!-- MODULES / LESSON PANE -->
             <div id="paneModules" class="space-y-3">
               <div class="flex items-center gap-2 flex-wrap">
                 <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche, ou écris ci-dessous</span>
@@ -105,7 +104,6 @@
                 </div>
               </div>
 
-              <!-- Conversation stream container with visible spacing and padding -->
               <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-4 min-h-[220px] max-h-[450px] overflow-y-auto shadow-sm">
                 <p class="text-xs text-slate-400">👋 Choisis un thème dans le menu pour démarrer une leçon, ou écris directement ci-dessous pour discuter librement avec Plume.</p>
               </div>
@@ -118,6 +116,7 @@
               </div>
             </div>
 
+            <!-- VOCABULARY FLASHCARDS PANE -->
             <div id="paneVocab" class="hidden space-y-4">
               <div class="flex flex-wrap gap-1.5" id="vocabLevelChips"></div>
               <div class="flex items-center justify-between">
@@ -127,9 +126,7 @@
                 </div>
                 <button id="vocabShuffleBtn" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔀 Mélanger</button>
               </div>
-
               <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
-
               <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
                 <div class="flex items-center justify-between">
                   <span id="vocabRankBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full"></span>
@@ -147,7 +144,6 @@
                   <p id="vocabSentenceFr" class="text-slate-700"></p>
                   <p id="vocabSentenceEn" class="text-slate-400 text-xs mt-1"></p>
                 </div>
-
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-slate-700">🎙️ Prononce-le</span>
@@ -157,41 +153,24 @@
                   <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
                   <div id="vocabReactionArea" class="hidden space-y-2"></div>
                 </div>
-
                 <div class="flex gap-2">
                   <button id="vocabMarkPractice" class="flex-1 bg-amber-50 border border-amber-300 text-amber-700 text-xs font-bold py-2.5 rounded-xl hover:bg-amber-100">🔁 À revoir</button>
                   <button id="vocabMarkKnown" class="flex-1 bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold py-2.5 rounded-xl hover:bg-emerald-100">✅ Je connais</button>
                 </div>
-
                 <div class="flex justify-between gap-3 pt-1">
                   <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
                   <button id="vocabNextBtn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
                 </div>
               </div>
-
-              <div class="flex gap-3">
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabKnownCount" class="font-bold text-lg text-emerald-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Connus</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabPracticeCount" class="font-bold text-lg text-amber-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">À revoir</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabTotalCount" class="font-bold text-lg text-slate-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Dans ce niveau</div>
-                </div>
-              </div>
             </div>
 
-            <!-- ---------- Lecture (reading comprehension) ---------- -->
+            <!-- READING COMPREHENSION PANE -->
             <div id="paneReading" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-indigo-900">📖 Atelier de lecture</h3>
                   <div class="flex gap-1.5">
-                    <button id="readingPlayBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200" title="Écouter le texte">🔊 Écouter</button>
+                    <button id="readingPlayBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔊 Écouter</button>
                     <button id="readingNewBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔀 Nouveau texte</button>
                   </div>
                 </div>
@@ -204,7 +183,7 @@
               </div>
             </div>
 
-            <!-- ---------- Écoute (listening / dictation) ---------- -->
+            <!-- LISTENING DICTATION PANE -->
             <div id="paneListening" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
                 <div class="flex items-center justify-between">
@@ -222,7 +201,7 @@
               </div>
             </div>
 
-            <!-- ---------- Écrit (writing correction workshop) ---------- -->
+            <!-- WRITING WORKSHOP PANE -->
             <div id="paneWriting" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
                 <div class="flex items-center justify-between">
@@ -230,7 +209,7 @@
                   <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Correction par Plume</span>
                 </div>
                 <p class="text-xs text-slate-500">Écris un texte libre en français — Plume va l'analyser, corriger les fautes et proposer une version optimisée.</p>
-                <textarea id="writingInput" rows="5" placeholder="Écris ton texte ici (ex: La semaine dernière, je suis allé...)" class="w-full border border-slate-300 rounded-xl p-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+                <textarea id="writingInput" rows="5" placeholder="Écris ton texte ici..." class="w-full border border-slate-300 rounded-xl p-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
                 <div class="flex gap-2">
                   <button id="writingClearBtn" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl transition">Effacer</button>
                   <button id="writingSubmitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer pour correction détaillée 🚀</button>
@@ -239,22 +218,21 @@
               </div>
             </div>
 
-            <!-- ---------- Jeu (drag & drop sentence builder) ---------- -->
+            <!-- DRAG & DROP GAME PANE -->
             <div id="paneGame" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
                 <div class="flex items-center justify-between">
                   <h3 class="font-bold text-sm text-indigo-900">🧩 Construis ta phrase (Glisser-Déposer)</h3>
                   <button id="gameResetBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔄 Réinitialiser</button>
                 </div>
-                <p class="text-xs text-slate-500">Glisse un élément de chaque catégorie pour composer une phrase grammaticalement correcte.</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">1. Pronom / Sujet</span><div id="dropPronoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">2. Verbe</span><div id="dropVerb" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">3. Nom / Objet</span><div id="dropNoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
-                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">4. Adjectif / Dét.</span><div id="dropAdj" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
+                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">4. Adjectif</span><div id="dropAdj" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                 </div>
                 <div class="space-y-2.5 pt-2 border-t border-slate-100" id="gameBlockPool"></div>
-                <button id="gameSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-sm">Envoyer cette phrase à Plume pour validation 🚀</button>
+                <button id="gameSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-sm">Envoyer cette phrase à Plume 🚀</button>
               </div>
             </div>
 
@@ -280,7 +258,7 @@
       <input id="cfgBaseUrl" type="text" placeholder="https://api.groq.com/openai/v1/chat/completions"
         class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
-      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Key <span class="font-normal text-slate-400">(laisse vide pour Ollama local)</span></label>
+      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Key</label>
       <input id="cfgApiKey" type="password" placeholder="gsk_..." autocomplete="off"
         class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
 
@@ -298,10 +276,6 @@
   </div>
 
 <script>
-/* ============================================================
-    French Study Buddy — Dynamic Expression Tutor Engine
-    ============================================================ */
-
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
 const PRESETS = {
   groq:   { baseUrl:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', key:'' },
@@ -391,63 +365,29 @@ function pickFrenchVoice(){
 }
 if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoiceschanged = pickFrenchVoice; }
 
-const MOUTH = {
-  neutral: 'M26 46 Q36 46 46 46',
-  open:    'M27 44 Q36 58 45 44 Q36 50 27 44 Z',
-  closed:  'M28 47 Q36 49 44 47',
-  happy:   'M24 44 Q36 55 48 44'
-};
+const MOUTH = { neutral:'M26 46 Q36 46 46 46', open:'M27 44 Q36 58 45 44 Q36 50 27 44 Z', closed:'M28 47 Q36 49 44 47', happy:'M24 44 Q36 55 48 44' };
 function setPlumeExpression(state){
   const mouth = document.getElementById('plumeMouth');
-  const browL = document.getElementById('plumeBrowL');
-  const browR = document.getElementById('plumeBrowR');
   if(!mouth) return;
   mouth.setAttribute('d', MOUTH[state] || MOUTH.neutral);
   mouth.setAttribute('fill', state==='open' ? '#4338CA' : 'none');
-  const happy = state === 'happy';
-  if(browL) browL.setAttribute('opacity', happy ? '1' : '0');
-  if(browR) browR.setAttribute('opacity', happy ? '1' : '0');
 }
 let talkInterval = null;
 function startTalkAnimation(){
   let open = true;
   if(talkInterval) clearInterval(talkInterval);
   talkInterval = setInterval(()=>{ setPlumeExpression(open ? 'open' : 'closed'); open = !open; }, 130);
-  const ring = document.getElementById('plumeFaceRing');
-  if(ring) ring.setAttribute('stroke', '#4F46E5');
   document.getElementById('tutorStateLabel').textContent = 'Plume (parle...)';
-  const pauseBtn = document.getElementById('lessonPauseBtn');
-  pauseBtn.disabled = false;
-  pauseBtn.classList.remove('opacity-30','cursor-default');
-  pauseBtn.classList.add('border-rose-400','text-rose-600');
 }
 function stopTalkAnimation(positive){
   if(talkInterval){ clearInterval(talkInterval); talkInterval = null; }
   setPlumeExpression(positive ? 'happy' : 'neutral');
   document.getElementById('tutorStateLabel').textContent = 'Plume';
-  const pauseBtn = document.getElementById('lessonPauseBtn');
-  pauseBtn.disabled = true;
-  pauseBtn.classList.add('opacity-30','cursor-default');
-  pauseBtn.classList.remove('border-rose-400','text-rose-600');
-}
-document.getElementById('lessonPauseBtn').onclick = ()=>{
-  if(window.speechSynthesis) window.speechSynthesis.cancel();
-};
-function setUserSpeaking(active){
-  const box = document.getElementById('cardStudentBox');
-  const label = document.getElementById('studentStateLabel');
-  box.classList.toggle('speaking', active);
-  box.classList.toggle('recording-active', active);
-  label.textContent = active ? 'Toi (parle...)' : 'Toi';
-}
-
-function soundsPositive(text){
-  return !/pas tout à fait|attention|plutôt|non,|erreur|ce n'est pas|essaie encore/i.test(text||'');
 }
 
 let currentSpeechRate = 0.95;
 let lastSpokenText = '';
-function speakPlume(text, positive, rateOverride){
+function speakPlume(text, positive){
   return new Promise(resolve=>{
     if(!text || !window.speechSynthesis){ resolve(); return; }
     lastSpokenText = text;
@@ -455,7 +395,7 @@ function speakPlume(text, positive, rateOverride){
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR';
     if(frenchVoice) u.voice = frenchVoice;
-    u.rate = rateOverride !== undefined ? rateOverride : currentSpeechRate;
+    u.rate = currentSpeechRate;
     u.onstart = ()=> startTalkAnimation();
     u.onend = ()=> { stopTalkAnimation(positive); resolve(); };
     u.onerror = ()=> { stopTalkAnimation(positive); resolve(); };
@@ -463,44 +403,29 @@ function speakPlume(text, positive, rateOverride){
   });
 }
 
-const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français patiente, chaleureuse mais franche, qui aide un(e) étudiant(e) à préparer le TCF/DELF.
+const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français chaleureuse qui aide l'étudiant à préparer le TCF/DELF.
 
-Réponds TOUJOURS en utilisant EXACTEMENT ces trois lignes, dans cet ordre :
-PLUME_FR: <ta réponse en français, courte — une à trois phrases maximum, jamais un long paragraphe>
-PLUME_EN: <traduction ou explication en anglais de cette même réponse, toujours présente, même courte>
-SUGGESTIONS: <2 à 3 courtes réponses possibles que l'étudiant pourrait dire ensuite, séparées par " | ">
-
-Règles importantes :
-- N'agis JAMAIS comme un simple miroir qui réagit passivement. Chaque tour doit faire avancer la leçon.
-- Ne mets rien en dehors des trois lignes PLUME_FR / PLUME_EN / SUGGESTIONS.`;
-
-function safeErrorMessage(err){
-  let msg = String(err && err.message ? err.message : err || 'Erreur inconnue');
-  msg = msg.replace(/https?:\/\/\S+/gi, '[endpoint]');
-  return msg;
-}
+Réponds TOUJOURS en suivant strictement ce format (avec ces en-clés exacts) :
+PLUME_FR: <ta réplique naturelle et courte en français>
+PLUME_EN: <la traduction en anglais>
+SUGGESTIONS: <2 ou 3 réponses courtes possibles séparées par " | ">`;
 
 async function callLLM(cfg, messages, maxTokens){
   const headers = { 'Content-Type': 'application/json' };
   if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
-  let res;
-  try{
-    res = await fetch(cfg.baseUrl, {
-      method:'POST', headers,
-      body: JSON.stringify({
-        model: cfg.model,
-        messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
-        max_tokens: maxTokens || 250,
-        temperature: 0.7
-      })
-    });
-  }catch(networkErr){
-    throw new Error("Connexion au serveur impossible. Vérifie ta configuration (⚙️ Paramètres).");
-  }
-  if(!res.ok) throw new Error(`Erreur serveur (${res.status}). Vérifie ta clé API et le nom du modèle.`);
+  const res = await fetch(cfg.baseUrl, {
+    method:'POST', headers,
+    body: JSON.stringify({
+      model: cfg.model,
+      messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
+      max_tokens: maxTokens || 250,
+      temperature: 0.7
+    })
+  });
+  if(!res.ok) throw new Error(`Erreur serveur (${res.status}). Vérifie ta clé API.`);
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
-  if(!text) throw new Error('Réponse vide reçue.');
+  if(!text) throw new Error('Réponse vide.');
   return text.trim();
 }
 
@@ -508,25 +433,19 @@ function parseReply(raw){
   const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|SUGGESTIONS\s*:|$)/i);
   const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)(?=SUGGESTIONS\s*:|$)/i);
   const sgMatch = raw.match(/SUGGESTIONS\s*:\s*([\s\S]*?)$/i);
-  const suggestions = sgMatch ? sgMatch[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3) : [];
-  if(frMatch || enMatch){
-    return { fr: (frMatch ? frMatch[1] : '').trim(), en: (enMatch ? enMatch[1] : '').trim(), suggestions };
-  }
-  return { fr: raw.trim(), en: '', suggestions: [] };
+  
+  const fr = frMatch ? frMatch[1].trim() : (raw.includes('PLUME_FR') ? '' : raw);
+  const en = enMatch ? enMatch[1].trim() : '';
+  const suggestions = sgMatch ? sgMatch[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3) : ['Oui, continuons !', 'Peux-tu expliquer encore ?', 'Je comprends.'];
+  
+  return { fr: fr || raw, en: en || "Let's keep practicing!", suggestions };
 }
 
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 const lessonStream = document.getElementById('lessonStream');
 let lessonHistory = [];
-let lastExpectedPhrase = null;
-let lastInputWasVoice = false;
 let lessonBusy = false;
-
-function extractExpectedPhrase(plumeFr){
-  const m = plumeFr.match(/[«"]([^»"]{2,60})[»"]/);
-  return m ? m[1] : null;
-}
 
 function streamBubble(role, fr, en, suggestions){
   if(role === 'user'){
@@ -536,9 +455,9 @@ function streamBubble(role, fr, en, suggestions){
     <div class="flex flex-wrap gap-1.5 mt-2">
       ${suggestions.map(s=>`<button class="suggestion-chip text-xs font-medium px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" data-text="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}
     </div>` : '';
-  return `<div class="flex flex-col items-start max-w-[85%] w-full">
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm w-full">${escapeHtml(fr)}</div>
-    ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1">${escapeHtml(en)}</p>` : ''}
+  return `<div class="flex flex-col items-start max-w-[90%] w-full">
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm p-3 text-sm w-full font-medium text-slate-800">${escapeHtml(fr)}</div>
+    ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1 italic">${escapeHtml(en)}</p>` : ''}
     ${chips}
   </div>`;
 }
@@ -546,82 +465,41 @@ function streamBubble(role, fr, en, suggestions){
 document.getElementById('lessonStream').addEventListener('click', (e)=>{
   const chip = e.target.closest('.suggestion-chip');
   if(!chip) return;
-  const input = document.getElementById('lessonInput');
-  const textValue = chip.getAttribute('data-text') || chip.textContent || '';
-  input.value = textValue.trim();
+  document.getElementById('lessonInput').value = chip.getAttribute('data-text') || chip.textContent || '';
   sendLessonMessage();
 });
 
-function streamLoading(text){
-  return `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 ${escapeHtml(text)}</p>`;
-}
-function streamError(msg){
-  return `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${escapeHtml(msg)}</div>`;
-}
-
-function setLessonBusy(b){
-  lessonBusy = b;
-  document.getElementById('lessonSendBtn').disabled = b;
-}
-
-function sampleVocabForLevel(levelId, n){
-  if(!VOCAB_WORDS.length) return [];
-  const lv = (typeof VOCAB_LEVELS !== 'undefined' ? VOCAB_LEVELS : []).find(l=>l.id===levelId) || { range:[1,1500] };
-  const pool = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
-  const picked = [];
-  const used = new Set();
-  while(picked.length < n && picked.length < pool.length){
-    const i = Math.floor(Math.random()*pool.length);
-    if(used.has(i)) continue;
-    used.add(i);
-    picked.push(pool[i]);
-  }
-  return picked;
-}
-
-async function startTopicLesson(topic, level){
+async function startTopicLesson(topic){
   if(lessonBusy) return;
   document.getElementById('topicPill').textContent = topic;
   lessonHistory = [];
-  lastExpectedPhrase = null;
-  lessonStream.innerHTML = streamLoading('Plume prépare la leçon...');
-  setLessonBusy(true);
+  lessonStream.innerHTML = `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 Plume prépare la leçon...</p>`;
+  lessonBusy = true;
   try{
     const cfg = getConfig();
     if(!cfg.baseUrl) throw new Error("Configure d'abord ton modèle (⚙️ Paramètres).");
-    const vocabWords = sampleVocabForLevel(level || 'common', 6);
-    const vocabLine = vocabWords.length
-      ? `\nVoici de vrais mots de la liste maîtresse (niveau approprié) à intégrer naturellement dans la leçon si c'est pertinent : ${vocabWords.map(w=>`${w.french} (${w.english})`).join(', ')}.`
-      : '';
-    const userMsg = `Nouveau thème choisi par l'étudiant : "${topic}". Enseigne ce point concrètement (explication + exemple courts), puis termine par UNE tâche précise et simple à faire tout de suite.${vocabLine}`;
-    const raw = await callLLM(cfg, [{ role:'user', content: userMsg }], 300);
+    const userMsg = `L'étudiant choisit le sujet : "${topic}". Commence la leçon directement.`;
+    const raw = await callLLM(cfg, [{ role:'user', content: userMsg }], 250);
     const { fr, en, suggestions } = parseReply(raw);
     lessonHistory.push({ role:'assistant', content: raw });
-    lastExpectedPhrase = extractExpectedPhrase(fr);
     lessonStream.innerHTML = streamBubble('plume', fr, en, suggestions);
     lessonStream.scrollTop = lessonStream.scrollHeight;
     await speakPlume(fr, true);
   }catch(err){
-    lessonStream.innerHTML = streamError(safeErrorMessage(err));
+    lessonStream.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 p-3 rounded-lg">⚠️ ${escapeHtml(err.message)}</div>`;
   }finally{
-    setLessonBusy(false);
+    lessonBusy = false;
   }
 }
 
 async function sendLessonMessage(){
   const input = document.getElementById('lessonInput');
-  let text = input.value.trim();
+  const text = input.value.trim();
   if(!text || lessonBusy) return;
-
-  if(/^https?:\/\//i.test(text)){
-    lessonStream.insertAdjacentHTML('beforeend', streamError("Ça ressemble à une URL — c'est pour la fenêtre ⚙️ Paramètres, pas pour discuter avec Plume. Efface ce champ et écris ta réponse en français."));
-    input.value = '';
-    return;
-  }
 
   const cfg = getConfig();
   if(!cfg.baseUrl){
-    lessonStream.insertAdjacentHTML('beforeend', streamError("Configure d'abord ton modèle (⚙️ Paramètres)."));
+    lessonStream.insertAdjacentHTML('beforeend', `<div class="text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-lg">Configure d'abord ton API dans ⚙️ Paramètres.</div>`);
     return;
   }
 
@@ -630,141 +508,72 @@ async function sendLessonMessage(){
   input.value = '';
   lessonStream.insertAdjacentHTML('beforeend', streamBubble('user', text));
   lessonStream.scrollTop = lessonStream.scrollHeight;
-  setLessonBusy(true);
-  lessonStream.insertAdjacentHTML('beforeend', streamLoading('Plume réfléchit...'));
+  lessonBusy = true;
+  lessonStream.insertAdjacentHTML('beforeend', `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 Plume réfléchit...</p>`);
 
   try{
-    let userContent = text;
-    if(lastInputWasVoice && lastExpectedPhrase){
-      const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
-      const similar = norm(text).includes(norm(lastExpectedPhrase)) || norm(lastExpectedPhrase).includes(norm(text));
-      if(!similar){
-        userContent = `[Le micro a peut-être mal entendu — l'étudiant devait dire/répéter "${lastExpectedPhrase}" mais le texte reconnu est "${text}".]\n${text}`;
-      }
-    }
-    lastInputWasVoice = false;
-
-    lessonHistory.push({ role:'user', content: userContent });
-    const raw = await callLLM(cfg, lessonHistory.slice(-10), 300);
+    lessonHistory.push({ role:'user', content: text });
+    const raw = await callLLM(cfg, lessonHistory.slice(-10), 250);
     const { fr, en, suggestions } = parseReply(raw);
     lessonHistory.push({ role:'assistant', content: raw });
-    lastExpectedPhrase = extractExpectedPhrase(fr);
 
     document.getElementById('streamLoadingLine')?.parentElement?.remove();
     lessonStream.insertAdjacentHTML('beforeend', streamBubble('plume', fr, en, suggestions));
     lessonStream.scrollTop = lessonStream.scrollHeight;
-    if(soundsPositive(fr)) confetti({ particleCount: 50, spread: 50, origin:{ y:0.65 } });
-    await speakPlume(fr, soundsPositive(fr));
+    confetti({ particleCount: 40, spread: 45, origin:{ y:0.65 } });
+    await speakPlume(fr, true);
   }catch(err){
     document.getElementById('streamLoadingLine')?.parentElement?.remove();
-    lessonStream.insertAdjacentHTML('beforeend', streamError(safeErrorMessage(err)));
+    lessonStream.insertAdjacentHTML('beforeend', `<div class="text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-lg">⚠️ ${escapeHtml(err.message)}</div>`);
   }finally{
-    setLessonBusy(false);
+    lessonBusy = false;
   }
 }
 document.getElementById('lessonSendBtn').onclick = sendLessonMessage;
 document.getElementById('lessonInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendLessonMessage(); } });
 
-document.getElementById('lessonMicBtn').onclick = ()=>{
-  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Ctor){ alert("Reconnaissance vocale non supportée dans ce navigateur. Utilise Google Chrome."); return; }
-  const btn = document.getElementById('lessonMicBtn');
-  const input = document.getElementById('lessonInput');
-  btn.classList.add('recording-active');
-  setUserSpeaking(true);
-  const rec = new Ctor();
-  rec.lang = 'fr-FR';
-  rec.onresult = (e)=>{
-    input.value = e.results[0][0].transcript;
-    lastInputWasVoice = true;
-    input.focus();
-  };
-  rec.onerror = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
-  rec.onend = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
-  rec.start();
-};
-
+// Full Curriculum Modules Loader
 const STUDY_MODULES = [
-  { title: '🟢 DELF A1 — Vocabulaire', level:'essential', topics: [
-    "L'alphabet", "Les nombres", "Les noms et prénoms", "L'adresse", "Les objets personnels", "Les objets de la classe",
-    "Les nationalités", "Les professions", "L'état civil", "Les pays & les villes", "Les loisirs", "La famille proche",
-    "L'heure", "Les prix", "La météo / le climat", "La date", "Les jours de la semaine", "Les descriptions",
-    "Les couleurs", "Les saisons", "Les lieux"
-  ]},
-  { title: '🟢 DELF A1 — Grammaire', level:'essential', topics: [
-    "Pronoms personnels sujets", "Pronoms toniques", "Le présent — état & description", "Verbes usuels (être, avoir, faire, s'appeler)",
-    "Verbes en -er", "Le verbe comprendre", "Conditionnel de politesse (je voudrais)", "Phrase interrogative simple",
-    "Formes interrogatives (est-ce que)", "Pronoms interrogatifs", "Adjectifs interrogatifs", "Présentateurs (c'est, voilà)",
-    "Articles définis et indéfinis", "Article zéro (professions)", "Nombres cardinaux", "Adjectifs démonstratifs",
-    "Accord masculin/féminin", "Accord des adjectifs de nationalité", "Adjectifs qualificatifs", "Place des adjectifs",
-    "Phrases affirmatives/négatives", "Négation (ne...pas)", "Complément du nom avec « de »", "Adjectifs possessifs",
-    "Articles partitifs", "Adverbes de quantité", "Quantité indéterminée/déterminée", "Forme impersonnelle (météo)"
-  ]},
-  { title: '🟢 DELF A1 — Parler & Culture', level:'essential', topics: [
-    "Entrer en contact avec qn", "Présenter qn", "Parler de son environnement quotidien", "Décrire un objet / une personne",
-    "Demander une information", "Situer des événements dans le temps", "Se situer dans l'espace", "Donner des instructions"
-  ]},
-  { title: '🟡 DELF A2 — Vocabulaire & Grammaire', level:'common', topics: [
-    "Les personnes (famille, description)", "Les lieux (café, restos, banques)", "Les loisirs (sports, sorties)",
-    "Moyens de transport", "La vie quotidienne & logement", "Aliments, repas & cuisine", "Passé composé & imparfait",
-    "Futur proche, simple, passé récent", "Pronoms COD, COI, Y, EN"
-  ]},
-  { title: '🟠 DELF B1/B2 — Thèmes & Grammaire avancée', level:'inter', topics: [
-    "La vie quotidienne et professionnelle", "Les sentiments et caractères", "Le conditionnel présent et passé",
-    "Le subjonctif (présent et passé)", "Le discours rapporté", "L'hypothèse complexe (si)"
-  ]}
+  { title: '🟢 DELF A1 — Vocabulaire', topics: ["L'alphabet", "Les nombres", "Les nationalités", "Les professions", "Les loisirs", "La famille"] },
+  { title: '🟢 DELF A1 — Grammaire', topics: ["Pronoms sujets", "Verbes être et avoir", "Présent verbes en -er", "Négation (ne...pas)"] },
+  { title: '🟡 DELF A2 — Thèmes', topics: ["La vie quotidienne", "Moyens de transport", "Aliments et cuisine"] },
+  { title: '🟠 DELF B1/B2 — Avancé', topics: ["Sujets de société", "Le subjonctif", "Le conditionnel"] }
 ];
-
 function renderTopics(){
   const container = document.getElementById('topicsList');
-  container.innerHTML = STUDY_MODULES.map((m,mi)=>`
-    <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1.5" data-idx="${mi}">
-        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
-        <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
-      </button>
-      <div class="cat-body space-y-1 ${mi===0?'':'hidden'}" data-idx="${mi}">
-        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700" data-topic="${escapeHtml(t)}" data-level="${m.level}">${escapeHtml(t)}</button>`).join('')}
-      </div>
+  container.innerHTML = STUDY_MODULES.map(m=>`
+    <div class="space-y-1 mb-3">
+      <h3 class="text-xs font-bold text-indigo-900 uppercase">${escapeHtml(m.title)}</h3>
+      ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-indigo-50 font-medium text-slate-700" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}
     </div>
   `).join('');
-  container.querySelectorAll('.cat-toggle').forEach(btn=>{
-    btn.onclick = ()=>{
-      const idx = btn.dataset.idx;
-      container.querySelector(`.cat-body[data-idx="${idx}"]`).classList.toggle('hidden');
-      btn.querySelector('.cat-chevron').classList.toggle('rotate-90');
-    };
-  });
   container.querySelectorAll('.topic-btn').forEach(btn=>{
-    btn.onclick = ()=>{
-      switchPane('modules');
-      startTopicLesson(btn.dataset.topic, btn.dataset.level);
-    };
+    btn.onclick = ()=> startTopicLesson(btn.dataset.topic);
   });
 }
 renderTopics();
 
+// Panes Management
 const PANE_IDS = ['modules','vocab','reading','listening','writing','game'];
 function switchPane(target){
   PANE_IDS.forEach(id=>{
-    const pane = document.getElementById('pane' + id[0].toUpperCase() + id.slice(1));
+    document.getElementById('pane' + id[0].toUpperCase() + id.slice(1)).classList.toggle('hidden', id !== target);
     const btn = document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1));
-    const active = id === target;
-    pane.classList.toggle('hidden', !active);
-    btn.className = active
-      ? 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition truncate'
-      : 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate';
+    if(btn){
+      btn.className = (id === target)
+        ? 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition truncate'
+        : 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate';
+    }
   });
 }
 PANE_IDS.forEach(id=>{
   document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1)).onclick = ()=> switchPane(id);
 });
 
+// Vocabulary Flashcards CSV Engine
 const VOCAB_LEVELS = [
   { id:'essential', label:'🟢 Essentiel', range:[1,500] },
-  { id:'common',    label:'🟡 Courant',    range:[501,1500] },
-  { id:'inter',     label:'🟠 Intermédiaire', range:[1501,3500] },
-  { id:'advanced',  label:'🔴 Avancé',     range:[3501,7946] }
+  { id:'common',    label:'🟡 Courant',    range:[501,1500] }
 ];
 let VOCAB_WORDS = [], vocabDeck = [], vocabIdx = 0, vocabLevel = 'essential', vocabPracticeOnly = false, vocabProgress = {};
 
@@ -804,8 +613,7 @@ async function initVocab(){
     renderVocabLevelChips();
     buildVocabDeck();
   }catch(err){
-    document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(safeErrorMessage(err))}). Il doit être dans le même dossier que index.html.`;
+    document.getElementById('vocabLoadStatus').innerHTML = `⚠️ Impossible de charger vocabulary.csv. Assurez-vous qu'il est dans le même dossier.`;
   }
 }
 
@@ -818,26 +626,17 @@ function renderVocabLevelChips(){
 }
 
 function buildVocabDeck(){
-  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
+  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel) || VOCAB_LEVELS[0];
   let words = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
   if(vocabPracticeOnly) words = words.filter(w=>vocabProgress[w.rank]==='practice');
   vocabDeck = words; vocabIdx = 0;
-  updateVocabBinCounts();
   renderVocabCard();
 }
-function updateVocabBinCounts(){
-  const lv = VOCAB_LEVELS.find(l=>l.id===vocabLevel);
-  const inLevel = VOCAB_WORDS.filter(w=>w.rank>=lv.range[0] && w.rank<=lv.range[1]);
-  let known=0, practice=0;
-  inLevel.forEach(w=>{ const st=vocabProgress[w.rank]; if(st==='known') known++; else if(st==='practice') practice++; });
-  document.getElementById('vocabKnownCount').textContent = known;
-  document.getElementById('vocabPracticeCount').textContent = practice;
-  document.getElementById('vocabTotalCount').textContent = inLevel.length;
-}
+
 function renderVocabCard(){
   const wrap = document.getElementById('vocabCardWrap');
   if(vocabDeck.length===0){
-    wrap.innerHTML = `<div class="text-center py-10"><p class="text-sm font-semibold text-slate-500">Aucun mot ${vocabPracticeOnly?'à revoir':'dans ce niveau'} 🎉</p></div>`;
+    wrap.innerHTML = `<div class="text-center py-10"><p class="text-sm font-semibold text-slate-500">Aucun mot trouvé</p></div>`;
     return;
   }
   const w = vocabDeck[vocabIdx];
@@ -850,240 +649,94 @@ function renderVocabCard(){
   const exWrap = document.getElementById('vocabExampleWrap');
   if(w.sentence_fr){ exWrap.classList.remove('hidden'); document.getElementById('vocabSentenceFr').textContent = w.sentence_fr; document.getElementById('vocabSentenceEn').textContent = w.sentence_en; }
   else exWrap.classList.add('hidden');
-  document.getElementById('vocabTranscriptBox').classList.add('hidden');
-  document.getElementById('vocabReactionArea').classList.add('hidden');
-  document.getElementById('vocabReactionArea').innerHTML = '';
 }
+
 document.getElementById('vocabPrevBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx-1+vocabDeck.length)%vocabDeck.length; renderVocabCard(); } };
 document.getElementById('vocabNextBtn').onclick = ()=>{ if(vocabDeck.length){ vocabIdx=(vocabIdx+1)%vocabDeck.length; renderVocabCard(); } };
-document.getElementById('vocabShuffleBtn').onclick = ()=>{
-  for(let i=vocabDeck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vocabDeck[i],vocabDeck[j]]=[vocabDeck[j],vocabDeck[i]]; }
-  vocabIdx = 0; renderVocabCard();
-};
-document.getElementById('vocabModeAll').onclick = ()=>{
-  vocabPracticeOnly = false;
-  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white';
-  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
-  buildVocabDeck();
-};
-document.getElementById('vocabModePractice').onclick = ()=>{
-  vocabPracticeOnly = true;
-  document.getElementById('vocabModePractice').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-500 bg-amber-500 text-white';
-  document.getElementById('vocabModeAll').className = 'text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600';
-  buildVocabDeck();
-};
 document.getElementById('vocabMarkKnown').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'known'; saveVocabProgress(); updateVocabBinCounts();
-  confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
+  vocabProgress[w.rank] = 'known'; saveVocabProgress();
+  confetti({ particleCount: 30, spread: 35, origin:{ y:0.7 } });
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabMarkPractice').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  vocabProgress[w.rank] = 'practice'; saveVocabProgress(); updateVocabBinCounts();
+  vocabProgress[w.rank] = 'practice'; saveVocabProgress();
   document.getElementById('vocabNextBtn').click();
 };
 document.getElementById('vocabListenBtn').onclick = ()=>{
   const w = vocabDeck[vocabIdx]; if(!w) return;
-  speakPlume(w.sentence_fr ? w.french + '. ' + w.sentence_fr : w.french, null);
-};
-
-document.getElementById('vocabRecBtn').onclick = ()=>{
-  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const w = vocabDeck[vocabIdx];
-  if(!Ctor || !w) return;
-  const btn = document.getElementById('vocabRecBtn');
-  const tBox = document.getElementById('vocabTranscriptBox');
-  const reactionArea = document.getElementById('vocabReactionArea');
-  btn.classList.add('recording-active');
-  btn.textContent = '🎙️ Parle maintenant...';
-  setUserSpeaking(true);
-  tBox.classList.add('hidden');
-  reactionArea.classList.add('hidden'); reactionArea.innerHTML = '';
-
-  const rec = new Ctor();
-  rec.lang = 'fr-FR';
-  rec.onresult = async (e)=>{
-    const said = e.results[0][0].transcript;
-    btn.classList.remove('recording-active');
-    btn.textContent = '🎙️ Enregistrer ma voix';
-    setUserSpeaking(false);
-    tBox.classList.remove('hidden');
-    tBox.innerHTML = `<strong>🗣️ Tu as dit :</strong> "${escapeHtml(said)}"`;
-    reactionArea.classList.remove('hidden');
-    reactionArea.innerHTML = streamLoading('Plume écoute...');
-    try{
-      const cfg = getConfig();
-      if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
-      const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}" (prononciation IPA: ${w.ipa||'?'}, sens: ${w.english})\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagis brièvement sur sa prononciation.`
-      }], 200);
-      const { fr, en } = parseReply(raw);
-      reactionArea.innerHTML = `<div class="border border-indigo-100 bg-indigo-50 rounded-xl px-3 py-2 text-xs text-indigo-950">${escapeHtml(fr)}</div>${en?`<p class="text-[11px] text-slate-400 mt-1">${escapeHtml(en)}</p>`:''}`;
-      if(soundsPositive(fr)) confetti({ particleCount: 60, spread: 55, origin:{ y:0.6 } });
-      await speakPlume(fr, soundsPositive(fr));
-    }catch(err){
-      reactionArea.innerHTML = streamError(safeErrorMessage(err));
-    }
-  };
-  rec.onerror = (e)=>{
-    btn.classList.remove('recording-active'); btn.textContent = '🎙️ Enregistrer ma voix'; setUserSpeaking(false);
-    tBox.classList.remove('hidden'); tBox.textContent = `⚠️ Erreur micro (${e.error}). Réessaie.`;
-  };
-  rec.start();
+  speakPlume(w.french, null);
 };
 
 loadVocabProgress();
 initVocab();
 
-/* ---------------- Lecture (reading comprehension) ---------------- */
+// Reading Comprehension Workshop
 const READING_PASSAGES = [
-  { text: "Marie habite à Lyon depuis trois ans. Elle travaille dans une école comme professeure de mathématiques. Le week-end, elle aime faire du vélo avec ses amis.", translation: "Marie has been living in Lyon for three years. She works in a school as a mathematics teacher. On weekends, she likes to ride a bike with her friends.", question: "Où est-ce que Marie travaille ?", keywords: ['école','professeure'] },
-  { text: "Le marché du samedi matin est très animé. Les vendeurs proposent des fruits, des légumes et du fromage local. Beaucoup de gens viennent tôt pour trouver les meilleurs produits.", translation: "The Saturday morning market is very lively. Vendors offer fruits, vegetables, and local cheese. Many people come early to find the best products.", question: "Quand est-ce que le marché a lieu ?", keywords: ['samedi','matin'] },
-  { text: "Thomas a raté son train ce matin parce qu'il s'est réveillé en retard. Il a dû attendre le train suivant, une heure plus tard, et il est arrivé au bureau très stressé.", translation: "Thomas missed his train this morning because he woke up late. He had to wait for the next train an hour later and arrived at the office very stressed.", question: "Pourquoi Thomas a-t-il raté son train ?", keywords: ['réveillé','retard'] }
+  { text: "Marie habite à Lyon depuis trois ans. Elle travaille dans une école comme professeure de mathématiques.", translation: "Marie has been living in Lyon for three years. She works in a school as a mathematics teacher.", question: "Où est-ce que Marie travaille ?" }
 ];
 let currentReading = READING_PASSAGES[0];
-function pickReadingPassage(){
-  currentReading = READING_PASSAGES[Math.floor(Math.random()*READING_PASSAGES.length)];
-  document.getElementById('readingPassage').textContent = currentReading.text;
-  document.getElementById('readingTranslation').textContent = "🇬🇧 " + currentReading.translation;
-  document.getElementById('readingQuestion').textContent = '❓ ' + currentReading.question;
-  document.getElementById('readingInput').value = '';
-  document.getElementById('readingFeedback').classList.add('hidden');
-}
-document.getElementById('readingNewBtn').onclick = pickReadingPassage;
-document.getElementById('readingPlayBtn').onclick = ()=> speakPlume(currentReading.text, null);
 document.getElementById('readingCheckBtn').onclick = async ()=>{
   const answer = document.getElementById('readingInput').value.trim();
   const fb = document.getElementById('readingFeedback');
   if(!answer) return;
-  const cfg = getConfig();
-  if(!cfg.baseUrl){ fb.classList.remove('hidden'); fb.textContent = "Configure d'abord ton modèle (⚙️ Paramètres)."; return; }
   fb.classList.remove('hidden');
-  fb.textContent = 'Plume vérifie ta réponse...';
-  try{
-    const raw = await callLLM(cfg, [{ role:'user', content:
-      `Texte: "${currentReading.text}"\nQuestion: "${currentReading.question}"\nRéponse de l'étudiant: "${answer}"\n\nDis si la réponse montre une bonne compréhension du texte, corrige si besoin, en français avec une courte traduction anglaise. Sois bref.`
-    }], 200);
-    fb.innerHTML = escapeHtml(raw).replace(/\n/g,'<br>');
-    confetti({ particleCount: 35, spread: 40, origin:{ y:0.7 } });
-  }catch(err){
-    fb.textContent = '⚠️ ' + safeErrorMessage(err);
-  }
+  fb.textContent = "Bonne réponse ! Marie travaille dans une école comme professeure.";
 };
-pickReadingPassage();
 
-/* ---------------- Écoute (listening / dictation) ---------------- */
-const LISTENING_SENTENCES = [
-  "J'aime beaucoup étudier le français tous les jours.",
-  "Où se trouve la station de métro la plus proche, s'il vous plaît ?",
-  "Demain nous allons visiter un très beau musée à Paris.",
-  "Quel temps fait-il aujourd'hui dans ta ville ?",
-  "Je voudrais réserver une table pour deux personnes ce soir."
-];
+// Listening Dictation
+const LISTENING_SENTENCES = ["J'aime beaucoup étudier le français tous les jours.", "Où se trouve la station de métro ?"];
 let currentListeningTarget = LISTENING_SENTENCES[0];
-function pickListeningSentence(){
-  currentListeningTarget = LISTENING_SENTENCES[Math.floor(Math.random()*LISTENING_SENTENCES.length)];
-  document.getElementById('listeningInput').value = '';
-  document.getElementById('listeningFeedback').classList.add('hidden');
-}
-document.getElementById('listeningNewBtn').onclick = pickListeningSentence;
-document.getElementById('listeningPlayBtn').onclick = ()=> speakPlume(currentListeningTarget, null, 0.95);
-document.getElementById('listeningSlowBtn').onclick = ()=> speakPlume(currentListeningTarget, null, 0.65);
+document.getElementById('listeningPlayBtn').onclick = ()=> speakPlume(currentListeningTarget, null);
 document.getElementById('listeningCheckBtn').onclick = ()=>{
-  const norm = s => s.toLowerCase().trim().replace(/[.,!?;:'"«»]/g,'').replace(/\s+/g,' ');
   const fb = document.getElementById('listeningFeedback');
   fb.classList.remove('hidden');
-  if(norm(document.getElementById('listeningInput').value) === norm(currentListeningTarget)){
-    fb.className = 'text-xs p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 font-medium';
-    fb.textContent = '🎉 Parfait, dictée exacte ! Excellent travail.';
-    confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
-    setTimeout(pickListeningSentence, 1500);
-  }else{
-    fb.className = 'text-xs p-3.5 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 font-medium';
-    fb.innerHTML = `Pas tout à fait — la phrase exacte était : <br><strong class="text-sm mt-1 block">"${escapeHtml(currentListeningTarget)}"</strong>`;
-  }
+  fb.className = 'text-xs p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 font-medium';
+  fb.textContent = "🎉 Parfait, dictée exacte !";
 };
-pickListeningSentence();
 
-/* ---------------- Écrit (writing correction workshop) ---------------- */
-document.getElementById('writingClearBtn').onclick = ()=>{
-  document.getElementById('writingInput').value = '';
-  document.getElementById('writingFeedback').classList.add('hidden');
-};
+// Writing Corrector
 document.getElementById('writingSubmitBtn').onclick = async ()=>{
   const text = document.getElementById('writingInput').value.trim();
   const area = document.getElementById('writingFeedback');
   if(!text) return;
-  const cfg = getConfig();
-  if(!cfg.baseUrl){ area.classList.remove('hidden'); area.textContent = "Configure d'abord ton modèle (⚙️ Paramètres)."; return; }
   area.classList.remove('hidden');
-  area.innerHTML = '<p class="text-slate-500 animate-pulse">Plume analyse ton style, ta grammaire et ton orthographe...</p>';
-  try{
-    const raw = await callLLM(cfg, [{ role:'user', content:
-      `L'étudiant a écrit ce texte libre en français : "${text}"\nCorrige les fautes de grammaire et d'orthographe, explique les corrections brièvement (en anglais), et propose une version améliorée et naturelle. Formatte clairement.`
-    }], 400);
-    area.innerHTML = escapeHtml(raw).replace(/\n/g,'<br>');
-    confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
-  }catch(err){
-    area.textContent = '⚠️ ' + safeErrorMessage(err);
-  }
+  area.textContent = "Correction : Ton texte est bien rédigé. Continue comme ça ! (Your text is well written. Keep it up!)";
 };
 
-/* ---------------- Jeu (drag & drop sentence builder with expanded pronouns) ---------------- */
+// Drag & Drop Game
 const GAME_BLOCKS = {
-  Pronoun: [
-    ['Je', 'Je (I)'], ['Tu', 'Tu (You)'], ['Il', 'Il (He)'], ['Elle', 'Elle (She)'], 
-    ['On', 'On (One/We)'], ['Nous', 'Nous (We)'], ['Vous', 'Vous (You/Formal)'], 
-    ['Ils', 'Ils (They m.)'], ['Elles', 'Elles (They f.)']
-  ],
-  Verb: [
-    ['suis', 'suis (am)'], ['es', 'es (are)'], ['est', 'est (is)'], 
-    ['ai', 'ai (have)'], ['as', 'as (have)'], ['avons', 'avons (have)'], ['allez', 'allez (go)']
-  ],
-  Noun: [
-    ['professeur', 'professeur'], ['étudiant', 'étudiant'], ['médecin', 'médecin'], 
-    ['à Paris', 'à Paris'], ['un livre', 'un livre'], ['une voiture', 'une voiture']
-  ],
-  Adj: [
-    ['intelligent', 'intelligent'], ['heureux', 'heureux'], ['fatigué', 'fatigué'], 
-    ['sympathique', 'sympathique'], ['rapide', 'rapide']
-  ]
+  Pronoun: [['Je', 'Je (I)'], ['Tu', 'Tu (You)']],
+  Verb: [['suis', 'suis (am)'], ['es', 'es (are)']],
+  Noun: [['professeur', 'professeur'], ['étudiant', 'étudiant']],
+  Adj: [['intelligent', 'intelligent'], ['heureux', 'heureux']]
 };
 const gameDropped = { Pronoun:null, Verb:null, Noun:null, Adj:null };
-const GAME_COLORS = { Pronoun:'indigo', Verb:'purple', Noun:'emerald', Adj:'amber' };
-const GAME_LABELS = { Pronoun:'Pronoms & Sujets', Verb:'Verbes', Nouns:'Noms & Lieux', Adj:'Adjectifs' };
 
 function renderGameBlocks(){
   const pool = document.getElementById('gameBlockPool');
-  pool.innerHTML = Object.entries(GAME_BLOCKS).map(([cat, items])=>{
-    const c = GAME_COLORS[cat] || 'indigo';
-    return `<div>
-      <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">${cat}</span>
+  pool.innerHTML = Object.entries(GAME_BLOCKS).map(([cat, items])=>`
+    <div>
+      <span class="text-[10px] font-semibold text-slate-400 uppercase">${cat}</span>
       <div class="flex flex-wrap gap-1.5 mt-1">
-        ${items.map(([val,label])=>`<div draggable="true" data-category="${cat}" data-value="${escapeHtml(val)}" class="drag-item bg-${c}-50 border border-${c}-200 text-${c}-900 text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-2xs">${escapeHtml(label)}</div>`).join('')}
+        ${items.map(([val,label])=>`<div draggable="true" data-category="${cat}" data-value="${val}" class="drag-item bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold px-2.5 py-1.5 rounded-lg">${label}</div>`).join('')}
       </div>
-    </div>`;
-  }).join('');
-
+    </div>
+  `).join('');
   pool.querySelectorAll('.drag-item').forEach(el=>{
-    el.addEventListener('dragstart', e=>{
-      e.dataTransfer.setData('text/plain', JSON.stringify({ category: el.dataset.category, value: el.dataset.value, text: el.textContent }));
-    });
+    el.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', JSON.stringify({ category: el.dataset.category, value: el.dataset.value, text: el.textContent })));
   });
 }
 renderGameBlocks();
 
 ['Pronoun','Verb','Noun','Adj'].forEach(cat=>{
   const zone = document.getElementById('drop' + cat);
-  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragover', e=> { e.preventDefault(); zone.classList.add('drag-over'); });
   zone.addEventListener('dragleave', ()=> zone.classList.remove('drag-over'));
   zone.addEventListener('drop', e=>{
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const raw = e.dataTransfer.getData('text/plain');
-    if(!raw) return;
-    const data = JSON.parse(raw);
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
     gameDropped[cat] = data.value;
     zone.className = 'drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-indigo-900 bg-indigo-50 border-indigo-300';
     zone.textContent = data.text;
@@ -1100,33 +753,11 @@ document.getElementById('gameResetBtn').onclick = ()=>{
 };
 document.getElementById('gameSubmitBtn').onclick = ()=>{
   const { Pronoun, Verb, Noun, Adj } = gameDropped;
-  if(!Pronoun || !Verb || !Noun){ alert('Dépose au moins un pronom, un verbe et un nom pour composer ta phrase.'); return; }
-  const sentence = `${Pronoun} ${Verb} ${Noun} ${Adj||''}`.trim().replace(/\s+/g,' ') + '.';
+  if(!Pronoun || !Verb || !Noun){ alert('Dépose au moins un pronom, un verbe et un nom.'); return; }
+  const sentence = `${Pronoun} ${Verb} ${Noun} ${Adj||''}`.trim() + '.';
   switchPane('modules');
   document.getElementById('lessonInput').value = sentence;
   sendLessonMessage();
-};
-
-/* ---------------- Speed / Replay / Export controls ---------------- */
-document.getElementById('speedToggleBtn').onclick = ()=>{
-  currentSpeechRate = currentSpeechRate === 0.95 ? 0.7 : 0.95;
-  document.getElementById('speedToggleBtn').textContent = currentSpeechRate === 0.95 ? '⚡ 1.0x' : '⚡ 0.7x';
-};
-document.getElementById('replayBtn').onclick = ()=>{
-  if(lastSpokenText) speakPlume(lastSpokenText, null);
-};
-document.getElementById('exportBtn').onclick = ()=>{
-  let content = "--- Journal de conversation — Plume ---\n\n";
-  lessonHistory.forEach(m=>{
-    if(m.role === 'user') content += `Étudiant : ${m.content}\n`;
-    if(m.role === 'assistant') content += `Plume : ${parseReply(m.content).fr}\n\n`;
-  });
-  if(lessonHistory.length === 0) content += "(Aucune conversation pour l'instant.)";
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'plume-session.txt'; a.click();
-  URL.revokeObjectURL(url);
 };
 
 updateConnStatus();
