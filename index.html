@@ -542,7 +542,6 @@ function streamBubble(role, fr, en, suggestions){
   </div>`;
 }
 
-// Safely handle suggestion chip clicks to prevent API endpoints or HTML from leaking into the input
 document.getElementById('lessonStream').addEventListener('click', (e)=>{
   const chip = e.target.closest('.suggestion-chip');
   if(!chip) return;
@@ -613,7 +612,6 @@ async function sendLessonMessage(){
   let text = input.value.trim();
   if(!text || lessonBusy) return;
 
-  // Hard safeguard against api endpoints getting pasted into chat box
   if(/^https?:\/\//i.test(text)){
     lessonStream.insertAdjacentHTML('beforeend', streamError("Ça ressemble à une URL — c'est pour la fenêtre ⚙️ Paramètres, pas pour discuter avec Plume. Efface ce champ et écris ta réponse en français."));
     input.value = '';
