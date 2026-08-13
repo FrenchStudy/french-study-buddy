@@ -218,9 +218,23 @@
             <div id="paneWriting" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-indigo-900">✍️ Atelier d'écriture</h3>
-                <p class="text-xs text-slate-500">Écris un texte libre en français — Plume le corrige et propose une version améliorée.</p>
-                <textarea id="writingInput" rows="5" placeholder="Écris ici (ex: la semaine dernière, j'ai visité..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-                <button id="writingSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer pour correction</button>
+                <p class="text-xs text-slate-500">Choisis un thème, génère un sujet type TCF/TEF, puis rédige ta réponse.</p>
+
+                <select id="writingThemeSelect" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></select>
+                <button id="writingGenBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition">🎯 Générer un sujet TCF/TEF</button>
+
+                <div id="writingPromptCard" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-950"></div>
+
+                <div class="relative">
+                  <textarea id="writingInput" rows="6" placeholder="Écris ici ta réponse..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+                </div>
+                <div id="writingSuggestRow" class="flex flex-wrap gap-1.5 min-h-[10px]"></div>
+
+                <div class="flex gap-2">
+                  <button id="writingSubmitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer pour correction</button>
+                  <button id="writingSampleBtn" class="flex-1 bg-white border border-slate-300 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition hover:bg-slate-50">💡 Voir un exemple de réponse</button>
+                </div>
+                <div id="writingSampleArea" class="hidden bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-950 leading-relaxed"></div>
                 <div id="writingFeedback" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-950 leading-relaxed"></div>
               </div>
             </div>
@@ -228,16 +242,18 @@
             <!-- ---------- Jeu (drag & drop sentence builder) ---------- -->
             <div id="paneGame" class="hidden space-y-3">
               <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between flex-wrap gap-1">
                   <h3 class="font-bold text-sm text-indigo-900">🧩 Construis ta phrase</h3>
                   <button id="gameResetBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔄 Réinitialiser</button>
                 </div>
+                <p class="text-xs text-slate-500">Thème actif : <span id="gameThemeLabel" class="font-bold text-indigo-700">Général</span> — clique un sujet à gauche pour changer les mots du jeu.</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">1. Sujet</span><div id="dropPronoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">2. Verbe</span><div id="dropVerb" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">3. Nom</span><div id="dropNoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                   <div><span class="text-[10px] font-bold text-slate-500 block mb-1">4. Adjectif</span><div id="dropAdj" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
                 </div>
+                <div id="gameLoadingLine" class="hidden text-xs text-slate-400 font-semibold">💬 Plume prépare les mots du thème...</div>
                 <div class="space-y-2 pt-1" id="gameBlockPool"></div>
                 <button id="gameSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer cette phrase à Plume 🚀</button>
               </div>
@@ -759,8 +775,12 @@ function renderTopics(){
   });
   container.querySelectorAll('.topic-btn').forEach(btn=>{
     btn.onclick = ()=>{
-      switchPane('modules');
-      startTopicLesson(btn.dataset.topic, btn.dataset.level);
+      if(currentPane === 'game'){
+        loadGameTheme(btn.dataset.topic, btn.dataset.level);
+      }else{
+        switchPane('modules');
+        startTopicLesson(btn.dataset.topic, btn.dataset.level);
+      }
     };
   });
 }
@@ -768,7 +788,9 @@ renderTopics();
 
 /* ---------------- Pane switching (5 panes) ---------------- */
 const PANE_IDS = ['modules','vocab','reading','listening','writing','game'];
+let currentPane = 'modules';
 function switchPane(target){
+  currentPane = target;
   PANE_IDS.forEach(id=>{
     const pane = document.getElementById('pane' + id[0].toUpperCase() + id.slice(1));
     const btn = document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1));
@@ -995,6 +1017,87 @@ document.getElementById('listeningCheckBtn').onclick = ()=>{
 };
 
 /* ---------------- Écrit (writing correction workshop) ---------------- */
+/* ---------------- Écrit — theme, prompt generation, sample answer, live suggestions ---------------- */
+let currentWritingPrompt = null;
+(function populateWritingThemes(){
+  const sel = document.getElementById('writingThemeSelect');
+  sel.innerHTML = STUDY_MODULES.map(g=>
+    `<optgroup label="${escapeHtml(g.title)}">${g.topics.map(t=>`<option value="${escapeHtml(t)}" data-level="${g.level}">${escapeHtml(t)}</option>`).join('')}</optgroup>`
+  ).join('');
+})();
+
+document.getElementById('writingGenBtn').onclick = async ()=>{
+  const sel = document.getElementById('writingThemeSelect');
+  const theme = sel.value;
+  const level = sel.selectedOptions[0]?.dataset.level || 'common';
+  const cfg = getConfig();
+  const card = document.getElementById('writingPromptCard');
+  card.classList.remove('hidden');
+  card.textContent = 'Plume prépare un sujet...';
+  document.getElementById('writingSampleArea').classList.add('hidden');
+  if(!cfg.baseUrl){ card.textContent = "Configure d'abord ton modèle (⚙️ Paramètres)."; return; }
+  try{
+    const raw = await callLLM(cfg, [{ role:'user', content:
+      `Génère UN sujet d'expression écrite de style TCF/TEF sur le thème "${theme}", niveau ${level}. Choisis un type de tâche adapté (message court, essai argumenté, ou description selon le niveau) et précise un nombre de mots minimum. Réponds en français, 2-3 phrases maximum, sans préambule.`
+    }], 200);
+    currentWritingPrompt = raw.trim();
+    card.innerHTML = `<strong>${escapeHtml(theme)}</strong><br>${escapeHtml(currentWritingPrompt)}`;
+  }catch(err){
+    card.textContent = '⚠️ ' + safeErrorMessage(err);
+  }
+};
+
+document.getElementById('writingSampleBtn').onclick = async ()=>{
+  const area = document.getElementById('writingSampleArea');
+  if(!currentWritingPrompt){
+    area.classList.remove('hidden');
+    area.textContent = "Génère d'abord un sujet ci-dessus.";
+    return;
+  }
+  const cfg = getConfig();
+  if(!cfg.baseUrl){ area.classList.remove('hidden'); area.textContent = "Configure d'abord ton modèle (⚙️ Paramètres)."; return; }
+  area.classList.remove('hidden');
+  area.textContent = 'Plume rédige un exemple...';
+  try{
+    const raw = await callLLM(cfg, [{ role:'user', content:
+      `Sujet: "${currentWritingPrompt}"\nÉcris une réponse modèle courte et naturelle en français qui répond bien à ce sujet, puis donne sa traduction anglaise. Format exact:\nFR: <réponse modèle>\nEN: <traduction>`
+    }], 300);
+    const frM = raw.match(/FR\s*:\s*([\s\S]*?)(?=EN\s*:|$)/i);
+    const enM = raw.match(/EN\s*:\s*([\s\S]*?)$/i);
+    area.innerHTML = `<strong>Exemple :</strong> ${escapeHtml(frM?frM[1].trim():raw)}<br><br><strong>Traduction :</strong> ${escapeHtml(enM?enM[1].trim():'')}`;
+  }catch(err){
+    area.textContent = '⚠️ ' + safeErrorMessage(err);
+  }
+};
+
+// Live typing suggestions, Google Translate style — debounced so it doesn't fire on every keystroke
+let writingSuggestTimer = null;
+document.getElementById('writingInput').addEventListener('input', (e)=>{
+  clearTimeout(writingSuggestTimer);
+  const text = e.target.value;
+  const row = document.getElementById('writingSuggestRow');
+  if(text.trim().length < 2){ row.innerHTML = ''; return; }
+  writingSuggestTimer = setTimeout(async ()=>{
+    const cfg = getConfig();
+    if(!cfg.baseUrl) return;
+    try{
+      const raw = await callLLM(cfg, [{ role:'user', content:
+        `Voici le début d'une phrase en français, possiblement incomplète ou avec des erreurs: "${text}"\nPropose 3 courtes suggestions pour continuer ou compléter naturellement (quelques mots chacune). Réponds UNIQUEMENT sous forme: suggestion1 | suggestion2 | suggestion3`
+      }], 80);
+      const options = raw.split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);
+      row.innerHTML = options.map(o=>`<button class="write-suggest-chip text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-300 bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 transition" data-text="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join('');
+      row.querySelectorAll('.write-suggest-chip').forEach(chip=>{
+        chip.onclick = ()=>{
+          const ta = document.getElementById('writingInput');
+          ta.value = ta.value + (ta.value.endsWith(' ')||ta.value==='' ? '' : ' ') + chip.dataset.text;
+          ta.focus();
+          row.innerHTML = '';
+        };
+      });
+    }catch(err){ /* silent — suggestions are a nicety, not critical */ }
+  }, 700);
+});
+
 document.getElementById('writingSubmitBtn').onclick = async ()=>{
   const text = document.getElementById('writingInput').value.trim();
   const area = document.getElementById('writingFeedback');
@@ -1004,8 +1107,9 @@ document.getElementById('writingSubmitBtn').onclick = async ()=>{
   area.classList.remove('hidden');
   area.textContent = 'Plume lit ton texte...';
   try{
+    const promptContext = currentWritingPrompt ? `Sujet donné: "${currentWritingPrompt}"\n` : '';
     const raw = await callLLM(cfg, [{ role:'user', content:
-      `L'étudiant a écrit ce texte libre en français : "${text}"\nCorrige la grammaire et l'orthographe, explique brièvement les erreurs (en anglais), et propose une version améliorée. Sois concis.`
+      `${promptContext}L'étudiant a écrit ce texte en français : "${text}"\nCorrige la grammaire et l'orthographe, explique brièvement les erreurs (en anglais), et propose une version améliorée. Sois concis.`
     }], 350);
     area.innerHTML = escapeHtml(raw).replace(/\n/g,'<br>');
     confetti({ particleCount: 40, spread: 45, origin:{ y:0.7 } });
@@ -1016,14 +1120,14 @@ document.getElementById('writingSubmitBtn').onclick = async ()=>{
 
 /* ---------------- Jeu (drag & drop sentence builder) ---------------- */
 const GAME_BLOCKS = {
-  Pronoun: [['Je','Je (I)'],['Tu','Tu (You)'],['Il','Il (He)'],['Nous','Nous (We)']],
-  Verb:    [['suis','suis (am)'],['ai','ai (have)'],["s'appelle","s'appelle"],['sommes','sommes (are)']],
+  Pronoun: [['Je','Je (I)'],['Tu','Tu (You)'],['Il','Il (He)'],['Elle','Elle (She)'],['On','On (One/We, informal)'],['Nous','Nous (We)'],['Vous','Vous (You, formal/pl.)'],['Ils','Ils (They, m.)'],['Elles','Elles (They, f.)']],
+  Verb:    [['suis','suis (am)'],['ai','ai (have)'],["s'appelle","s'appelle"],['sommes','sommes (are)'],['aime','aime (like)'],['veux','veux (want)']],
   Noun:    [['professeur','professeur'],['médecin','médecin'],['mon frère','mon frère'],['ta sœur','ta sœur']],
   Adj:     [['intelligent','intelligent'],['bleu','bleu'],['rouge','rouge'],['content','content']]
 };
 const gameDropped = { Pronoun:null, Verb:null, Noun:null, Adj:null };
 const GAME_COLORS = { Pronoun:'indigo', Verb:'purple', Noun:'emerald', Adj:'amber' };
-const GAME_LABELS = { Pronoun:'Pronoms', Verb:'Verbes (être / avoir)', Noun:'Noms', Adj:'Adjectifs' };
+const GAME_LABELS = { Pronoun:'Pronoms', Verb:'Verbes', Noun:'Noms', Adj:'Adjectifs' };
 
 function renderGameBlocks(){
   const pool = document.getElementById('gameBlockPool');
@@ -1044,6 +1148,31 @@ function renderGameBlocks(){
   });
 }
 renderGameBlocks();
+
+async function loadGameTheme(topic, level){
+  document.getElementById('gameThemeLabel').textContent = topic;
+  document.getElementById('gameLoadingLine').classList.remove('hidden');
+  const cfg = getConfig();
+  if(!cfg.baseUrl){
+    document.getElementById('gameLoadingLine').textContent = "⚠️ Configure d'abord ton modèle (⚙️ Paramètres).";
+    return;
+  }
+  try{
+    const raw = await callLLM(cfg, [{ role:'user', content:
+      `Thème: "${topic}". Donne un jeu de mots en français pour ce thème, niveau ${level||'common'}. Réponds UNIQUEMENT en JSON strict, sans aucun texte autour, exactement dans cette forme:\n{"nouns":[["mot1","gloss anglais"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"verbs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"adjs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]]}\nLes verbes doivent être des formes conjuguées courantes et simples (comme "aime", "visite", "travaille"), pas des infinitifs.`
+    }], 400);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('format inattendu');
+    const parsed = JSON.parse(jsonMatch[0]);
+    if(parsed.nouns) GAME_BLOCKS.Noun = parsed.nouns.map(([w,g])=>[w, `${w} (${g})`]);
+    if(parsed.verbs) GAME_BLOCKS.Verb = parsed.verbs.map(([w,g])=>[w, `${w} (${g})`]);
+    if(parsed.adjs) GAME_BLOCKS.Adj = parsed.adjs.map(([w,g])=>[w, `${w} (${g})`]);
+    renderGameBlocks();
+    document.getElementById('gameLoadingLine').classList.add('hidden');
+  }catch(err){
+    document.getElementById('gameLoadingLine').textContent = '⚠️ ' + safeErrorMessage(err) + ' — mots par défaut conservés.';
+  }
+}
 
 ['Pronoun','Verb','Noun','Adj'].forEach(cat=>{
   const zone = document.getElementById('drop' + cat);
