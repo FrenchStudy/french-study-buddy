@@ -22,8 +22,6 @@
   .avatar.speaking { animation:speakRing 1.4s infinite; transform:scale(1.06); }
   .avatar-plume { background:#EEF2FF; color:#4338CA; }
   .avatar-plume.speaking { border-color:#4F46E5; --ring:rgba(79,70,229,.45); }
-  .avatar-leo { background:#FFF7ED; color:#C2410C; }
-  .avatar-leo.speaking { border-color:#F97316; --ring:rgba(249,115,22,.4); }
   .avatar-user { background:#F1F5F9; color:#334155; }
   .avatar-user.speaking { border-color:#F43F5E; --ring:rgba(244,63,94,.4); }
 
@@ -39,7 +37,7 @@
     <div class="avatar avatar-plume w-10 h-10 text-base" id="headerAvatar">P</div>
     <div class="flex-1">
       <h1 class="font-bold text-base sm:text-lg leading-tight">French Study Buddy &amp; Plume</h1>
-      <p class="text-indigo-200 text-xs">Studio Interactif TCF &amp; DELF — avec Plume et Léo</p>
+      <p class="text-indigo-200 text-xs">Studio Interactif TCF &amp; DELF — avec Plume</p>
     </div>
     <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
       <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -52,12 +50,26 @@
 
   <div class="flex-1 flex overflow-hidden">
 
-    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0">
-      <div class="p-4 border-b border-slate-100 bg-indigo-50/50 sticky top-0 z-10 backdrop-blur">
-        <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF (Parts 1-4)</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Clique sur un module pour lancer la session avec Plume.</p>
+    <!-- Left Side: Upgraded Syllabus Sidebar -->
+    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
+      <!-- Sticky Header & Search -->
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Choisis un module pour lancer la leçon</p>
+          </div>
+          <span class="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Parts 1–4</span>
+        </div>
+        <!-- Live Topic Search Bar -->
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs">🔍</span>
+          <input id="topicSearchInput" type="text" placeholder="Filtrer les thèmes..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-700 placeholder-slate-400">
+        </div>
       </div>
-      <div id="topicsList" class="p-3 space-y-4"></div>
+
+      <!-- Topics List Container -->
+      <div id="topicsList" class="p-3 space-y-3"></div>
     </aside>
 
     <button id="mobileTopicsBtn" class="md:hidden fixed bottom-24 right-4 z-30 bg-indigo-600 text-white rounded-full w-12 h-12 shadow-lg flex items-center justify-center text-xl">📚</button>
@@ -300,8 +312,8 @@
 
 <script>
 /* ============================================================
-   French Study Buddy — Dynamic Expression Tutor Engine
-   ============================================================ */
+    French Study Buddy — Dynamic Expression Tutor Engine
+    ============================================================ */
 
 const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
 const PRESETS = {
@@ -384,7 +396,7 @@ document.getElementById('testConnBtn').onclick = async ()=>{
   }
 };
 
-/* ---------------- Animated face + speaking state (Plume only — Léo removed) ---------------- */
+/* ---------------- Animated face + speaking state (Plume only) ---------------- */
 let frenchVoice = null;
 function pickFrenchVoice(){
   if(!window.speechSynthesis) return;
@@ -433,7 +445,7 @@ function stopTalkAnimation(positive){
   pauseBtn.classList.remove('border-rose-400','text-rose-600');
 }
 document.getElementById('lessonPauseBtn').onclick = ()=>{
-  if(window.speechSynthesis) window.speechSynthesis.cancel(); // triggers the utterance's onend/onerror, which resets state cleanly
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
 };
 function setUserSpeaking(active){
   const box = document.getElementById('cardStudentBox');
@@ -443,7 +455,6 @@ function setUserSpeaking(active){
   label.textContent = active ? 'Toi (parle...)' : 'Toi';
 }
 
-// Heuristic: does this reply read like praise/success, to decide the "happy" face + confetti
 function soundsPositive(text){
   return !/pas tout à fait|attention|plutôt|non,|erreur|ce n'est pas|essaie encore/i.test(text||'');
 }
@@ -465,7 +476,6 @@ function speakPlume(text, positive){
   });
 }
 
-/* ---------------- LLM call — never exposes the raw endpoint/key in any visible text ---------------- */
 const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français patiente, chaleureuse mais franche, qui aide un(e) étudiant(e) à préparer le TCF/DELF.
 
 Réponds TOUJOURS en utilisant EXACTEMENT ces trois lignes, dans cet ordre :
@@ -481,7 +491,6 @@ Règles importantes :
 - Ne mets rien en dehors des trois lignes PLUME_FR / PLUME_EN / SUGGESTIONS.`;
 
 function safeErrorMessage(err){
-  // Defensive: strip anything URL-like so a raw endpoint can never leak into the visible UI
   let msg = String(err && err.message ? err.message : err || 'Erreur inconnue');
   msg = msg.replace(/https?:\/\/\S+/gi, '[endpoint]');
   return msg;
@@ -511,7 +520,6 @@ async function callLLM(cfg, messages, maxTokens){
   return text.trim();
 }
 
-// Parses "PLUME_FR: ...\nPLUME_EN: ...\nSUGGESTIONS: ..." — falls back gracefully rather than showing nothing
 function parseReply(raw){
   const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|SUGGESTIONS\s*:|$)/i);
   const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)(?=SUGGESTIONS\s*:|$)/i);
@@ -525,11 +533,11 @@ function parseReply(raw){
 
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ---------------- Unified lesson stream (replaces the old split card + side chat) ---------------- */
+/* ---------------- Unified lesson stream ---------------- */
 const lessonStream = document.getElementById('lessonStream');
-let lessonHistory = [];          // {role:'user'|'assistant', content} — sent as context to the LLM
-let lastExpectedPhrase = null;   // last quoted phrase Plume asked the student to repeat/produce
-let lastInputWasVoice = false;   // true if the pending send came from the mic, not typing
+let lessonHistory = [];
+let lastExpectedPhrase = null;
+let lastInputWasVoice = false;
 let lessonBusy = false;
 
 function extractExpectedPhrase(plumeFr){
@@ -551,7 +559,7 @@ function streamBubble(role, fr, en, suggestions){
     ${chips}
   </div>`;
 }
-// Event delegation: suggestion chips are injected via innerHTML, so bind once on the container
+
 document.getElementById('lessonStream').addEventListener('click', (e)=>{
   const chip = e.target.closest('.suggestion-chip');
   if(!chip) return;
@@ -619,7 +627,6 @@ async function sendLessonMessage(){
   const text = input.value.trim();
   if(!text || lessonBusy) return;
 
-  // Guard: catches the "pasted the API URL into the chat box by mistake" case
   if(/^https?:\/\//i.test(text)){
     lessonStream.insertAdjacentHTML('beforeend', streamError("Ça ressemble à une URL — c'est pour la fenêtre ⚙️ Paramètres, pas pour discuter avec Plume. Efface ce champ et écris ta réponse en français."));
     input.value = '';
@@ -632,7 +639,6 @@ async function sendLessonMessage(){
     return;
   }
 
-  // Clear the empty-state placeholder on first message
   if(lessonHistory.length === 0 && lessonStream.querySelector('.text-slate-400')) lessonStream.innerHTML = '';
 
   input.value = '';
@@ -643,13 +649,11 @@ async function sendLessonMessage(){
 
   try{
     let userContent = text;
-    // If this came from the mic and clearly doesn't match what Plume asked for, flag it explicitly
-    // instead of letting the model silently treat a mis-heard transcript as a new topic.
     if(lastInputWasVoice && lastExpectedPhrase){
       const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
       const similar = norm(text).includes(norm(lastExpectedPhrase)) || norm(lastExpectedPhrase).includes(norm(text));
       if(!similar){
-        userContent = `[Le micro a peut-être mal entendu — l'étudiant devait dire/répéter "${lastExpectedPhrase}" mais le texte reconnu est "${text}". Si ça ressemble à une erreur de reconnaissance vocale plutôt qu'une vraie tentative sur un autre sujet, dis-le et redemande plutôt que d'enchaîner sur autre chose.]\n${text}`;
+        userContent = `[Le micro a peut-être mal entendu — l'étudiant devait dire/répéter "${lastExpectedPhrase}" mais le texte reconnu est "${text}". Si ça ressemble à une erreur de reconnaissance vocale plutôt qu'une vraie tentative sur un autre sujet, dis-le et redemande plutôt qu'enchaîner sur autre chose.]\n${text}`;
       }
     }
     lastInputWasVoice = false;
@@ -687,14 +691,14 @@ document.getElementById('lessonMicBtn').onclick = ()=>{
   rec.onresult = (e)=>{
     input.value = e.results[0][0].transcript;
     lastInputWasVoice = true;
-    input.focus(); // transcript lands in the field for review — nothing auto-sends
+    input.focus();
   };
   rec.onerror = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
   rec.onend = ()=>{ btn.classList.remove('recording-active'); setUserSpeaking(false); };
   rec.start();
 };
 
-/* ---------------- Sidebar syllabus — now kicks off a real taught lesson, not a canned prompt ---------------- */
+/* ---------------- Upgraded Sidebar Syllabus ---------------- */
 const STUDY_MODULES = [
   { title: '🟢 DELF A1 — Vocabulaire', level:'essential', topics: [
     "L'alphabet", "Les nombres", "Les noms et prénoms", "L'adresse", "Les objets personnels", "Les objets de la classe",
@@ -753,19 +757,37 @@ const STUDY_MODULES = [
   ]}
 ];
 
-function renderTopics(){
+function renderTopics(filterQuery = ''){
   const container = document.getElementById('topicsList');
-  container.innerHTML = STUDY_MODULES.map((m,mi)=>`
-    <div>
-      <button class="cat-toggle w-full flex items-center justify-between text-left mb-1.5" data-idx="${mi}">
-        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">${escapeHtml(m.title)}</h3>
-        <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${mi===0?'rotate-90':''}">▶</span>
-      </button>
-      <div class="cat-body space-y-1 ${mi===0?'':'hidden'}" data-idx="${mi}">
-        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700" data-topic="${escapeHtml(t)}" data-level="${m.level}">${escapeHtml(t)}</button>`).join('')}
+  const q = filterQuery.toLowerCase().trim();
+
+  container.innerHTML = STUDY_MODULES.map((m, mi)=>{
+    const filteredTopics = m.topics.filter(t => !q || t.toLowerCase().includes(q));
+    if(q && filteredTopics.length === 0) return '';
+
+    const isOpen = q ? true : (mi === 0);
+
+    return `
+      <div class="border border-slate-100 rounded-xl p-1 bg-slate-50/50">
+        <button class="cat-toggle w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-slate-100 transition" data-idx="${mi}">
+          <div>
+            <h3 class="text-xs font-bold text-indigo-900 tracking-wide">${escapeHtml(m.title)}</h3>
+            <span class="text-[10px] text-slate-400 font-medium">${m.topics.length} sujets</span>
+          </div>
+          <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${isOpen?'rotate-90':''}">▶</span>
+        </button>
+        <div class="cat-body space-y-1 mt-1 ${isOpen?'':'hidden'}" data-idx="${mi}">
+          ${filteredTopics.map(t=>`
+            <button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700 flex items-center justify-between group" data-topic="${escapeHtml(t)}" data-level="${m.level}">
+              <span>${escapeHtml(t)}</span>
+              <span class="text-indigo-400 opacity-0 group-hover:opacity-100 transition text-[10px]">▶</span>
+            </button>
+          `).join('')}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
   container.querySelectorAll('.cat-toggle').forEach(btn=>{
     btn.onclick = ()=>{
       const idx = btn.dataset.idx;
@@ -773,6 +795,7 @@ function renderTopics(){
       btn.querySelector('.cat-chevron').classList.toggle('rotate-90');
     };
   });
+
   container.querySelectorAll('.topic-btn').forEach(btn=>{
     btn.onclick = ()=>{
       if(currentPane === 'game'){
@@ -785,6 +808,9 @@ function renderTopics(){
   });
 }
 renderTopics();
+document.getElementById('topicSearchInput').addEventListener('input', (e)=>{
+  renderTopics(e.target.value);
+});
 
 /* ---------------- Pane switching (5 panes) ---------------- */
 const PANE_IDS = ['modules','vocab','reading','listening','writing','game'];
@@ -805,10 +831,10 @@ PANE_IDS.forEach(id=>{
   document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1)).onclick = ()=> switchPane(id);
 });
 
-/* ---------------- Vocabulaire — driven by vocabulary.csv (7,946-word master list) ---------------- */
+/* ---------------- Vocabulaire ---------------- */
 const VOCAB_LEVELS = [
   { id:'essential', label:'🟢 Essentiel', range:[1,500] },
-  { id:'common',    label:'🟡 Courant',   range:[501,1500] },
+  { id:'common',    label:'🟡 Courant',    range:[501,1500] },
   { id:'inter',     label:'🟠 Intermédiaire', range:[1501,3500] },
   { id:'advanced',  label:'🔴 Avancé',    range:[3501,7946] }
 ];
@@ -828,7 +854,7 @@ function parseCSV(text){
     }else{
       if(c==='"') inQuotes=true;
       else if(c===','){ row.push(field); field=''; }
-      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c===('\n')){ row.push(field); rows.push(row); row=[]; field=''; }
       else field += c;
     }
   }
@@ -851,7 +877,7 @@ async function initVocab(){
     buildVocabDeck();
   }catch(err){
     document.getElementById('vocabLoadStatus').innerHTML =
-      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(safeErrorMessage(err))}). Il doit être dans le même dossier que index.html, servi via un serveur local ou GitHub Pages (pas ouvert en double-cliquant).`;
+      `⚠️ Impossible de charger vocabulary.csv (${escapeHtml(safeErrorMessage(err))}). Il doit être dans le même dossier que index.html, servi via un serveur local ou GitHub Pages.`;
   }
 }
 
@@ -962,7 +988,7 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
       const cfg = getConfig();
       if(!cfg.baseUrl) throw new Error("Configure ton API dans les paramètres ⚙️.");
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Mot cible: "${w.french}" (prononciation IPA: ${w.ipa||'?'}, sens: ${w.english})\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagis brièvement sur sa prononciation. Si le mot reconnu ne ressemble pas du tout au mot cible, c'est probablement une erreur du micro — dis-le plutôt que de commenter un autre mot.`
+        `Mot cible: "${w.french}" (prononciation IPA: ${w.ipa||'?'}, sens: ${w.english})\nCe que l'étudiant vient de prononcer: "${said}"\n\nRéagis brièvement sur sa prononciation.`
       }], 200);
       const { fr, en } = parseReply(raw);
       reactionArea.innerHTML = `<div class="border border-indigo-100 bg-indigo-50 rounded-xl px-3 py-2 text-xs text-indigo-950">${escapeHtml(fr)}</div>${en?`<p class="text-[11px] text-slate-400 mt-1">${escapeHtml(en)}</p>`:''}`;
@@ -982,7 +1008,7 @@ document.getElementById('vocabRecBtn').onclick = ()=>{
 loadVocabProgress();
 initVocab();
 
-/* ---------------- Écoute (listening / dictation) ---------------- */
+/* ---------------- Écoute ---------------- */
 const LISTENING_SENTENCES = [
   "J'aime beaucoup étudier le français tous les jours.",
   "Où se trouve la station de métro la plus proche, s'il vous plaît ?",
@@ -998,7 +1024,6 @@ function pickListeningSentence(){
   document.getElementById('listeningFeedback').classList.add('hidden');
 }
 document.getElementById('listeningPlayBtn').onclick = ()=>{
-  if(document.getElementById('listeningInput').value === '') { /* first play of this round */ }
   speakPlume(currentListeningTarget, null);
 };
 document.getElementById('listeningCheckBtn').onclick = ()=>{
@@ -1016,8 +1041,7 @@ document.getElementById('listeningCheckBtn').onclick = ()=>{
   }
 };
 
-/* ---------------- Écrit (writing correction workshop) ---------------- */
-/* ---------------- Écrit — theme, prompt generation, sample answer, live suggestions ---------------- */
+/* ---------------- Écrit ---------------- */
 let currentWritingPrompt = null;
 (function populateWritingThemes(){
   const sel = document.getElementById('writingThemeSelect');
@@ -1038,7 +1062,7 @@ document.getElementById('writingGenBtn').onclick = async ()=>{
   if(!cfg.baseUrl){ card.textContent = "Configure d'abord ton modèle (⚙️ Paramètres)."; return; }
   try{
     const raw = await callLLM(cfg, [{ role:'user', content:
-      `Génère UN sujet d'expression écrite de style TCF/TEF sur le thème "${theme}", niveau ${level}. Choisis un type de tâche adapté (message court, essai argumenté, ou description selon le niveau) et précise un nombre de mots minimum. Réponds en français, 2-3 phrases maximum, sans préambule.`
+      `Génère UN sujet d'expression écrite de style TCF/TEF sur le thème "${theme}", niveau ${level}. Choisis un type de tâche adapté et précise un nombre de mots minimum. Réponds en français, 2-3 phrases maximum, sans préambule.`
     }], 200);
     currentWritingPrompt = raw.trim();
     card.innerHTML = `<strong>${escapeHtml(theme)}</strong><br>${escapeHtml(currentWritingPrompt)}`;
@@ -1070,7 +1094,6 @@ document.getElementById('writingSampleBtn').onclick = async ()=>{
   }
 };
 
-// Live typing suggestions, Google Translate style — debounced so it doesn't fire on every keystroke
 let writingSuggestTimer = null;
 document.getElementById('writingInput').addEventListener('input', (e)=>{
   clearTimeout(writingSuggestTimer);
@@ -1082,7 +1105,7 @@ document.getElementById('writingInput').addEventListener('input', (e)=>{
     if(!cfg.baseUrl) return;
     try{
       const raw = await callLLM(cfg, [{ role:'user', content:
-        `Voici le début d'une phrase en français, possiblement incomplète ou avec des erreurs: "${text}"\nPropose 3 courtes suggestions pour continuer ou compléter naturellement (quelques mots chacune). Réponds UNIQUEMENT sous forme: suggestion1 | suggestion2 | suggestion3`
+        `Voici le début d'une phrase en français, possiblement incomplète ou avec des erreurs: "${text}"\nPropose 3 courtes suggestions pour continuer ou compléter naturellement. Réponds UNIQUEMENT sous forme: suggestion1 | suggestion2 | suggestion3`
       }], 80);
       const options = raw.split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);
       row.innerHTML = options.map(o=>`<button class="write-suggest-chip text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-300 bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 transition" data-text="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join('');
@@ -1094,7 +1117,7 @@ document.getElementById('writingInput').addEventListener('input', (e)=>{
           row.innerHTML = '';
         };
       });
-    }catch(err){ /* silent — suggestions are a nicety, not critical */ }
+    }catch(err){}
   }, 700);
 });
 
@@ -1120,7 +1143,7 @@ document.getElementById('writingSubmitBtn').onclick = async ()=>{
 
 /* ---------------- Jeu (drag & drop sentence builder) ---------------- */
 const GAME_BLOCKS = {
-  Pronoun: [['Je','Je (I)'],['Tu','Tu (You)'],['Il','Il (He)'],['Elle','Elle (She)'],['On','On (One/We, informal)'],['Nous','Nous (We)'],['Vous','Vous (You, formal/pl.)'],['Ils','Ils (They, m.)'],['Elles','Elles (They, f.)']],
+  Pronoun: [['Je','Je (I)'],['Tu','Tu (You)'],['Il','Il (He)'],['Elle','Elle (She)'],['On','On (One/We)'],['Nous','Nous (We)'],['Vous','Vous (You)'],['Ils','Ils (They, m.)'],['Elles','Elles (They, f.)']],
   Verb:    [['suis','suis (am)'],['ai','ai (have)'],["s'appelle","s'appelle"],['sommes','sommes (are)'],['aime','aime (like)'],['veux','veux (want)']],
   Noun:    [['professeur','professeur'],['médecin','médecin'],['mon frère','mon frère'],['ta sœur','ta sœur']],
   Adj:     [['intelligent','intelligent'],['bleu','bleu'],['rouge','rouge'],['content','content']]
@@ -1159,7 +1182,7 @@ async function loadGameTheme(topic, level){
   }
   try{
     const raw = await callLLM(cfg, [{ role:'user', content:
-      `Thème: "${topic}". Donne un jeu de mots en français pour ce thème, niveau ${level||'common'}. Réponds UNIQUEMENT en JSON strict, sans aucun texte autour, exactement dans cette forme:\n{"nouns":[["mot1","gloss anglais"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"verbs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"adjs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]]}\nLes verbes doivent être des formes conjuguées courantes et simples (comme "aime", "visite", "travaille"), pas des infinitifs.`
+      `Thème: "${topic}". Donne un jeu de mots en français pour ce thème, niveau ${level||'common'}. Réponds UNIQUEMENT en JSON strict, sans aucun texte autour, exactement dans cette forme:\n{"nouns":[["mot1","gloss anglais"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"verbs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]],"adjs":[["mot1","gloss"],["mot2","gloss"],["mot3","gloss"],["mot4","gloss"]]}\nLes verbes doivent être des formes conjuguées courantes et simples.`
     }], 400);
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if(!jsonMatch) throw new Error('format inattendu');
@@ -1206,7 +1229,7 @@ document.getElementById('gameSubmitBtn').onclick = ()=>{
   sendLessonMessage();
 };
 
-/* ---------------- Speed / Replay / Export controls ---------------- */
+/* ---------------- Controls ---------------- */
 document.getElementById('speedToggleBtn').onclick = ()=>{
   currentSpeechRate = currentSpeechRate === 0.95 ? 0.7 : 0.95;
   document.getElementById('speedToggleBtn').textContent = currentSpeechRate === 0.95 ? '⚡ 1.0x' : '⚡ 0.7x';
@@ -1228,7 +1251,7 @@ document.getElementById('exportBtn').onclick = ()=>{
   URL.revokeObjectURL(url);
 };
 
-/* ---------------- Lecture (reading comprehension) ---------------- */
+/* ---------------- Lecture ---------------- */
 const READING_PASSAGES = [
   { text: "Marie habite à Lyon depuis trois ans. Elle travaille dans une école comme professeure de mathématiques. Le week-end, elle aime faire du vélo avec ses amis.", question: "Où est-ce que Marie travaille ?", keywords: ['école','professeure'] },
   { text: "Le marché du samedi matin est très animé. Les vendeurs proposent des fruits, des légumes et du fromage local. Beaucoup de gens viennent tôt pour trouver les meilleurs produits.", question: "Quand est-ce que le marché a lieu ?", keywords: ['samedi','matin'] },
