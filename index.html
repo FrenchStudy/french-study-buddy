@@ -90,7 +90,7 @@
           </div>
         </div>
 
-        <!-- Revamped Nationalities Module View (Same page view) -->
+        <!-- Revamped Nationalities Module View (Same page view with matching top buttons) -->
         <div id="paneNationalities" class="hidden space-y-6">
           <div class="flex items-center justify-between bg-indigo-700 text-white px-5 py-3 rounded-2xl shadow-sm">
             <div>
@@ -102,7 +102,7 @@
             </button>
           </div>
 
-          <!-- Top Section: Side-by-Side (Top Left: Interactive Features | Top Right: AI Features) -->
+          <!-- Top Section: Side-by-Side (Top Left: Interactive Features | Top Right: AI Features with 1.0x, Réécouter, Exporter) -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             <!-- Top Left: Interactive Features Panel -->
@@ -136,12 +136,16 @@
               </div>
             </div>
 
-            <!-- Top Right: AI Features Panel -->
+            <!-- Top Right: AI Features Panel with exact control buttons -->
             <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
               <div>
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                   <h3 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">💬 Assistant IA (Plume)</h3>
-                  <span class="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-full">Actif</span>
+                  <div class="flex gap-1.5">
+                    <button id="natSpeedBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">⚡ 1.0x</button>
+                    <button id="natReplayBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">🔊 Réécouter</button>
+                    <button id="natExportBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">📥 Exporter</button>
+                  </div>
                 </div>
                 <div id="natAiStream" class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2 min-h-[140px] max-h-[180px] overflow-y-auto text-xs">
                   <p class="text-slate-400">Pose une question à Plume sur les nationalités...</p>
@@ -251,17 +255,28 @@ let rateIdx = 0;
 let currentSpeechRate = 1.0;
 let lastSpokenText = '';
 
-document.getElementById('speedToggleBtn').onclick = ()=>{
+// Shared speed button toggle logic for both views
+function handleSpeedToggle(btnId){
   rateIdx = (rateIdx + 1) % speechRates.length;
   currentSpeechRate = speechRates[rateIdx];
-  document.getElementById('speedToggleBtn').textContent = `⚡ ${currentSpeechRate.toFixed(1)}x`;
-};
+  const label = `⚡ ${currentSpeechRate.toFixed(1)}x`;
+  document.getElementById('speedToggleBtn').textContent = label;
+  document.getElementById('natSpeedBtn').textContent = label;
+}
+document.getElementById('speedToggleBtn').onclick = ()=> handleSpeedToggle('speedToggleBtn');
+document.getElementById('natSpeedBtn').onclick = ()=> handleSpeedToggle('natSpeedBtn');
+
 document.getElementById('replayBtn').onclick = ()=> { if(lastSpokenText) speakPlume(lastSpokenText, true); };
-document.getElementById('exportBtn').onclick = ()=>{
+document.getElementById('natReplayBtn').onclick = ()=> { if(lastSpokenText) speakPlume(lastSpokenText, true); };
+
+document.getElementById('exportBtn').onclick = exportHistory;
+document.getElementById('natExportBtn').onclick = exportHistory;
+
+function exportHistory(){
   let content = "--- Journal de conversation — Plume ---\n\n" + lessonHistory.map(m=>`${m.role === 'user' ? 'Étudiant' : 'Plume'} : ${m.content}`).join('\n');
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'plume-session.txt'; a.click();
-};
+}
 
 function speakPlume(text, positive){
   return new Promise(resolve=>{
