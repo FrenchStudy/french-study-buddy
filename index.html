@@ -16,17 +16,17 @@
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-  <!-- Top Header Bar (Clean, no Plume avatar/card) -->
-  <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between shadow-md z-20">
+  <!-- Top Navigation & Header Bar -->
+  <header class="bg-indigo-700 text-white px-4 py-3 flex items-center justify-between shadow-md z-20">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center font-bold text-base">🇫🇷</div>
       <div>
-        <h1 class="font-bold text-base leading-tight">French Study Buddy &amp; Studio TCF</h1>
-        <p class="text-indigo-200 text-xs">Interface d'apprentissage interactive</p>
+        <h1 class="font-bold text-sm sm:text-base leading-tight">French Study Buddy &amp; Studio TCF</h1>
+        <p class="text-indigo-200 text-xs hidden sm:block">Interface d'apprentissage interactive</p>
       </div>
     </div>
-    
-    <!-- Top Bar Navigation Tabs (Modules, Vocab, Reading, Listening, Writing, Game) -->
+
+    <!-- Top Bar Navigation Tabs -->
     <div class="hidden lg:flex items-center gap-1 bg-indigo-900/50 p-1 rounded-xl">
       <button id="topTabModules" onclick="switchPane('modules')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-indigo-900 shadow">📚 Modules</button>
       <button id="topTabVocab" onclick="switchPane('vocab')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">🔤 Vocab</button>
@@ -36,32 +36,35 @@
       <button id="topTabGame" onclick="switchPane('game')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">🧩 Jeu</button>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
       <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
         <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
         <span id="connLabel">Non configuré</span>
       </span>
-      <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-lg px-3 py-2 text-sm font-semibold">⚙️ Paramètres</button>
+      <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-lg px-3 py-2 text-sm font-semibold">⚙️ <span class="hidden sm:inline">Paramètres</span></button>
     </div>
   </header>
 
   <div class="flex-1 flex overflow-hidden">
     <!-- Left Syllabus Sidebar -->
-    <aside class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
+    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
       <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 space-y-3">
-        <div>
-          <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF</h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">Choisis un module</p>
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Choisis un module</p>
+          </div>
+          <span class="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Parts 1–4</span>
         </div>
         <input id="topicSearchInput" type="text" placeholder="Filtrer les thèmes..." class="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
       <div id="topicsList" class="p-3 space-y-3"></div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-y-auto p-6">
-      <div class="max-w-6xl mx-auto w-full space-y-4">
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-y-auto p-4 sm:p-6">
+      <div class="max-w-5xl mx-auto w-full space-y-4">
         
-        <!-- Mobile/Fallback Tab Bar -->
+        <!-- Mobile Tab Bar Fallback -->
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 lg:hidden">
           <button onclick="switchPane('modules')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">📚 Modules</button>
           <button onclick="switchPane('vocab')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">🔤 Vocab</button>
@@ -71,10 +74,10 @@
           <button onclick="switchPane('game')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">🧩 Jeu</button>
         </div>
 
-        <!-- Standard Modules Chat View -->
+        <!-- Modules Chat View -->
         <div id="paneModules" class="space-y-3">
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche</span>
+            <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche, ou clique sur les nationalités</span>
             <div class="flex gap-1.5">
               <button id="speedToggleBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">⚡ 1.0x</button>
               <button id="replayBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">🔊 Réécouter</button>
@@ -90,7 +93,7 @@
           </div>
         </div>
 
-        <!-- Nationalities Module View (Activated when clicking "Les nationalités") -->
+        <!-- Nationalities Workspace Pane -->
         <div id="paneNationalities" class="hidden space-y-6">
           <div class="flex items-center justify-between bg-indigo-700 text-white px-5 py-3 rounded-2xl shadow-sm">
             <div>
@@ -102,13 +105,9 @@
             </button>
           </div>
 
-          <!-- Side-by-Side: Interactive Tools | AI Assistant -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- Left: Interactive Tools & Grammar -->
             <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <h3 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">🛠️ Outils Interactifs &amp; Grammaire</h3>
-              
               <div class="bg-indigo-950 text-white p-3 rounded-2xl space-y-2">
                 <span class="text-[10px] uppercase font-bold text-indigo-400 block">Forme active :</span>
                 <div class="grid grid-cols-3 gap-1.5">
@@ -117,16 +116,13 @@
                   <button onclick="setNatForm('fem')" id="natBtnFem" class="py-2 rounded-xl text-[11px] font-semibold bg-indigo-900 text-indigo-200">Féminin</button>
                 </div>
               </div>
-
               <button onclick="listenActiveNat()" class="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold transition shadow">
                 🔊 Écouter la prononciation native
               </button>
-
               <div class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-2xl text-xs space-y-1">
                 <span class="font-bold text-indigo-900 block">💡 Règle TCF (C'est vs Il est)</span>
                 <p id="natRuleText" class="text-slate-700 leading-relaxed">Pour les nationalités, on emploie toujours <strong>Il est / Elle est</strong> + nationalité.</p>
               </div>
-
               <button onclick="toggleNatVoiceRec()" id="natRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
                 🔴 Enregistrer ma voix
               </button>
@@ -136,7 +132,6 @@
               </div>
             </div>
 
-            <!-- Right: AI Assistant Panel -->
             <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
@@ -156,41 +151,39 @@
                 <button onclick="sendNatAiMessage()" class="bg-indigo-600 text-white rounded-xl px-4 py-2 text-xs font-bold">➤</button>
               </div>
             </div>
-
           </div>
 
-          <!-- Country Selector Grid -->
           <div class="space-y-3">
             <h3 class="font-bold text-sm text-slate-700">🌍 Sélectionner un pays :</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="natCountriesGrid"></div>
           </div>
         </div>
 
-        <!-- Vocab Pane Placeholder -->
+        <!-- Vocab Pane -->
         <div id="paneVocab" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
           <h3 class="font-bold text-base text-indigo-900">🔤 Atelier Vocabulaire</h3>
           <p class="text-xs text-slate-500">Explore la liste des mots essentiels pour le TCF.</p>
         </div>
 
-        <!-- Reading Pane Placeholder -->
+        <!-- Reading Pane -->
         <div id="paneReading" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
           <h3 class="font-bold text-base text-indigo-900">📖 Atelier de Lecture</h3>
           <p class="text-xs text-slate-500">Compréhension de textes et articles.</p>
         </div>
 
-        <!-- Listening Pane Placeholder -->
+        <!-- Listening Pane -->
         <div id="paneListening" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
           <h3 class="font-bold text-base text-indigo-900">👂 Atelier d'Écoute</h3>
           <p class="text-xs text-slate-500">Exercices de dictée et écoute active.</p>
         </div>
 
-        <!-- Writing Pane Placeholder -->
+        <!-- Writing Pane -->
         <div id="paneWriting" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
           <h3 class="font-bold text-base text-indigo-900">✍️ Atelier d'Écriture</h3>
           <p class="text-xs text-slate-500">Rédaction de sujets TCF/TEF.</p>
         </div>
 
-        <!-- Game Pane Placeholder -->
+        <!-- Game Pane -->
         <div id="paneGame" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
           <h3 class="font-bold text-base text-indigo-900">🧩 Jeux de Phrases</h3>
           <p class="text-xs text-slate-500">Construis des phrases par glisser-déposer.</p>
@@ -219,19 +212,102 @@
 
 <script>
 const STUDY_MODULES = [
-  { title: '🟢 DELF A1 — Vocabulaire', topics: ["L'alphabet", "Les nombres", "Les nationalités", "Les professions", "La famille proche", "La météo"] }
+  { title: '🟢 DELF A1 — Vocabulaire', level:'essential', topics: [
+    "L'alphabet", "Les nombres", "Les noms et prénoms", "L'adresse", "Les objets personnels", "Les objets de la classe",
+    "Les nationalités", "Les professions", "L'état civil", "Les pays & les villes", "Les loisirs", "La famille proche",
+    "L'heure", "Les prix", "La météo / le climat", "La date", "Les jours de la semaine", "Les descriptions",
+    "Les couleurs", "Les saisons", "Les lieux"
+  ]},
+  { title: '🟢 DELF A1 — Grammaire', level:'essential', topics: [
+    "Pronoms personnels sujets", "Pronoms toniques", "Le présent — état & description", "Verbes usuels (être, avoir, faire, s'appeler)",
+    "Verbes en -er", "Le verbe comprendre", "Conditionnel de politesse (je voudrais)", "Phrase interrogative simple",
+    "Formes interrogatives (est-ce que)", "Pronoms interrogatifs", "Adjectifs interrogatifs", "Présentateurs (c'est, voilà)",
+    "Articles définis et indéfinis", "Article zéro (professions)", "Nombres cardinaux", "Adjectifs démonstratifs",
+    "Accord masculin/féminin", "Accord des adjectifs de nationalité", "Adjectifs qualificatifs", "Place des adjectifs",
+    "Phrases affirmatives/négatives", "Négation (ne...pas)", "Complément du nom avec « de »", "Adjectifs possessifs",
+    "Articles partitifs", "Adverbes de quantité", "Quantité indéterminée/déterminée", "Forme impersonnelle (météo)",
+    "Localisation temporelle", "Expression du moment", "Localisation spatiale", "Il y a", "Articulateurs du discours"
+  ]},
+  { title: '🟢 DELF A1 — Parler & Culture', level:'essential', topics: [
+    "Entrer en contact avec qn", "Présenter qn", "Parler de son environnement quotidien", "Décrire un objet / une personne",
+    "Demander une information", "Situer des événements dans le temps", "Se situer dans l'espace", "Donner des instructions",
+    "Accepter / Refuser qch", "Participer à une conversation", "Les salutations", "Formules de politesse", "Tu ou Vous",
+    "Je veux vs Je voudrais", "Rituels de correspondance"
+  ]},
+  { title: '🟡 DELF A2 — Vocabulaire & Grammaire', level:'common', topics: [
+    "Les personnes (famille, description)", "Les lieux (café, restos, banques)", "Les loisirs (sports, sorties)",
+    "Moyens de transport", "La vie quotidienne & logement", "Aliments, repas & cuisine", "Animaux familiers",
+    "Itinéraire & météo", "Argent & paiements", "Présent de l'indicatif", "Verbes 1er, 2e, 3e groupes",
+    "Verbes pronominaux", "Verbes usuels (venir, prendre)", "Verbes + infinitif", "Passé composé & imparfait",
+    "Impératif (positif/négatif)", "Futur proche, simple, passé récent", "Pronoms COD, COI, Y, EN", "Pronoms relatifs simples"
+  ]},
+  { title: '🟠 DELF B1/B2 — Thèmes & Grammaire avancée', level:'inter', topics: [
+    "La vie quotidienne et professionnelle", "Les sentiments et caractères", "Les événements et faits divers",
+    "Les médias et la culture", "Sujets de société et politique", "Temps du passé avancés (Plus-que-parfait)",
+    "Le conditionnel présent et passé", "Le subjonctif (présent et passé)", "Le discours rapporté",
+    "Le passif et le gérondif", "L'hypothèse complexe (si)", "Doubles pronoms & relatifs complexes", "Nominalisation & articulateurs"
+  ]},
+  { title: 'PART 1: Core Foundations', level:'essential', topics: [
+    "Alphabet, liaisons & Sons nasaux", "Nombres (1-100), Heure & Dates", "Objets de la maison & Vêtements",
+    "Nourriture, Boissons & Ville", "Genres (Masculin/Féminin) & Articles", "Verbes Être, Avoir & -er",
+    "Négation (ne...pas) & Questions", "Salutations & Présentations"
+  ]},
+  { title: 'PART 2: CEFR Mastery (A1 to C2)', level:'common', topics: [
+    "Niveau A1 (Breakthrough)", "Niveau A2 (Waystage - Passé composé/Imparfait)", "Niveau B1 (Threshold - Conditionnel/Subjonctif)",
+    "Niveau B2 (Upper-Intermediate - Voix passive)", "Niveau C1 (Advanced - Inversions stylistiques)", "Niveau C2 (Mastery - Argot & Nuances)"
+  ]},
+  { title: 'PART 3: 24 Advanced Thematic Modules', level:'inter', topics: [
+    "1. Santé et bien-être", "2. Le Travail & Emploi", "3. L'Environnement & Écologie", "4. Voyages & Mobilité",
+    "5. Loisirs & Passions", "6. Technologie & I.A.", "7. Logement & Urbanisme", "8. Éducation & Formation",
+    "9. Société & Civisme", "10. Consommation & Médias", "11. Immigration & Intégration", "12. Agriculture & Alimentation",
+    "13. Culture & Patrimoine", "14. Égalité & Diversité", "15. Économie & Finances", "16. Gestion du Temps",
+    "17. Changement & Innovation", "18. Avenir & Durabilité", "19. Psychologie & Comportement", "20. Justice & Droits Citoyens",
+    "21. Médias & Information", "22. Politique & Gouvernance", "23. Mondialisation & Relations Internationales", "24. Cadre de Vie & Urbanisme Écologique"
+  ]},
+  { title: 'PART 4: Flashcards & Wordlists', level:'advanced', topics: [
+    "Vocabulaire thématique TCF", "Verbes essentiels & Conjugaisons", "Expressions idiomatiques", "Connecteurs logiques avancés"
+  ]}
 ];
 
-function renderTopics(){
-  document.getElementById('topicsList').innerHTML = STUDY_MODULES.map(m=>`
-    <div>
-      <h3 class="text-xs font-bold text-indigo-900 mb-1">${m.title}</h3>
-      <div class="space-y-1">
-        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:bg-indigo-50 font-medium text-slate-700" data-topic="${t}">${t}</button>`).join('')}
+function renderTopics(filterQuery = ''){
+  const container = document.getElementById('topicsList');
+  const q = filterQuery.toLowerCase().trim();
+
+  container.innerHTML = STUDY_MODULES.map((m, mi)=>{
+    const filteredTopics = m.topics.filter(t => !q || t.toLowerCase().includes(q));
+    if(q && filteredTopics.length === 0) return '';
+    const isOpen = q ? true : (mi === 0);
+
+    return `
+      <div class="border border-slate-100 rounded-xl p-1 bg-slate-50/50">
+        <button class="cat-toggle w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-slate-100 transition" data-idx="${mi}">
+          <div>
+            <h3 class="text-xs font-bold text-indigo-900 tracking-wide">${escapeHtml(m.title)}</h3>
+            <span class="text-[10px] text-slate-400 font-medium">${m.topics.length} sujets</span>
+          </div>
+          <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${isOpen?'rotate-90':''}">▶</span>
+        </button>
+        <div class="cat-body space-y-1 mt-1 ${isOpen?'':'hidden'}" data-idx="${mi}">
+          ${filteredTopics.map(t=>`
+            <button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700 flex items-center justify-between group" data-topic="${escapeHtml(t)}" data-level="${m.level}">
+              <span>${escapeHtml(t)}</span>
+              <span class="text-indigo-400 opacity-0 group-hover:opacity-100 transition text-[10px]">▶</span>
+            </button>
+          `).join('')}
+        </div>
       </div>
-    </div>
-  `).join('');
-  document.querySelectorAll('.topic-btn').forEach(btn=>{
+    `;
+  }).join('');
+
+  container.querySelectorAll('.cat-toggle').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = btn.dataset.idx;
+      container.querySelector(`.cat-body[data-idx="${idx}"]`).classList.toggle('hidden');
+      btn.querySelector('.cat-chevron').classList.toggle('rotate-90');
+    };
+  });
+
+  container.querySelectorAll('.topic-btn').forEach(btn=>{
     btn.onclick = ()=>{
       if(btn.dataset.topic === "Les nationalités"){
         switchPane('nationalities');
@@ -244,6 +320,7 @@ function renderTopics(){
   });
 }
 renderTopics();
+document.getElementById('topicSearchInput').addEventListener('input', (e)=>{ renderTopics(e.target.value); });
 
 function switchPane(target){
   const panes = ['modules', 'nationalities', 'vocab', 'reading', 'listening', 'writing', 'game'];
@@ -252,7 +329,6 @@ function switchPane(target){
     if(el) el.classList.toggle('hidden', p !== target);
   });
   
-  // Highlight active top tab
   document.querySelectorAll('.top-tab').forEach(t => {
     t.classList.remove('bg-white', 'text-indigo-900', 'shadow');
     t.classList.add('text-indigo-200');
@@ -333,6 +409,8 @@ function speakText(text){
   });
 }
 
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 let lessonHistory = [];
 async function startTopicLesson(topic){
   document.getElementById('topicPill').textContent = topic;
@@ -350,10 +428,10 @@ async function startTopicLesson(topic){
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content?.trim() || '';
     lessonHistory.push({role:'assistant', content:raw});
-    stream.innerHTML = `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm">${raw}</div>`;
+    stream.innerHTML = `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm">${escapeHtml(raw)}</div>`;
     await speakText(raw);
   }catch(err){
-    stream.innerHTML = `<div class="text-xs text-red-600">⚠️ ${err.message}</div>`;
+    stream.innerHTML = `<div class="text-xs text-red-600">⚠️ ${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -363,7 +441,7 @@ async function sendLessonMessage(){
   if(!text) return;
   input.value = '';
   const stream = document.getElementById('lessonStream');
-  stream.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl px-3 py-2 text-sm">${text}</div></div>`);
+  stream.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl px-3 py-2 text-sm">${escapeHtml(text)}</div></div>`);
   stream.scrollTop = stream.scrollHeight;
   try{
     lessonHistory.push({role:'user', content:text});
@@ -376,7 +454,7 @@ async function sendLessonMessage(){
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content?.trim() || '';
     lessonHistory.push({role:'assistant', content:raw});
-    stream.insertAdjacentHTML('beforeend', `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm mt-2">${raw}</div>`);
+    stream.insertAdjacentHTML('beforeend', `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm mt-2">${escapeHtml(raw)}</div>`);
     stream.scrollTop = stream.scrollHeight;
     await speakText(raw);
   }catch(err){}
@@ -401,11 +479,11 @@ function initNationalityWorkspace(){
 function renderNatGrid(){
   const grid = document.getElementById('natCountriesGrid');
   grid.innerHTML = nationalitiesData.map(item=>`
-    <div onclick="selectNatCountry('${item.country}')" class="bg-white border p-3 rounded-2xl cursor-pointer hover:border-indigo-400 transition flex items-center gap-3 ${activeNat.country===item.country?'border-indigo-600 bg-indigo-50/40':''}">
+    <div onclick="selectNatCountry('${escapeHtml(item.country)}')" class="bg-white border p-3 rounded-2xl cursor-pointer hover:border-indigo-400 transition flex items-center gap-3 ${activeNat.country===item.country?'border-indigo-600 bg-indigo-50/40':''}">
       <span class="text-2xl">${item.icon}</span>
       <div>
-        <div class="font-bold text-xs text-indigo-900">${item.country}</div>
-        <div class="text-[10px] text-slate-500">${item.masc} / ${item.fem}</div>
+        <div class="font-bold text-xs text-indigo-900">${escapeHtml(item.country)}</div>
+        <div class="text-[10px] text-slate-500">${escapeHtml(item.masc)} / ${escapeHtml(item.fem)}</div>
       </div>
     </div>
   `).join('');
@@ -456,7 +534,7 @@ async function sendNatAiMessage(){
   if(!text) return;
   input.value = '';
   const stream = document.getElementById('natAiStream');
-  stream.insertAdjacentHTML('beforeend', `<div class="text-right font-bold text-indigo-600">${text}</div>`);
+  stream.insertAdjacentHTML('beforeend', `<div class="text-right font-bold text-indigo-600">${escapeHtml(text)}</div>`);
   stream.scrollTop = stream.scrollHeight;
   try{
     const cfg = getConfig();
@@ -467,11 +545,11 @@ async function sendNatAiMessage(){
     });
     const data = await res.json();
     const reply = data?.choices?.[0]?.message?.content?.trim() || 'Bien reçu !';
-    stream.insertAdjacentHTML('beforeend', `<div class="text-slate-700 bg-white p-2 rounded-xl border">${reply}</div>`);
+    stream.insertAdjacentHTML('beforeend', `<div class="text-slate-700 bg-white p-2 rounded-xl border">${escapeHtml(reply)}</div>`);
     stream.scrollTop = stream.scrollHeight;
     await speakText(reply);
   }catch(err){
-    stream.insertAdjacentHTML('beforeend', `<div class="text-red-600">⚠️ ${err.message}</div>`);
+    stream.insertAdjacentHTML('beforeend', `<div class="text-red-600">⚠️ ${escapeHtml(err.message)}</div>`);
   }
 }
 
