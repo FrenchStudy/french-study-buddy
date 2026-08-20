@@ -1,445 +1,299 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French Study Buddy — Dynamic Expression Human Tutor Studio</title>
+<title>French Study Buddy — Studio Interactif TCF & DELF</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.min.js"></script>
 <style>
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-  .msg-enter { animation: fadeIn .2s ease-out; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
-  
   @keyframes pulseMic { 0%{box-shadow:0 0 0 0 rgba(244,63,94,0.4);} 70%{box-shadow:0 0 0 16px rgba(244,63,94,0);} 100%{box-shadow:0 0 0 0 rgba(244,63,94,0);} }
-  .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; border-color: #F43F5E !important; }
-
-  @keyframes speakRing { 0%{box-shadow:0 0 0 0 var(--ring,rgba(79,70,229,.45));} 70%{box-shadow:0 0 0 14px rgba(79,70,229,0);} 100%{box-shadow:0 0 0 0 rgba(79,70,229,0);} }
-  .avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; transition:transform .2s ease, box-shadow .2s ease; border:3px solid transparent; }
-  .avatar.speaking { animation:speakRing 1.4s infinite; transform:scale(1.06); }
-  .avatar-plume { background:#EEF2FF; color:#4338CA; }
-  .avatar-plume.speaking { border-color:#4F46E5; --ring:rgba(79,70,229,.45); }
-
-  .drag-item { cursor: grab; user-select: none; }
-  .drag-item:active { cursor: grabbing; }
-  .drop-zone { min-height: 44px; border: 2px dashed #cbd5e1; transition: all .15s; }
-  .drop-zone.drag-over { border-color: #6366f1; background-color: #e0e7ff; }
+  .recording-active { animation: pulseMic 1.5s infinite; background: #F43F5E !important; color: #fff !important; }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-  <header class="bg-indigo-700 text-white px-4 py-3 flex items-center gap-3 shadow-md z-20">
-    <div class="avatar avatar-plume w-10 h-10 text-base" id="headerAvatar">P</div>
-    <div class="flex-1">
-      <h1 class="font-bold text-base sm:text-lg leading-tight">French Study Buddy &amp; Plume</h1>
-      <p class="text-indigo-200 text-xs" id="tutorStateLabel">Studio Interactif TCF &amp; DELF — avec Plume</p>
+  <!-- Top Header Bar (Clean, no Plume avatar/card) -->
+  <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between shadow-md z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center font-bold text-base">🇫🇷</div>
+      <div>
+        <h1 class="font-bold text-base leading-tight">French Study Buddy &amp; Studio TCF</h1>
+        <p class="text-indigo-200 text-xs">Interface d'apprentissage interactive</p>
+      </div>
     </div>
-    <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
-      <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-      <span id="connLabel">Non configuré</span>
-    </span>
-    <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-lg px-3 py-2 text-sm font-semibold flex items-center gap-1.5">
-      ⚙️ <span class="hidden sm:inline">Paramètres</span>
-    </button>
+    
+    <!-- Top Bar Navigation Tabs (Modules, Vocab, Reading, Listening, Writing, Game) -->
+    <div class="hidden lg:flex items-center gap-1 bg-indigo-900/50 p-1 rounded-xl">
+      <button id="topTabModules" onclick="switchPane('modules')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-indigo-900 shadow">📚 Modules</button>
+      <button id="topTabVocab" onclick="switchPane('vocab')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">🔤 Vocab</button>
+      <button id="topTabReading" onclick="switchPane('reading')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">📖 Lecture</button>
+      <button id="topTabListening" onclick="switchPane('listening')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">👂 Écoute</button>
+      <button id="topTabWriting" onclick="switchPane('writing')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">✍️ Écrit</button>
+      <button id="topTabGame" onclick="switchPane('game')" class="top-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:bg-white/10 transition">🧩 Jeu</button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-xs bg-white/10 rounded-full px-3 py-1">
+        <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+        <span id="connLabel">Non configuré</span>
+      </span>
+      <button id="settingsBtn" class="bg-white/10 hover:bg-white/20 transition rounded-lg px-3 py-2 text-sm font-semibold">⚙️ Paramètres</button>
+    </div>
   </header>
 
   <div class="flex-1 flex overflow-hidden">
-
-    <!-- Left Side: Syllabus Sidebar -->
-    <aside id="sidebar" class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
-      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 backdrop-blur space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF</h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Choisis un module pour lancer la leçon</p>
-          </div>
-          <span class="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Parts 1–4</span>
+    <!-- Left Syllabus Sidebar -->
+    <aside class="hidden md:flex md:flex-col w-80 bg-white border-r border-slate-200 overflow-y-auto shrink-0 shadow-sm">
+      <div class="p-4 border-b border-slate-100 bg-indigo-50/70 sticky top-0 z-10 space-y-3">
+        <div>
+          <h2 class="font-bold text-xs text-indigo-900 uppercase tracking-wide">Programme Officiel TCF</h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">Choisis un module</p>
         </div>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs">🔍</span>
-          <input id="topicSearchInput" type="text" placeholder="Filtrer les thèmes..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-700 placeholder-slate-400">
-        </div>
+        <input id="topicSearchInput" type="text" placeholder="Filtrer les thèmes..." class="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
       <div id="topicsList" class="p-3 space-y-3"></div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50 overflow-y-auto">
-        <div class="flex-1 flex flex-col p-4 sm:p-6">
-          <div class="max-w-4xl mx-auto w-full space-y-4">
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-y-auto p-6">
+      <div class="max-w-6xl mx-auto w-full space-y-4">
+        
+        <!-- Mobile/Fallback Tab Bar -->
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 lg:hidden">
+          <button onclick="switchPane('modules')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">📚 Modules</button>
+          <button onclick="switchPane('vocab')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">🔤 Vocab</button>
+          <button onclick="switchPane('reading')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">📖 Lecture</button>
+          <button onclick="switchPane('listening')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">👂 Écoute</button>
+          <button onclick="switchPane('writing')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">✍️ Écrit</button>
+          <button onclick="switchPane('game')" class="pane-btn text-[11px] font-bold py-2 px-1 rounded-xl border border-slate-300 bg-white text-slate-700">🧩 Jeu</button>
+        </div>
 
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
-              <button id="paneBtnModules" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition truncate">📚 Modules</button>
-              <button id="paneBtnVocab" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">🔤 Vocab</button>
-              <button id="paneBtnReading" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">📖 Lecture</button>
-              <button id="paneBtnListening" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">👂 Écoute</button>
-              <button id="paneBtnWriting" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">✍️ Écrit</button>
-              <button id="paneBtnGame" class="pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate">🧩 Jeu</button>
+        <!-- Standard Modules Chat View -->
+        <div id="paneModules" class="space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche</span>
+            <div class="flex gap-1.5">
+              <button id="speedToggleBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">⚡ 1.0x</button>
+              <button id="replayBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">🔊 Réécouter</button>
+              <button id="exportBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">📥 Exporter</button>
+            </div>
+          </div>
+          <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 min-h-[260px]">
+            <p class="text-xs text-slate-400">👋 Choisis un thème dans le menu pour démarrer une leçon interactive.</p>
+          </div>
+          <div class="flex items-end gap-2">
+            <input id="lessonInput" type="text" placeholder="Réponds ici..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <button id="lessonSendBtn" class="shrink-0 bg-indigo-600 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition">➤</button>
+          </div>
+        </div>
+
+        <!-- Nationalities Module View (Activated when clicking "Les nationalités") -->
+        <div id="paneNationalities" class="hidden space-y-6">
+          <div class="flex items-center justify-between bg-indigo-700 text-white px-5 py-3 rounded-2xl shadow-sm">
+            <div>
+              <h2 class="font-bold text-sm">🌍 Atelier Nationalités &amp; Grammaire</h2>
+              <p class="text-indigo-200 text-xs">Outils interactifs &amp; Assistant IA côte à côte</p>
+            </div>
+            <button onclick="switchPane('modules')" class="bg-white/10 hover:bg-white/25 transition rounded-xl px-3 py-1.5 text-xs font-semibold">
+              ⬅️ Retour aux modules
+            </button>
+          </div>
+
+          <!-- Side-by-Side: Interactive Tools | AI Assistant -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Left: Interactive Tools & Grammar -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h3 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">🛠️ Outils Interactifs &amp; Grammaire</h3>
+              
+              <div class="bg-indigo-950 text-white p-3 rounded-2xl space-y-2">
+                <span class="text-[10px] uppercase font-bold text-indigo-400 block">Forme active :</span>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button onclick="setNatForm('country')" id="natBtnCountry" class="py-2 rounded-xl text-[11px] font-semibold bg-indigo-900 text-indigo-200">Pays</button>
+                  <button onclick="setNatForm('masc')" id="natBtnMasc" class="py-2 rounded-xl text-[11px] font-semibold bg-indigo-600 text-white shadow">Masculin</button>
+                  <button onclick="setNatForm('fem')" id="natBtnFem" class="py-2 rounded-xl text-[11px] font-semibold bg-indigo-900 text-indigo-200">Féminin</button>
+                </div>
+              </div>
+
+              <button onclick="listenActiveNat()" class="w-full bg-indigo-700 hover:bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold transition shadow">
+                🔊 Écouter la prononciation native
+              </button>
+
+              <div class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-2xl text-xs space-y-1">
+                <span class="font-bold text-indigo-900 block">💡 Règle TCF (C'est vs Il est)</span>
+                <p id="natRuleText" class="text-slate-700 leading-relaxed">Pour les nationalités, on emploie toujours <strong>Il est / Elle est</strong> + nationalité.</p>
+              </div>
+
+              <button onclick="toggleNatVoiceRec()" id="natRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                🔴 Enregistrer ma voix
+              </button>
+              <div id="natRecFeedback" class="hidden bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs space-y-1">
+                <div><strong>Entendu :</strong> <span id="natHeard" class="italic text-slate-600">...</span></div>
+                <p id="natEval" class="text-emerald-600 font-medium">...</p>
+              </div>
             </div>
 
-            <!-- Standard Modules Pane -->
-            <div id="paneModules" class="space-y-3">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span id="topicPill" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Choisis un thème à gauche, ou écris ci-dessous</span>
-                <div class="flex gap-1.5 ml-auto">
-                  <button id="speedToggleBtn" title="Vitesse de la voix" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 transition">⚡ 1.0x</button>
-                  <button id="replayBtn" title="Réécouter la dernière réponse" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 transition">🔊 Réécouter</button>
-                  <button id="exportBtn" title="Exporter la conversation" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 transition">📥 Exporter</button>
-                </div>
-              </div>
-
-              <div id="lessonStream" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 min-h-[160px]">
-                <p class="text-xs text-slate-400">👋 Choisis un thème dans le menu pour démarrer une leçon, ou écris directement ci-dessous pour discuter librement avec Plume.</p>
-              </div>
-
-              <div class="flex items-end gap-2">
-                <button id="lessonMicBtn" title="Parler" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-300 hover:border-indigo-400 flex items-center justify-center text-lg transition">🎙️</button>
-                <button id="lessonPauseBtn" title="Interrompre Plume" class="shrink-0 w-11 h-11 rounded-full border-2 border-slate-200 flex items-center justify-center text-lg transition opacity-30 cursor-default" disabled>⏸️</button>
-                <input id="lessonInput" type="text" autocomplete="off" name="plume-chat-message" placeholder="réponds à l'écrit ou à l'oral..." class="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <button id="lessonSendBtn" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-11 h-11 flex items-center justify-center text-lg transition disabled:opacity-40">➤</button>
-              </div>
-            </div>
-
-            <!-- Nationalities Workspace Pane (Fetched from nationalities.html) -->
-            <div id="paneNationalities" class="hidden space-y-6">
-              <div class="flex items-center justify-between bg-indigo-700 text-white px-5 py-3 rounded-2xl shadow-sm">
-                <div>
-                  <h2 class="font-bold text-sm">🌍 Atelier Nationalités &amp; Grammaire</h2>
-                  <p class="text-indigo-200 text-xs">Chargé dynamiquement depuis modules/nationalities.html</p>
-                </div>
-                <button onclick="switchPane('modules')" class="bg-white/10 hover:bg-white/20 transition rounded-xl px-3 py-1.5 text-xs font-semibold">
-                  ⬅️ Retour aux modules
-                </button>
-              </div>
-
-              <!-- Container for external nationalities.html content -->
-              <div id="nationalitiesContainer" class="bg-white rounded-3xl border border-slate-200 p-4 shadow-sm min-h-[400px]">
-                <p class="text-xs text-slate-400 text-center py-10">Chargement du module Nationalités...</p>
-              </div>
-            </div>
-
-            <!-- Vocab Pane -->
-            <div id="paneVocab" class="hidden space-y-4">
-              <div class="flex flex-wrap gap-1.5" id="vocabLevelChips"></div>
-              <div class="flex items-center justify-between">
-                <div class="flex gap-1.5">
-                  <button id="vocabModeAll" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-indigo-600 bg-indigo-600 text-white">Toutes</button>
-                  <button id="vocabModePractice" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔁 À revoir</button>
-                </div>
-                <button id="vocabShuffleBtn" class="text-[11px] font-bold px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600">🔀 Mélanger</button>
-              </div>
-              <div id="vocabLoadStatus" class="text-xs text-slate-400">Chargement de vocabulary.csv...</div>
-              <div id="vocabCardWrap" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-                <div class="flex items-center justify-between">
-                  <span id="vocabRankBadge" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full"></span>
-                  <span id="vocabCounter" class="text-xs font-semibold text-slate-400"></span>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h3 id="vocabWord" class="font-bold text-3xl text-slate-800"></h3>
-                    <span id="vocabPos" class="text-[11px] font-bold text-slate-400 uppercase"></span>
+            <!-- Right: AI Assistant Panel -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                  <h3 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">💬 Assistant IA</h3>
+                  <div class="flex gap-1.5">
+                    <button id="natSpeedBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">⚡ 1.0x</button>
+                    <button id="natReplayBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">🔊 Réécouter</button>
+                    <button id="natExportBtn" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600">📥 Exporter</button>
                   </div>
-                  <p id="vocabIpa" class="text-xs text-slate-400 mt-1 font-mono"></p>
-                  <p id="vocabEnglish" class="text-sm text-indigo-600 font-semibold mt-2"></p>
                 </div>
-                <div id="vocabExampleWrap" class="bg-slate-50 rounded-xl p-3 text-sm hidden">
-                  <p id="vocabSentenceFr" class="text-slate-700"></p>
-                  <p id="vocabSentenceEn" class="text-slate-400 text-xs mt-1"></p>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-700">🎙️ Prononce-le</span>
-                    <button id="vocabListenBtn" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition">🔊 Écouter</button>
-                  </div>
-                  <button id="vocabRecBtn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 px-4 rounded-xl transition">🎙️ Enregistrer ma voix</button>
-                  <div id="vocabTranscriptBox" class="hidden text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 font-medium"></div>
-                  <div id="vocabReactionArea" class="hidden space-y-2"></div>
-                </div>
-                <div class="flex gap-2">
-                  <button id="vocabMarkPractice" class="flex-1 bg-amber-50 border border-amber-300 text-amber-700 text-xs font-bold py-2.5 rounded-xl hover:bg-amber-100">🔁 À revoir</button>
-                  <button id="vocabMarkKnown" class="flex-1 bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold py-2.5 rounded-xl hover:bg-emerald-100">✅ Je connais</button>
-                </div>
-                <div class="flex justify-between gap-3 pt-1">
-                  <button id="vocabPrevBtn" class="bg-white border border-slate-300 text-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50">⬅️ Précédent</button>
-                  <button id="vocabNextBtn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700">Suivant ➡️</button>
+                <div id="natAiStream" class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2 min-h-[140px] max-h-[180px] overflow-y-auto text-xs">
+                  <p class="text-slate-400">Pose une question sur les nationalités...</p>
                 </div>
               </div>
-              <div class="flex gap-3">
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabKnownCount" class="font-bold text-lg text-emerald-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Connus</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabPracticeCount" class="font-bold text-lg text-amber-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">À revoir</div>
-                </div>
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-center">
-                  <div id="vocabTotalCount" class="font-bold text-lg text-slate-600">0</div>
-                  <div class="text-[10px] font-bold text-slate-400 uppercase">Dans ce niveau</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Reading Pane -->
-            <div id="paneReading" class="hidden space-y-3">
-              <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-                <div class="flex items-center justify-between">
-                  <h3 class="font-bold text-sm text-indigo-900">📖 Atelier de lecture</h3>
-                  <button id="readingNewBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔀 Nouveau texte</button>
-                </div>
-                <div id="readingPassage" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700 leading-relaxed"></div>
-                <p id="readingQuestion" class="text-xs font-bold text-indigo-900"></p>
-                <input id="readingInput" type="text" placeholder="Ta réponse en français..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <button id="readingCheckBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Vérifier ma compréhension</button>
-                <div id="readingFeedback" class="hidden text-xs bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-indigo-950 leading-relaxed"></div>
-              </div>
-            </div>
-
-            <!-- Listening Pane -->
-            <div id="paneListening" class="hidden space-y-3">
-              <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-indigo-900">👂 Atelier d'écoute</h3>
-                <p class="text-xs text-slate-500">Écoute la phrase, puis écris exactement ce que tu entends.</p>
-                <button id="listeningPlayBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">🔊 Écouter la phrase</button>
-                <input id="listeningInput" type="text" placeholder="Ta transcription..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <button id="listeningCheckBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition">Vérifier ma dictée</button>
-                <div id="listeningFeedback" class="hidden text-xs p-3 rounded-xl border"></div>
-              </div>
-            </div>
-
-            <!-- Writing Pane -->
-            <div id="paneWriting" class="hidden space-y-3">
-              <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-indigo-900">✍️ Atelier d'écriture</h3>
-                <p class="text-xs text-slate-500">Choisis un thème, génère un sujet type TCF/TEF, puis rédige ta réponse.</p>
-                <select id="writingThemeSelect" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></select>
-                <button id="writingGenBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition">🎯 Générer un sujet TCF/TEF</button>
-                <div id="writingPromptCard" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-950"></div>
-                <textarea id="writingInput" rows="6" placeholder="Écris ici ta réponse..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-                <div id="writingSuggestRow" class="flex flex-wrap gap-1.5 min-h-[10px]"></div>
-                <div class="flex gap-2">
-                  <button id="writingSubmitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer pour correction</button>
-                  <button id="writingSampleBtn" class="flex-1 bg-white border border-slate-300 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition hover:bg-slate-50">💡 Voir un exemple de réponse</button>
-                </div>
-                <div id="writingSampleArea" class="hidden bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-950 leading-relaxed"></div>
-                <div id="writingFeedback" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-950 leading-relaxed"></div>
-              </div>
-            </div>
-
-            <!-- Game Pane -->
-            <div id="paneGame" class="hidden space-y-3">
-              <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
-                <div class="flex items-center justify-between flex-wrap gap-1">
-                  <h3 class="font-bold text-sm text-indigo-900">🧩 Construis ta phrase</h3>
-                  <button id="gameResetBtn" class="text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">🔄 Réinitialiser</button>
-                </div>
-                <p class="text-xs text-slate-500">Thème actif : <span id="gameThemeLabel" class="font-bold text-indigo-700">Général</span></p>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">1. Sujet</span><div id="dropPronoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
-                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">2. Verbe</span><div id="dropVerb" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
-                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">3. Nom</span><div id="dropNoun" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
-                  <div><span class="text-[10px] font-bold text-slate-500 block mb-1">4. Adjectif</span><div id="dropAdj" class="drop-zone rounded-xl flex items-center justify-center p-2 text-xs font-bold text-slate-400 bg-slate-50">Dépose ici</div></div>
-                </div>
-                <div id="gameLoadingLine" class="hidden text-xs text-slate-400 font-semibold">💬 Plume prépare les mots...</div>
-                <div class="space-y-2 pt-1" id="gameBlockPool"></div>
-                <button id="gameSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition">Envoyer cette phrase à Plume 🚀</button>
+              <div class="flex items-end gap-2 pt-2">
+                <input id="natAiInput" type="text" placeholder="Écris ici..." class="flex-1 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <button onclick="sendNatAiMessage()" class="bg-indigo-600 text-white rounded-xl px-4 py-2 text-xs font-bold">➤</button>
               </div>
             </div>
 
           </div>
+
+          <!-- Country Selector Grid -->
+          <div class="space-y-3">
+            <h3 class="font-bold text-sm text-slate-700">🌍 Sélectionner un pays :</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="natCountriesGrid"></div>
+          </div>
         </div>
+
+        <!-- Vocab Pane Placeholder -->
+        <div id="paneVocab" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="font-bold text-base text-indigo-900">🔤 Atelier Vocabulaire</h3>
+          <p class="text-xs text-slate-500">Explore la liste des mots essentiels pour le TCF.</p>
+        </div>
+
+        <!-- Reading Pane Placeholder -->
+        <div id="paneReading" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="font-bold text-base text-indigo-900">📖 Atelier de Lecture</h3>
+          <p class="text-xs text-slate-500">Compréhension de textes et articles.</p>
+        </div>
+
+        <!-- Listening Pane Placeholder -->
+        <div id="paneListening" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="font-bold text-base text-indigo-900">👂 Atelier d'Écoute</h3>
+          <p class="text-xs text-slate-500">Exercices de dictée et écoute active.</p>
+        </div>
+
+        <!-- Writing Pane Placeholder -->
+        <div id="paneWriting" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="font-bold text-base text-indigo-900">✍️ Atelier d'Écriture</h3>
+          <p class="text-xs text-slate-500">Rédaction de sujets TCF/TEF.</p>
+        </div>
+
+        <!-- Game Pane Placeholder -->
+        <div id="paneGame" class="hidden bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="font-bold text-base text-indigo-900">🧩 Jeux de Phrases</h3>
+          <p class="text-xs text-slate-500">Construis des phrases par glisser-déposer.</p>
+        </div>
+
+      </div>
     </main>
   </div>
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-lg">⚙️ Configuration du modèle</h2>
-        <button id="closeSettings" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+        <h2 class="font-bold text-lg">⚙️ Configuration</h2>
+        <button id="closeSettings" class="text-slate-400 text-xl">&times;</button>
       </div>
-
-      <div class="flex gap-2 mb-4">
-        <button class="preset-btn flex-1 text-xs font-semibold border border-slate-300 rounded-lg py-2 hover:bg-slate-50" data-preset="groq">☁️ Groq (cloud)</button>
-        <button class="preset-btn flex-1 text-xs font-semibold border border-slate-300 rounded-lg py-2 hover:bg-slate-50" data-preset="ollama">💻 Ollama (local)</button>
-      </div>
-
-      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Base URL</label>
-      <input id="cfgBaseUrl" type="text" autocomplete="off" name="plume-api-base-url" placeholder="https://api.groq.com/openai/v1/chat/completions"
-        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-
-      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">API Key <span class="font-normal text-slate-400">(laisse vide pour Ollama local)</span></label>
-      <input id="cfgApiKey" type="password" placeholder="gsk_..." autocomplete="off" name="plume-api-key"
-        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-
-      <label class="block text-xs font-semibold text-slate-500 mb-1 mt-3">Model Name</label>
-      <input id="cfgModel" type="text" autocomplete="off" name="plume-model-name" placeholder="llama-3.3-70b-versatile"
-        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
-
-      <div id="settingsError" class="hidden mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></div>
-
-      <div class="flex gap-2 mt-5">
-        <button id="testConnBtn" class="flex-1 border border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-lg py-2.5 text-sm font-semibold transition">Tester la connexion</button>
-        <button id="saveSettingsBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2.5 text-sm font-semibold transition">Enregistrer</button>
-      </div>
+      <label class="block text-xs font-semibold text-slate-500 mb-1">API Base URL</label>
+      <input id="cfgBaseUrl" type="text" placeholder="https://api.groq.com/openai/v1/chat/completions" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">API Key</label>
+      <input id="cfgApiKey" type="password" placeholder="gsk_..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3">
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Model Name</label>
+      <input id="cfgModel" type="text" placeholder="openai/gpt-oss-120b" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-4">
+      <button id="saveSettingsBtn" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 text-sm font-semibold">Enregistrer</button>
     </div>
   </div>
 
 <script>
-const CFG_KEYS = { baseUrl:'fsb_base_url', apiKey:'fsb_api_key', model:'fsb_model' };
-const PRESETS = {
-  groq:   { baseUrl:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', key:'' },
-  ollama: { baseUrl:'http://localhost:11434/v1/chat/completions',     model:'llama3',                     key:'ollama' }
-};
+const STUDY_MODULES = [
+  { title: '🟢 DELF A1 — Vocabulaire', topics: ["L'alphabet", "Les nombres", "Les nationalités", "Les professions", "La famille proche", "La météo"] }
+];
 
-function getConfig(){
-  return {
-    baseUrl: localStorage.getItem(CFG_KEYS.baseUrl) || '',
-    apiKey:  localStorage.getItem(CFG_KEYS.apiKey)  || '',
-    model:   localStorage.getItem(CFG_KEYS.model)   || ''
-  };
+function renderTopics(){
+  document.getElementById('topicsList').innerHTML = STUDY_MODULES.map(m=>`
+    <div>
+      <h3 class="text-xs font-bold text-indigo-900 mb-1">${m.title}</h3>
+      <div class="space-y-1">
+        ${m.topics.map(t=>`<button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:bg-indigo-50 font-medium text-slate-700" data-topic="${t}">${t}</button>`).join('')}
+      </div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.topic-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.topic === "Les nationalités"){
+        switchPane('nationalities');
+        initNationalityWorkspace();
+      } else {
+        switchPane('modules');
+        startTopicLesson(btn.dataset.topic);
+      }
+    };
+  });
 }
+renderTopics();
+
+function switchPane(target){
+  const panes = ['modules', 'nationalities', 'vocab', 'reading', 'listening', 'writing', 'game'];
+  panes.forEach(p => {
+    const el = document.getElementById('pane' + p.charAt(0).toUpperCase() + p.slice(1));
+    if(el) el.classList.toggle('hidden', p !== target);
+  });
+  
+  // Highlight active top tab
+  document.querySelectorAll('.top-tab').forEach(t => {
+    t.classList.remove('bg-white', 'text-indigo-900', 'shadow');
+    t.classList.add('text-indigo-200');
+  });
+  const activeTab = document.getElementById('topTab' + target.charAt(0).toUpperCase() + target.slice(1));
+  if(activeTab){
+    activeTab.classList.remove('text-indigo-200');
+    activeTab.classList.add('bg-white', 'text-indigo-900', 'shadow');
+  }
+}
+
+function getConfig(){ return { baseUrl: localStorage.getItem('fsb_base_url'), apiKey: localStorage.getItem('fsb_api_key'), model: localStorage.getItem('fsb_model') }; }
 function saveConfig(cfg){
-  localStorage.setItem(CFG_KEYS.baseUrl, cfg.baseUrl);
-  localStorage.setItem(CFG_KEYS.apiKey, cfg.apiKey);
-  localStorage.setItem(CFG_KEYS.model, cfg.model);
+  localStorage.setItem('fsb_base_url', cfg.baseUrl);
+  localStorage.setItem('fsb_api_key', cfg.apiKey);
+  localStorage.setItem('fsb_model', cfg.model);
   updateConnStatus();
 }
 function updateConnStatus(){
   const cfg = getConfig();
-  const dot = document.getElementById('connDot');
-  const label = document.getElementById('connLabel');
-  if(cfg.baseUrl && cfg.model){
-    dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-    label.textContent = cfg.model;
-  }else{
-    dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-    label.textContent = 'Non configuré';
-  }
+  document.getElementById('connDot').className = 'w-2 h-2 rounded-full ' + (cfg.baseUrl ? 'bg-emerald-400' : 'bg-slate-400');
+  document.getElementById('connLabel').textContent = cfg.model || 'Non configuré';
 }
 
-const settingsModal = document.getElementById('settingsModal');
 document.getElementById('settingsBtn').onclick = ()=>{
   const cfg = getConfig();
-  document.getElementById('cfgBaseUrl').value = cfg.baseUrl;
-  document.getElementById('cfgApiKey').value = cfg.apiKey;
-  document.getElementById('cfgModel').value = cfg.model;
-  document.getElementById('settingsError').classList.add('hidden');
-  settingsModal.classList.remove('hidden');
+  document.getElementById('cfgBaseUrl').value = cfg.baseUrl || '';
+  document.getElementById('cfgApiKey').value = cfg.apiKey || '';
+  document.getElementById('cfgModel').value = cfg.model || '';
+  document.getElementById('settingsModal').classList.remove('hidden');
 };
-document.getElementById('closeSettings').onclick = ()=> settingsModal.classList.add('hidden');
-
-document.querySelectorAll('.preset-btn').forEach(btn=>{
-  btn.onclick = ()=>{
-    const p = PRESETS[btn.dataset.preset];
-    document.getElementById('cfgBaseUrl').value = p.baseUrl;
-    document.getElementById('cfgModel').value = p.model;
-    document.getElementById('cfgApiKey').value = p.key;
-  };
-});
-
+document.getElementById('closeSettings').onclick = ()=> document.getElementById('settingsModal').classList.add('hidden');
 document.getElementById('saveSettingsBtn').onclick = ()=>{
   saveConfig({
     baseUrl: document.getElementById('cfgBaseUrl').value.trim(),
     apiKey: document.getElementById('cfgApiKey').value.trim(),
     model: document.getElementById('cfgModel').value.trim()
   });
-  settingsModal.classList.add('hidden');
+  document.getElementById('settingsModal').classList.add('hidden');
 };
 
-document.getElementById('testConnBtn').onclick = async ()=>{
-  const cfg = {
-    baseUrl: document.getElementById('cfgBaseUrl').value.trim(),
-    apiKey: document.getElementById('cfgApiKey').value.trim(),
-    model: document.getElementById('cfgModel').value.trim()
-  };
-  const err = document.getElementById('settingsError');
-  err.classList.add('hidden');
-  try{
-    await callLLM(cfg, [{ role:'user', content:'Réponds uniquement "OK".' }], 20);
-    err.textContent = '✅ Connexion réussie !';
-    err.className = 'mt-3 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2';
-    err.classList.remove('hidden');
-  }catch(e){
-    err.textContent = '⚠️ ' + e.message;
-    err.className = 'mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2';
-    err.classList.remove('hidden');
-  }
-};
-
-let frenchVoice = null;
-function pickFrenchVoice(){
-  if(!window.speechSynthesis) return;
-  const voices = window.speechSynthesis.getVoices();
-  frenchVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('fr')) || null;
-}
-if(window.speechSynthesis){ pickFrenchVoice(); window.speechSynthesis.onvoiceschanged = pickFrenchVoice; }
-
-function speakPlume(text, positive){
-  return new Promise(resolve=>{
-    if(!text || !window.speechSynthesis){ resolve(); return; }
-    lastSpokenText = text;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'fr-FR';
-    if(frenchVoice) u.voice = frenchVoice;
-    u.rate = currentSpeechRate;
-    u.onstart = ()=> document.getElementById('headerAvatar').classList.add('speaking', 'recording-active');
-    u.onend = ()=> { document.getElementById('headerAvatar').classList.remove('speaking', 'recording-active'); resolve(); };
-    u.onerror = ()=> { document.getElementById('headerAvatar').classList.remove('speaking', 'recording-active'); resolve(); };
-    window.speechSynthesis.speak(u);
-  });
-}
-
-const SYSTEM_PROMPT = `Tu es Plume, une tutrice de français patiente, chaleureuse mais franche, qui aide un(e) étudiant(e) à préparer le TCF/DELF.
-
-Réponds TOUJOURS en utilisant EXACTEMENT ces trois lignes, dans cet ordre :
-PLUME_FR: <ta réponse en français, courte — une à trois phrases maximum, jamais un long paragraphe>
-PLUME_EN: <traduction ou explication en anglais de cette même réponse, toujours présente, même courte>
-SUGGESTIONS: <2 à 3 courtes réponses possibles que l'étudiant pourrait dire ensuite, séparées par " | ">`;
-
-function safeErrorMessage(err){
-  let msg = String(err && err.message ? err.message : err || 'Erreur inconnue');
-  return msg.replace(/https?:\/\/\S+/gi, '[endpoint]');
-}
-
-async function callLLM(cfg, messages, maxTokens){
-  const headers = { 'Content-Type': 'application/json' };
-  if(cfg.apiKey) headers['Authorization'] = 'Bearer ' + cfg.apiKey;
-  const res = await fetch(cfg.baseUrl, {
-    method:'POST', headers,
-    body: JSON.stringify({
-      model: cfg.model,
-      messages: [{ role:'system', content: SYSTEM_PROMPT }, ...messages],
-      max_tokens: maxTokens || 250,
-      temperature: 0.7
-    })
-  });
-  if(!res.ok) throw new Error(`Erreur serveur (${res.status}). Vérifie ta clé API.`);
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content;
-  if(!text) throw new Error('Réponse vide reçue.');
-  return text.trim();
-}
-
-function parseReply(raw){
-  const frMatch = raw.match(/PLUME_FR\s*:\s*([\s\S]*?)(?=PLUME_EN\s*:|SUGGESTIONS\s*:|$)/i);
-  const enMatch = raw.match(/PLUME_EN\s*:\s*([\s\S]*?)(?=SUGGESTIONS\s*:|$)/i);
-  const sgMatch = raw.match(/SUGGESTIONS\s*:\s*([\s\S]*?)$/i);
-  const suggestions = sgMatch ? sgMatch[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3) : [];
-  if(frMatch || enMatch){
-    return { fr: (frMatch ? frMatch[1] : '').trim(), en: (enMatch ? enMatch[1] : '').trim(), suggestions };
-  }
-  return { fr: raw.trim(), en: '', suggestions: [] };
-}
-
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* Unified lesson stream */
-const lessonStream = document.getElementById('lessonStream');
-let lessonHistory = [];
-let lessonBusy = false;
 let speechRates = [1.0, 1.5, 2.0];
 let rateIdx = 0;
 let currentSpeechRate = 1.0;
@@ -450,245 +304,176 @@ function handleSpeedToggle(){
   currentSpeechRate = speechRates[rateIdx];
   const label = `⚡ ${currentSpeechRate.toFixed(1)}x`;
   document.getElementById('speedToggleBtn').textContent = label;
+  document.getElementById('natSpeedBtn').textContent = label;
 }
 document.getElementById('speedToggleBtn').onclick = handleSpeedToggle;
+document.getElementById('natSpeedBtn').onclick = handleSpeedToggle;
 
-function streamBubble(role, fr, en, suggestions){
-  if(role === 'user'){
-    return `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl rounded-br-sm px-3 py-2 text-sm max-w-[80%]">${escapeHtml(fr)}</div></div>`;
-  }
-  const chips = (suggestions && suggestions.length) ? `
-    <div class="flex flex-wrap gap-1.5 mt-2">
-      ${suggestions.map(s=>`<button class="suggestion-chip text-xs font-medium px-2.5 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" data-text="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}
-    </div>` : '';
-  return `<div class="flex flex-col items-start max-w-[85%]">
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">${escapeHtml(fr)}</div>
-    ${en ? `<p class="text-[11px] text-slate-400 mt-1 ml-1">${escapeHtml(en)}</p>` : ''}
-    ${chips}
-  </div>`;
+document.getElementById('replayBtn').onclick = ()=> { if(lastSpokenText) speakText(lastSpokenText); };
+document.getElementById('natReplayBtn').onclick = ()=> { if(lastSpokenText) speakText(lastSpokenText); };
+
+function exportHistory(){
+  let content = "--- Journal de conversation ---\n\n" + lessonHistory.map(m=>`${m.role === 'user' ? 'Étudiant' : 'Assistant'} : ${m.content}`).join('\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'session.txt'; a.click();
+}
+document.getElementById('exportBtn').onclick = exportHistory;
+document.getElementById('natExportBtn').onclick = exportHistory;
+
+function speakText(text){
+  return new Promise(resolve=>{
+    if(!text || !window.speechSynthesis){ resolve(); return; }
+    lastSpokenText = text;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = currentSpeechRate;
+    u.onend = ()=> resolve();
+    u.onerror = ()=> resolve();
+    window.speechSynthesis.speak(u);
+  });
 }
 
-document.getElementById('lessonStream').addEventListener('click', (e)=>{
-  const chip = e.target.closest('.suggestion-chip');
-  if(!chip) return;
-  document.getElementById('lessonInput').value = chip.dataset.text;
-  sendLessonMessage();
-});
-
-async function startTopicLesson(topic, level){
-  if(lessonBusy) return;
+let lessonHistory = [];
+async function startTopicLesson(topic){
   document.getElementById('topicPill').textContent = topic;
   lessonHistory = [];
-  lessonStream.innerHTML = `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 Plume prépare la leçon...</p>`;
-  lessonBusy = true;
+  const stream = document.getElementById('lessonStream');
+  stream.innerHTML = `<p class="text-xs text-slate-400 font-semibold">💬 Chargement de la leçon...</p>`;
   try{
     const cfg = getConfig();
-    if(!cfg.baseUrl) throw new Error("Configure d'abord ton modèle (⚙️ Paramètres).");
-    const raw = await callLLM(cfg, [{ role:'user', content: `Nouveau thème choisi par l'étudiant : "${topic}". Enseigne ce point concrètement et pose une question simple.` }], 300);
-    const { fr, en, suggestions } = parseReply(raw);
-    lessonHistory.push({ role:'assistant', content: raw });
-    lessonStream.innerHTML = streamBubble('plume', fr, en, suggestions);
-    lessonStream.scrollTop = lessonStream.scrollHeight;
-    await speakPlume(fr, true);
+    if(!cfg.baseUrl) throw new Error("Configure l'API dans les Paramètres.");
+    const res = await fetch(cfg.baseUrl, {
+      method:'POST',
+      headers: { 'Content-Type': 'application/json', ...(cfg.apiKey ? {'Authorization': 'Bearer '+cfg.apiKey} : {}) },
+      body: JSON.stringify({ model: cfg.model || 'openai/gpt-oss-120b', messages: [{role:'system', content:"Tu es un tuteur de français."}, {role:'user', content:`Thème: ${topic}`}], max_tokens:250 })
+    });
+    const data = await res.json();
+    const raw = data?.choices?.[0]?.message?.content?.trim() || '';
+    lessonHistory.push({role:'assistant', content:raw});
+    stream.innerHTML = `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm">${raw}</div>`;
+    await speakText(raw);
   }catch(err){
-    lessonStream.innerHTML = `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${safeErrorMessage(err)}</div>`;
-  }finally{
-    lessonBusy = false;
+    stream.innerHTML = `<div class="text-xs text-red-600">⚠️ ${err.message}</div>`;
   }
 }
 
 async function sendLessonMessage(){
   const input = document.getElementById('lessonInput');
   const text = input.value.trim();
-  if(!text || lessonBusy) return;
-  const cfg = getConfig();
-  if(!cfg.baseUrl) return;
-
+  if(!text) return;
   input.value = '';
-  lessonStream.insertAdjacentHTML('beforeend', streamBubble('user', text));
-  lessonStream.scrollTop = lessonStream.scrollHeight;
-  lessonBusy = true;
-  lessonStream.insertAdjacentHTML('beforeend', `<p class="text-xs text-slate-400 font-semibold" id="streamLoadingLine">💬 Plume réfléchit...</p>`);
-
+  const stream = document.getElementById('lessonStream');
+  stream.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl px-3 py-2 text-sm">${text}</div></div>`);
+  stream.scrollTop = stream.scrollHeight;
   try{
-    lessonHistory.push({ role:'user', content: text });
-    const raw = await callLLM(cfg, lessonHistory.slice(-10), 300);
-    const { fr, en, suggestions } = parseReply(raw);
-    lessonHistory.push({ role:'assistant', content: raw });
-
-    document.getElementById('streamLoadingLine')?.remove();
-    lessonStream.insertAdjacentHTML('beforeend', streamBubble('plume', fr, en, suggestions));
-    lessonStream.scrollTop = lessonStream.scrollHeight;
-    if(!/pas tout à fait|attention/i.test(fr)) confetti({ particleCount: 50, spread: 50, origin:{ y:0.65 } });
-    await speakPlume(fr, true);
-  }catch(err){
-    document.getElementById('streamLoadingLine')?.remove();
-    lessonStream.insertAdjacentHTML('beforeend', `<div class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">⚠️ ${safeErrorMessage(err)}</div>`);
-  }finally{
-    lessonBusy = false;
-  }
+    lessonHistory.push({role:'user', content:text});
+    const cfg = getConfig();
+    const res = await fetch(cfg.baseUrl, {
+      method:'POST',
+      headers: { 'Content-Type': 'application/json', ...(cfg.apiKey ? {'Authorization': 'Bearer '+cfg.apiKey} : {}) },
+      body: JSON.stringify({ model: cfg.model || 'openai/gpt-oss-120b', messages: [{role:'system', content:"Tu es un tuteur de français."}, ...lessonHistory.slice(-8)], max_tokens:250 })
+    });
+    const data = await res.json();
+    const raw = data?.choices?.[0]?.message?.content?.trim() || '';
+    lessonHistory.push({role:'assistant', content:raw});
+    stream.insertAdjacentHTML('beforeend', `<div class="bg-white border border-slate-200 rounded-2xl p-3 text-sm mt-2">${raw}</div>`);
+    stream.scrollTop = stream.scrollHeight;
+    await speakText(raw);
+  }catch(err){}
 }
 document.getElementById('lessonSendBtn').onclick = sendLessonMessage;
-document.getElementById('lessonInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendLessonMessage(); } });
+document.getElementById('lessonInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendLessonMessage(); });
 
-/* Syllabus Sidebar Categories */
-const STUDY_MODULES = [
-  { title: '🟢 DELF A1 — Vocabulaire', level:'essential', topics: [
-    "L'alphabet", "Les nombres", "Les noms et prénoms", "L'adresse", "Les objets personnels", "Les objets de la classe",
-    "Les nationalités", "Les professions", "L'état civil", "Les pays & les villes", "Les loisirs", "La famille proche",
-    "L'heure", "Les prix", "La météo / le climat", "La date", "Les jours de la semaine", "Les descriptions",
-    "Les couleurs", "Les saisons", "Les lieux"
-  ]},
-  { title: '🟢 DELF A1 — Grammaire', level:'essential', topics: [
-    "Pronoms personnels sujets", "Pronoms toniques", "Le présent — état & description", "Verbes usuels (être, avoir, faire, s'appeler)",
-    "Verbes en -er", "Le verbe comprendre", "Conditionnel de politesse (je voudrais)", "Phrase interrogative simple",
-    "Formes interrogatives (est-ce que)", "Pronoms interrogatifs", "Adjectifs interrogatifs", "Présentateurs (c'est, voilà)",
-    "Articles définis et indéfinis", "Article zéro (professions)", "Nombres cardinaux", "Adjectifs démonstratifs",
-    "Accord masculin/féminin", "Accord des adjectifs de nationalité", "Adjectifs qualificatifs", "Place des adjectifs",
-    "Phrases affirmatives/négatives", "Négation (ne...pas)", "Complément du nom avec « de »", "Adjectifs possessifs",
-    "Articles partitifs", "Adverbes de quantité", "Quantité indéterminée/déterminée", "Forme impersonnelle (météo)",
-    "Localisation temporelle", "Expression du moment", "Localisation spatiale", "Il y a", "Articulateurs du discours"
-  ]},
-  { title: '🟢 DELF A1 — Parler & Culture', level:'essential', topics: [
-    "Entrer en contact avec qn", "Présenter qn", "Parler de son environnement quotidien", "Décrire un objet / une personne",
-    "Demander une information", "Situer des événements dans le temps", "Se situer dans l'espace", "Donner des instructions",
-    "Accepter / Refuser qch", "Participer à une conversation", "Les salutations", "Formules de politesse", "Tu ou Vous",
-    "Je veux vs Je voudrais", "Rituels de correspondance"
-  ]},
-  { title: '🟡 DELF A2 — Vocabulaire & Grammaire', level:'common', topics: [
-    "Les personnes (famille, description)", "Les lieux (café, restos, banques)", "Les loisirs (sports, sorties)",
-    "Moyens de transport", "La vie quotidienne & logement", "Aliments, repas & cuisine", "Animaux familiers",
-    "Itinéraire & météo", "Argent & paiements", "Présent de l'indicatif", "Verbes 1er, 2e, 3e groupes",
-    "Verbes pronominaux", "Verbes usuels (venir, prendre)", "Verbes + infinitif", "Passé composé & imparfait",
-    "Impératif (positif/négatif)", "Futur proche, simple, passé récent", "Pronoms COD, COI, Y, EN", "Pronoms relatifs simples"
-  ]},
-  { title: '🟠 DELF B1/B2 — Thèmes & Grammaire avancée', level:'inter', topics: [
-    "La vie quotidienne et professionnelle", "Les sentiments et caractères", "Les événements et faits divers",
-    "Les médias et la culture", "Sujets de société et politique", "Temps du passé avancés (Plus-que-parfait)",
-    "Le conditionnel présent et passé", "Le subjonctif (présent et passé)", "Le discours rapporté",
-    "Le passif et le gérondif", "L'hypothèse complexe (si)", "Doubles pronoms & relatifs complexes", "Nominalisation & articulateurs"
-  ]},
-  { title: 'PART 1: Core Foundations', level:'essential', topics: [
-    "Alphabet, liaisons & Sons nasaux", "Nombres (1-100), Heure & Dates", "Objets de la maison & Vêtements",
-    "Nourriture, Boissons & Ville", "Genres (Masculin/Féminin) & Articles", "Verbes Être, Avoir & -er",
-    "Négation (ne...pas) & Questions", "Salutations & Présentations"
-  ]},
-  { title: 'PART 2: CEFR Mastery (A1 to C2)', level:'common', topics: [
-    "Niveau A1 (Breakthrough)", "Niveau A2 (Waystage - Passé composé/Imparfait)", "Niveau B1 (Threshold - Conditionnel/Subjonctif)",
-    "Niveau B2 (Upper-Intermediate - Voix passive)", "Niveau C1 (Advanced - Inversions stylistiques)", "Niveau C2 (Mastery - Argot & Nuances)"
-  ]},
-  { title: 'PART 3: 24 Advanced Thematic Modules', level:'inter', topics: [
-    "1. Santé et bien-être", "2. Le Travail & Emploi", "3. L'Environnement & Écologie", "4. Voyages & Mobilité",
-    "5. Loisirs & Passions", "6. Technologie & I.A.", "7. Logement & Urbanisme", "8. Éducation & Formation",
-    "9. Société & Civisme", "10. Consommation & Médias", "11. Immigration & Intégration", "12. Agriculture & Alimentation",
-    "13. Culture & Patrimoine", "14. Égalité & Diversité", "15. Économie & Finances", "16. Gestion du Temps",
-    "17. Changement & Innovation", "18. Avenir & Durabilité", "19. Psychologie & Comportement", "20. Justice & Droits Citoyens",
-    "21. Médias & Information", "22. Politique & Gouvernance", "23. Mondialisation & Relations Internationales", "24. Cadre de Vie & Urbanisme Écologique"
-  ]},
-  { title: 'PART 4: Flashcards & Wordlists', level:'advanced', topics: [
-    "Vocabulaire thématique TCF", "Verbes essentiels & Conjugaisons", "Expressions idiomatiques", "Connecteurs logiques avancés"
-  ]}
+/* Nationalities Workspace Logic */
+const nationalitiesData = [
+  { country: "Inde", masc: "Indien", fem: "Indienne", icon: "🇮🇳" },
+  { country: "Canada", masc: "Canadien", fem: "Canadienne", icon: "🇨🇦" },
+  { country: "Australie", masc: "Australien", fem: "Australienne", icon: "🇦🇺" },
+  { country: "Chine", masc: "Chinois", fem: "Chinoise", icon: "🇨🇳" }
 ];
+let activeNat = nationalitiesData[0];
+let activeNatForm = 'masc';
 
-function renderTopics(filterQuery = ''){
-  const container = document.getElementById('topicsList');
-  const q = filterQuery.toLowerCase().trim();
-
-  container.innerHTML = STUDY_MODULES.map((m, mi)=>{
-    const filteredTopics = m.topics.filter(t => !q || t.toLowerCase().includes(q));
-    if(q && filteredTopics.length === 0) return '';
-    const isOpen = q ? true : (mi === 0);
-
-    return `
-      <div class="border border-slate-100 rounded-xl p-1 bg-slate-50/50">
-        <button class="cat-toggle w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-slate-100 transition" data-idx="${mi}">
-          <div>
-            <h3 class="text-xs font-bold text-indigo-900 tracking-wide">${escapeHtml(m.title)}</h3>
-            <span class="text-[10px] text-slate-400 font-medium">${m.topics.length} sujets</span>
-          </div>
-          <span class="cat-chevron text-slate-400 text-[10px] transition-transform ${isOpen?'rotate-90':''}">▶</span>
-        </button>
-        <div class="cat-body space-y-1 mt-1 ${isOpen?'':'hidden'}" data-idx="${mi}">
-          ${filteredTopics.map(t=>`
-            <button class="topic-btn w-full text-left text-xs px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition font-medium text-slate-700 flex items-center justify-between group" data-topic="${escapeHtml(t)}" data-level="${m.level}">
-              <span>${escapeHtml(t)}</span>
-              <span class="text-indigo-400 opacity-0 group-hover:opacity-100 transition text-[10px]">▶</span>
-            </button>
-          `).join('')}
-        </div>
+function initNationalityWorkspace(){
+  renderNatGrid();
+  updateNatPanel();
+}
+function renderNatGrid(){
+  const grid = document.getElementById('natCountriesGrid');
+  grid.innerHTML = nationalitiesData.map(item=>`
+    <div onclick="selectNatCountry('${item.country}')" class="bg-white border p-3 rounded-2xl cursor-pointer hover:border-indigo-400 transition flex items-center gap-3 ${activeNat.country===item.country?'border-indigo-600 bg-indigo-50/40':''}">
+      <span class="text-2xl">${item.icon}</span>
+      <div>
+        <div class="font-bold text-xs text-indigo-900">${item.country}</div>
+        <div class="text-[10px] text-slate-500">${item.masc} / ${item.fem}</div>
       </div>
-    `;
-  }).join('');
-
-  container.querySelectorAll('.cat-toggle').forEach(btn=>{
-    btn.onclick = ()=>{
-      const idx = btn.dataset.idx;
-      container.querySelector(`.cat-body[data-idx="${idx}"]`).classList.toggle('hidden');
-      btn.querySelector('.cat-chevron').classList.toggle('rotate-90');
-    };
-  });
-
-  container.querySelectorAll('.topic-btn').forEach(btn=>{
-    btn.onclick = ()=>{
-      if(btn.dataset.topic === "Les nationalités"){
-        switchPane('nationalities');
-        loadNationalitiesModule();
-      }else{
-        switchPane('modules');
-        startTopicLesson(btn.dataset.topic, btn.dataset.level);
-      }
-    };
-  });
+    </div>
+  `).join('');
 }
-renderTopics();
-document.getElementById('topicSearchInput').addEventListener('input', (e)=>{ renderTopics(e.target.value); });
-
-/* Pane Switching */
-const PANE_IDS = ['modules','nationalities','vocab','reading','listening','writing','game'];
-function switchPane(target){
-  PANE_IDS.forEach(id=>{
-    const pane = document.getElementById('pane' + id[0].toUpperCase() + id.slice(1));
-    const btn = document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1));
-    const active = id === target;
-    if(pane) pane.classList.toggle('hidden', !active);
-    if(btn){
-      btn.className = active
-        ? 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-indigo-600 bg-indigo-600 text-white transition truncate'
-        : 'pane-btn text-[11px] font-bold py-2.5 px-1 rounded-xl border-2 border-slate-300 bg-white text-slate-600 transition truncate';
+function selectNatCountry(name){
+  activeNat = nationalitiesData.find(i=>i.country===name);
+  renderNatGrid();
+  updateNatPanel();
+  listenActiveNat();
+}
+function setNatForm(form){
+  activeNatForm = form;
+  updateNatPanel();
+  listenActiveNat();
+}
+function updateNatPanel(){
+  document.getElementById('natBtnCountry').className = "py-2 rounded-xl text-[11px] font-semibold " + (activeNatForm==='country'?'bg-indigo-600 text-white shadow':'bg-indigo-900 text-indigo-200');
+  document.getElementById('natBtnMasc').className = "py-2 rounded-xl text-[11px] font-semibold " + (activeNatForm==='masc'?'bg-indigo-600 text-white shadow':'bg-indigo-900 text-indigo-200');
+  document.getElementById('natBtnFem').className = "py-2 rounded-xl text-[11px] font-semibold " + (activeNatForm==='fem'?'bg-indigo-600 text-white shadow':'bg-indigo-900 text-indigo-200');
+}
+function listenActiveNat(){
+  const word = activeNatForm==='country'?activeNat.country:(activeNatForm==='fem'?activeNat.fem:activeNat.masc);
+  speakText(word);
+}
+function toggleNatVoiceRec(){
+  const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!Ctor){ alert("Reconnaissance vocale non supportée."); return; }
+  const rec = new Ctor();
+  rec.lang = 'fr-FR';
+  const target = activeNatForm==='country'?activeNat.country:(activeNatForm==='fem'?activeNat.fem:activeNat.masc);
+  const fb = document.getElementById('natRecFeedback');
+  rec.onstart = ()=>{ fb.classList.remove('hidden'); document.getElementById('natHeard').textContent="Écoute..."; document.getElementById('natEval').textContent="Analyse..."; };
+  rec.onresult = (e)=>{
+    const said = e.results[0][0].transcript;
+    document.getElementById('natHeard').textContent = said;
+    if(said.toLowerCase().includes(target.toLowerCase())){
+      document.getElementById('natEval').textContent = "🎉 Parfait !";
+      if(typeof confetti === 'function') confetti({ particleCount: 35, spread: 40, origin:{y:0.6} });
+    }else{
+      document.getElementById('natEval').textContent = `⚠️ Entendu "${said}". Cible : ${target}`;
     }
-  });
+  };
+  rec.start();
 }
-PANE_IDS.forEach(id=>{
-  const b = document.getElementById('paneBtn' + id[0].toUpperCase() + id.slice(1));
-  if(b) b.onclick = ()=> switchPane(id);
-});
-
-/* Fetch nationalities.html from modules folder */
-async function loadNationalitiesModule(){
-  const container = document.getElementById('nationalitiesContainer');
+async function sendNatAiMessage(){
+  const input = document.getElementById('natAiInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  const stream = document.getElementById('natAiStream');
+  stream.insertAdjacentHTML('beforeend', `<div class="text-right font-bold text-indigo-600">${text}</div>`);
+  stream.scrollTop = stream.scrollHeight;
   try{
-    const res = await fetch('modules/nationalities.html');
-    if(!res.ok) throw new Error("Fichier introuvable (" + res.status + ")");
-    const html = await res.text();
-    container.innerHTML = html;
-    // Execute scripts if embedded in nationalities.html
-    container.querySelectorAll('script').forEach(s => {
-      const newScript = document.createElement('script');
-      newScript.text = s.text;
-      document.body.appendChild(newScript);
+    const cfg = getConfig();
+    const res = await fetch(cfg.baseUrl, {
+      method:'POST',
+      headers: { 'Content-Type': 'application/json', ...(cfg.apiKey ? {'Authorization': 'Bearer '+cfg.apiKey} : {}) },
+      body: JSON.stringify({ model: cfg.model || 'openai/gpt-oss-120b', messages: [{role:'system', content:"Tu es un tuteur de français."}, {role:'user', content:text}], max_tokens:150 })
     });
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || 'Bien reçu !';
+    stream.insertAdjacentHTML('beforeend', `<div class="text-slate-700 bg-white p-2 rounded-xl border">${reply}</div>`);
+    stream.scrollTop = stream.scrollHeight;
+    await speakText(reply);
   }catch(err){
-    container.innerHTML = `<div class="p-6 text-center text-red-600 text-xs">⚠️ Impossible de charger <code>modules/nationalities.html</code>. Assurez-vous que le fichier existe dans le dossier <code>modules/</code>.<br><span class="text-slate-400">${safeErrorMessage(err)}</span></div>`;
+    stream.insertAdjacentHTML('beforeend', `<div class="text-red-600">⚠️ ${err.message}</div>`);
   }
 }
-
-document.getElementById('replayBtn').onclick = ()=> { if(lastSpokenText) speakPlume(lastSpokenText, true); };
-function exportHistory(){
-  let content = "--- Journal de conversation — Plume ---\n\n" + lessonHistory.map(m=>`${m.role === 'user' ? 'Étudiant' : 'Plume'} : ${m.content}`).join('\n');
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'plume-session.txt'; a.click();
-}
-document.getElementById('exportBtn').onclick = exportHistory;
 
 updateConnStatus();
 if(!getConfig().baseUrl){ setTimeout(()=>document.getElementById('settingsBtn').click(), 400); }
